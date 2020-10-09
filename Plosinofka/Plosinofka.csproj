@@ -9,11 +9,21 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="Content\Worlds\world1-color.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="Content\Worlds\world1-color.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
 	  <PackageReference Include="SDL2-CS.NetCore" Version="2.0.8" />
 	</ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-	  <Exec Command="copy $(SolutionDir)3rd\SDL2.dll $(OutDir)" />
+	  <Exec Command="copy $(SolutionDir)3rd\SDL2\*.dll $(OutDir)" />
 	</Target>
 
 </Project>

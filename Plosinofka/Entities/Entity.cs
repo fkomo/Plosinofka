@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Ujeby.Plosinofka.Entities
 {
@@ -12,13 +8,19 @@ namespace Ujeby.Plosinofka.Entities
 
 		public string Name { get; protected set; }
 
-		/// <summary>
-		/// Entity position (center)
-		/// </summary>
+		/// <summary></summary>
 		public Vector2f Position;
+
+		/// <summary></summary>
+		public Vector2f Velocity = Simulation.Gravity;
 
 		public abstract void Update();
 
 		public abstract Entity Copy();
+
+		public override string ToString()
+		{
+			return $"{ Name } [{ Id }]";
+		}
 	}
 }

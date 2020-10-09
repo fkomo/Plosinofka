@@ -18,8 +18,8 @@ namespace Ujeby.Plosinofka
 			{
 				if (button == InputButton.Left || button == InputButton.Right)
 				{
-					var direction = new Vector2f(button == InputButton.Left ? -1 : 1, 0);
-					player.CurrentState = PlayerStateMachine.Change(player.CurrentState, new PlayerWalking(direction));
+					player.Velocity.X = button == InputButton.Left ? -player.WalkingStep : player.WalkingStep;
+					player.CurrentState = PlayerStateMachine.Change(player.CurrentState, new PlayerWalking());
 				}
 				else if (button == Settings.Current.PlayerControls.Crouch)
 				{
@@ -27,7 +27,8 @@ namespace Ujeby.Plosinofka
 				}
 				else if (button == Settings.Current.PlayerControls.Jump)
 				{
-					player.CurrentState = PlayerStateMachine.Change(this, new PlayerJumping(player.JumpingVelocity));
+					player.CurrentState = PlayerStateMachine.Change(this, new PlayerJumping());
+					player.Velocity = player.JumpingVelocity;
 				}
 			}
 		}

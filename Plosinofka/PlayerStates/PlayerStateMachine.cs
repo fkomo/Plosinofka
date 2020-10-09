@@ -12,6 +12,7 @@ namespace Ujeby.Plosinofka
 		Running,
 		Sneaking,
 		Jumping,
+		HitWall,
 	}
 
 	internal abstract class PlayerState

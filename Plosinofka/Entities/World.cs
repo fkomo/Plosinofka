@@ -3,22 +3,49 @@ using System;
 
 namespace Ujeby.Plosinofka.Entities
 {
+	class Level
+	{
+		public Vector2i Size;
+		public Guid CollisionTextureId;
+		public Guid ColorTextureId;
+	}
+
 	class World
 	{
-		public double Ground;
+		public Level CurrentLevel { get; private set; }
 
-		public World(double ground)
+		public World()
 		{
-			Ground = ground;
+			var colorTexture = TextureCache.Load(@".\Content\Worlds\world1-color.png");
+			var collisionTexture = TextureCache.Load(@".\Content\Worlds\world1-collision.png");
+
+			CurrentLevel = new Level
+			{
+				Size = colorTexture.Size,
+				CollisionTextureId = collisionTexture.Id,
+				ColorTextureId = colorTexture.Id,
+			};
 		}
 
-		public void Render(IntPtr renderer, World beforeUpdate, double interpolation)
+		public void Render(Camera camera, World beforeUpdate, double interpolation)
 		{
-			SDL.SDL_SetRenderDrawColor(renderer, 128, 128, 128, 255);
-			SDL.SDL_RenderDrawLine(renderer, 0, (int)Ground, 1920 / 2, (int)Ground);
+			// SDL starts at top left
+			// world starts at bottom left
+			var colorTexture = TextureCache.Get(CurrentLevel.ColorTextureId);
+			if (colorTexture == null)
+				return;
 
-			for (var i = 32; i < 1920/2; i += 32)
-				SDL.SDL_RenderDrawLine(renderer, i, (int)Ground, i, 1080 / 2);
+			var cameraPosition = camera.GetPosition(interpolation);
+
+			var source = new SDL.SDL_Rect
+			{
+				x = (int)(cameraPosition.X - (camera.Size.X / 2)),
+				y = colorTexture.Size.Y - (int)(cameraPosition.Y + (camera.Size.Y / 2)),
+				w = camera.Size.X,
+				h = camera.Size.Y
+			};
+
+			SDL.SDL_RenderCopy(Renderer.Instance.RendererPtr, colorTexture.Ptr, ref source, IntPtr.Zero);
 		}
 	}
 }

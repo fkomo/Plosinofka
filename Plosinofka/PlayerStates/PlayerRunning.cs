@@ -7,37 +7,37 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerStateEnum AsEnum { get { return PlayerStateEnum.Running; } }
 
-		public PlayerRunning(Vector2f direction) : base(direction)
-		{
-		}
-
 		public override void HandleButton(InputButton button, InputButtonState state, Player player)
 		{
 			if (state == InputButtonState.Pressed)
 			{
 				// if crouch was pressed
 				if (button == Settings.Current.PlayerControls.Crouch)
-					player.CurrentState = PlayerStateMachine.Change(this, new PlayerSneaking(Direction));
-
+				{
+					player.Velocity.X = player.Velocity.X > 0 ? player.SneakingStep : -player.SneakingStep;
+					player.CurrentState = PlayerStateMachine.Change(this, new PlayerSneaking());
+				}
 				else if (button == Settings.Current.PlayerControls.Jump)
 				{
-					var velocity = player.JumpingVelocity + Direction * player.RunningStep;
-					player.CurrentState = PlayerStateMachine.Change(this, new PlayerJumping(velocity));
+					player.Velocity = player.JumpingVelocity + player.Velocity;
+					player.CurrentState = PlayerStateMachine.Change(this, new PlayerJumping());
 				}
 
 				// if opposite direction was pressed while moving, freeze
-				else if (Direction.X != 0 && (button == InputButton.Left || button == InputButton.Right))
-					Direction.X = 0;
+				else if (player.Velocity.X != 0 && (button == InputButton.Left || button == InputButton.Right))
+					player.Velocity.X = 0;
 			}
 			else if (state == InputButtonState.Released)
 			{
 				// running released
 				if (button == Settings.Current.PlayerControls.Running)
-					player.CurrentState = PlayerStateMachine.Change(this, new PlayerWalking(Direction));
-
+				{
+					player.Velocity.X = player.Velocity.X > 0 ? player.WalkingStep : -player.WalkingStep;
+					player.CurrentState = PlayerStateMachine.Change(this, new PlayerWalking());
+				}
 				// if both directions are pressed and one is released, player should continue moving in the other one
-				else if (Direction.X == 0 && (button == InputButton.Right || button == InputButton.Left))
-					Direction.X = button == InputButton.Right ? -1 : 1;
+				else if (player.Velocity.X == 0 && (button == InputButton.Right || button == InputButton.Left))
+					player.Velocity.X = button == InputButton.Right ? -player.RunningStep : player.RunningStep;
 
 				// if the last direction of movement is released
 				else if (button == InputButton.Right || button == InputButton.Left)
@@ -47,7 +47,7 @@ namespace Ujeby.Plosinofka
 
 		public override void Update(Player player)
 		{
-			player.Position += Direction * player.RunningStep;
+			base.Update(player);
 		}
 	}
 }

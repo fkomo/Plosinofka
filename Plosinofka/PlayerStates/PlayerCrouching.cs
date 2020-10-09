@@ -18,8 +18,8 @@ namespace Ujeby.Plosinofka
 			{
 				if (button == InputButton.Left || button == InputButton.Right)
 				{
-					var direction = new Vector2f(button == InputButton.Left ? -1 : 1, 0);
-					player.CurrentState = PlayerStateMachine.Change(this, new PlayerSneaking(direction));
+					player.Velocity.X = button == InputButton.Left ? -player.SneakingStep : player.SneakingStep;
+					player.CurrentState = PlayerStateMachine.Change(this, new PlayerSneaking());
 				}
 			}
 		}

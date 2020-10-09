@@ -6,7 +6,6 @@ namespace Ujeby.Plosinofka
 	class Game
 	{
 		public Simulation Simulation { get; private set; }
-		public Renderer Renderer { get; private set; }
 		public Input Input { get; private set; }
 
 		private static readonly Stopwatch Stopwatch = new Stopwatch();
@@ -21,9 +20,12 @@ namespace Ujeby.Plosinofka
 		private void Initialize(string title)
 		{
 			Title = title;
+
 			Input = new Input();
+			
+			Renderer.Instance.Initialize(new Vector2i(1920, 1080) / 2);
+
 			Simulation = new Simulation();
-			Renderer = new Renderer();
 		}
 
 		public void Run()
@@ -49,13 +51,13 @@ namespace Ujeby.Plosinofka
 				}
 
 				var interpolation = (GetElapsed() + skipTicks - nextGameTick) / skipTicks;
-				Renderer.Render(Simulation, interpolation);
+				Renderer.Instance.Render(Simulation, interpolation);
 
 				var fps = (int)(1000.0 / (GetElapsed() - lastFrameTime));
 				lastFrameTime = GetElapsed();
 
-				var title = $"{ Title } [fps:{ fps } | lastUpdate:{ Simulation.LastUpdateDuration:0.00}ms | lastRender:{ Renderer.LastFrameDuration:0.00}ms]";
-				Renderer.SetWindowTitle(title);
+				var title = $"{ Title } [fps: { fps } | lastUpdate: { Simulation.LastUpdateDuration:0.00}ms | lastRender: { Renderer.Instance.LastFrameDuration:0.00}ms]";
+				Renderer.Instance.SetWindowTitle(title);
 			}
 
 			Simulation.Destroy();
