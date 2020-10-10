@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Ujeby.Plosinofka.Common;
 using Ujeby.Plosinofka.Entities;
 
 namespace Ujeby.Plosinofka
@@ -33,13 +34,12 @@ namespace Ujeby.Plosinofka
 
 		private void Initialize()
 		{
-			var player = new Player("Jebko");
-			player.Position = new Vector2f(128, 128);
-
-			Entities.Add(player);
+			Entities.Add(new Player("Jebko") { Position = new Vector2f(128, 128) });
+			//Entities.Add(new TestCube("Test") { Position = new Vector2f(256, 256) });
 
 			World = new World();
-			Camera = new Camera(Renderer.Instance.WindowSize, player.Position);
+
+			Camera = new Camera(Renderer.Instance.WindowSize / 2, GetPlayerEntity());
 		}
 
 		public void Update()
@@ -54,7 +54,7 @@ namespace Ujeby.Plosinofka
 				entity.Update();
 
 			// update camera
-			Camera.Update(Entities.Single(e => e is Player), World);
+			Camera.Update(GetPlayerEntity(), World);
 
 			Stopwatch.Stop();
 			LastUpdateDuration = Game.GetElapsed(Stopwatch);
@@ -66,7 +66,7 @@ namespace Ujeby.Plosinofka
 
 		internal Player GetPlayerEntity()
 		{
-			return Entities.Single(e => e is Player) as Player;
+			return Entities.SingleOrDefault(e => e is Player) as Player;
 		}
 	}
 }

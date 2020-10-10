@@ -1,34 +1,30 @@
-﻿using SDL2;
-using System.Drawing;
+﻿using System;
+using Ujeby.Plosinofka.Common;
 using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka.Entities
 {
 	class Player : Entity, IRender, IHandleInput
 	{
-		public readonly Vector2i Size = new Vector2f(32, 64);
-
-		/// <summary></summary>
-		public double WalkingStep { get { return 16; } }
-
-		/// <summary></summary>
-		public double SneakingStep { get { return WalkingStep / 2; } }
-
-		/// <summary></summary>
-		public double RunningStep { get { return WalkingStep * 2; } }
-
-		/// <summary>side step while in air</summary>
-		public double AirStep { get { return WalkingStep; } }
+		public const double WalkingStep = 16;
+		public const double SneakingStep = WalkingStep / 2;
+		public const double RunningStep = WalkingStep * 2;
+		public const double AirStep = WalkingStep;
 
 		/// <summary>initial upwards jump velocity</summary>
 		public readonly Vector2f JumpingVelocity = new Vector2f(0, 34);
 
-		public PlayerState CurrentState { get; set; }
+		public PlayerState CurrentState;
+		public PlayerStateMachine State { get; private set; } = new PlayerStateMachine();
 
-		public Player(string name)
+		public Guid PlayerSpriteId { get; private set; }
+
+		public override Vector2i Size => ResourceCache.Get<Sprite>(PlayerSpriteId).Size;
+
+		public Player(string name) : base(name)
 		{
-			Name = name;
-			CurrentState = PlayerStateMachine.Change(null, new PlayerStanding());
+			PlayerSpriteId = ResourceCache.LoadSprite(@".\Content\player.png").Id;
+			CurrentState = State.Change(null, new Standing());
 		}
 
 		private Player()
@@ -38,52 +34,12 @@ namespace Ujeby.Plosinofka.Entities
 
 		public void Render(Camera camera, Entity beforeUpdate, double interpolation)
 		{
-			// interpolate
+			// interpolate position
 			var newPosition = beforeUpdate.Position + (Position - beforeUpdate.Position) * interpolation;
 
-			// relative to camera
-			newPosition = camera.RelateTo(newPosition, interpolation);
-
-			// inverse y coord
-			newPosition.Y = camera.Size.Y - newPosition.Y;
-
-			RenderPlayer(newPosition);
-		}
-
-		private void RenderPlayer(Vector2i position)
-		{
-			// color based on player state
-			var playerColor = Color.FromArgb(255, 255, 255);
-			switch (CurrentState.AsEnum)
-			{
-				case PlayerStateEnum.Walking: playerColor = Color.FromArgb(255, 0, 0); break;
-				case PlayerStateEnum.Running: playerColor = Color.FromArgb(0, 255, 0); break;
-				case PlayerStateEnum.Jumping: playerColor = Color.FromArgb(0, 0, 255); break;
-				case PlayerStateEnum.Sneaking: playerColor = Color.FromArgb(127, 0, 0); break;
-				case PlayerStateEnum.Crouching: playerColor = Color.FromArgb(127, 127, 127); break;
-			}
-
-			// move to top left corner
-			position -= Size / 2;
-
-			// player shape
-			var playerRectangle = new SDL.SDL_Rect
-			{
-				w = Size.X,
-				h = Size.Y,
-				x = position.X,
-				y = position.Y,
-			};
-
-			if (CurrentState.AsEnum == PlayerStateEnum.Sneaking || CurrentState.AsEnum == PlayerStateEnum.Crouching)
-			{
-				playerRectangle.h /= 2;
-				playerRectangle.y += Size.Y / 2;
-			}
-
-			var renderer = Renderer.Instance.RendererPtr;
-			SDL.SDL_SetRenderDrawColor(renderer, playerColor.R, playerColor.G, playerColor.B, playerColor.A);
-			SDL.SDL_RenderFillRect(renderer, ref playerRectangle);
+			Renderer.Instance.RenderSprite(camera, 
+				newPosition, ResourceCache.Get<Sprite>(PlayerSpriteId), 
+				interpolation);
 		}
 
 		public override void Update()
@@ -99,17 +55,17 @@ namespace Ujeby.Plosinofka.Entities
 
 			// TODO collide with world
 
-			if (Position.Y < Size.Y / 2)
+			if (Position.Y < Size.Y)
 			{
 				Velocity.Y = 0;
-				Position.Y = Size.Y / 2;
+				Position.Y = Size.Y;
 			}
 			
-			if (Position.X < Size.X / 2)
+			if (Position.X < 0)
 			{
 				Velocity.X = 0;
-				Position.X = Size.X / 2;
-				CurrentState = PlayerStateMachine.Change(CurrentState, new PlayerHitWall());
+				Position.X = 0;
+				CurrentState = State.Change(CurrentState, new HitWall());
 			}
 		}
 

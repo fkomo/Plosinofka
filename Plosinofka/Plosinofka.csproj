@@ -9,10 +9,24 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="Content\Worlds\color-test.png" />
+	  <None Remove="Content\Worlds\player.png" />
+	  <None Remove="Content\Worlds\world1-collision.bmp" />
+	  <None Remove="Content\Worlds\world1-collision.png" />
 	  <None Remove="Content\Worlds\world1-color.png" />
+	  <None Remove="Content\Worlds\world1.bmp" />
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Content Include="Content\test.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Content\player.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Content\Worlds\world1-collision.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
 	  <Content Include="Content\Worlds\world1-color.png">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Content>
@@ -20,6 +34,7 @@
 
 	<ItemGroup>
 	  <PackageReference Include="SDL2-CS.NetCore" Version="2.0.8" />
+	  <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
 	</ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">

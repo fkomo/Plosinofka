@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using Ujeby.Plosinofka.Interfaces;
 using Ujeby.Plosinofka.Entities;
+using Ujeby.Plosinofka.Common;
 
 namespace Ujeby.Plosinofka
 {
@@ -66,13 +67,17 @@ namespace Ujeby.Plosinofka
 			SDL.SDL_SetRenderDrawColor(RendererPtr, 0, 0, 0, 255);
 			SDL.SDL_RenderClear(RendererPtr);
 
-			// render static world
-			simulation.World.Render(simulation.Camera, null, interpolation);
+			// render world background
+			simulation.World.RenderBackground(simulation.Camera, interpolation);
 
 			// render dynamic entities
 			foreach (IRender entity in simulation.Entities.Where(e => e is IRender))
 				entity.Render(simulation.Camera,
-					simulation.EntitiesBeforeUpdate.SingleOrDefault(e => e.Id == (entity as Entity).Id), interpolation);
+					simulation.EntitiesBeforeUpdate.SingleOrDefault(e => e.Id == (entity as Entity).Id), 
+					interpolation);
+
+			// render world foreground
+			simulation.World.RenderForeground(simulation.Camera, interpolation);
 
 			// display backbuffer
 			SDL.SDL_RenderPresent(RendererPtr);
@@ -92,6 +97,28 @@ namespace Ujeby.Plosinofka
 			SDL.SDL_DestroyRenderer(instance.RendererPtr);
 			SDL.SDL_DestroyWindow(instance.WindowPtr);
 			instance = null;
+		}
+
+		/// <summary>
+		/// render sprite to screen
+		/// </summary>
+		/// <param name="camera"></param>
+		/// <param name="worldPosition">sprite position in world (top left)</param>
+		/// <param name="sprite"></param>
+		/// <param name="interpolation"></param>
+		internal void RenderSprite(Camera camera, Vector2f worldPosition, Sprite sprite, double interpolation)
+		{
+			var viewScale = WindowSize / camera.InterpolatedView(interpolation);
+			var screenSpaceTopLeft = camera.RelateTo(worldPosition, interpolation) * viewScale;
+
+			var destination = new SDL.SDL_Rect
+			{
+				x = (int)screenSpaceTopLeft.X,
+				y = -(int)screenSpaceTopLeft.Y,
+				w = (int)(sprite.Size.X * viewScale.X),
+				h = (int)(sprite.Size.Y * viewScale.Y),
+			};
+			SDL.SDL_RenderCopy(RendererPtr, sprite.TexturePtr, IntPtr.Zero, ref destination);
 		}
 	}
 }

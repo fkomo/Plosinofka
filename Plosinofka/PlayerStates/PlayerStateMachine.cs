@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using Ujeby.Plosinofka.Interfaces;
+﻿using Ujeby.Plosinofka.Interfaces;
 using Ujeby.Plosinofka.Entities;
+using Ujeby.Plosinofka.Common;
 
 namespace Ujeby.Plosinofka
 {
@@ -15,46 +15,25 @@ namespace Ujeby.Plosinofka
 		HitWall,
 	}
 
-	internal abstract class PlayerState
+	internal abstract class PlayerState : State
 	{
 		public abstract void HandleButton(InputButton button, InputButtonState state, Player player);
 
 		public abstract void Update(Player player);
 
+		public override string ToString()
+		{
+			return AsEnum.ToString();
+		}
+
 		public abstract PlayerStateEnum AsEnum { get; }
 	}
 
-	class PlayerStateMachine
+	class PlayerStateMachine : StateMachine<PlayerState>
 	{
-		public static Stack<PlayerState> States = new Stack<PlayerState>();
-
-		public static void Clear()
+		public new PlayerState Pop()
 		{
-			States.Clear();
-		}
-
-		public static PlayerState Push(PlayerState state)
-		{
-			States.Push(state);
-			return state;
-		}
-
-		public static PlayerState Pop()
-		{
-			if (States.TryPop(out PlayerState lastState))
-				return lastState;
-
-			return new PlayerStanding();
-		}
-
-		public static PlayerState Change(PlayerState from, PlayerState to)
-		{
-			Log.Add($"PlayerStateChange({ from?.AsEnum } -> { to.AsEnum })");
-
-			if (from != null)
-				Push(from);
-
-			return to;
+			return base.Pop() ?? new Standing();
 		}
 	}
 }
