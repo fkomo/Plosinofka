@@ -1,6 +1,6 @@
 ﻿using Ujeby.Plosinofka.Interfaces;
 
-namespace Ujeby.Plosinofka
+namespace Ujeby.Plosinofka.Core
 {
 	internal class Settings
 	{

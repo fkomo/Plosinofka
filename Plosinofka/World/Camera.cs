@@ -23,7 +23,7 @@ namespace Ujeby.Plosinofka
 			TopLeft = TopLeftBeforeUpdate = new Vector2f(targetCenter.X - view.X / 2, targetCenter.Y + view.Y / 2);
 		}
 
-		public void Update(Entity target, World world)
+		public void Update(Entity target, Vector2i borders)
 		{
 			ViewBeforeUpdate = View;
 			TopLeftBeforeUpdate = TopLeft;
@@ -31,8 +31,8 @@ namespace Ujeby.Plosinofka
 			// camera is targeted at entity and its view wont go beyond world borders
 			var targetCenter = target.Center;
 			TopLeft = new Vector2f(
-				Math.Min(world.CurrentLevel.Size.X - View.X, Math.Max(0, targetCenter.X - View.X / 2)),
-				Math.Min(world.CurrentLevel.Size.Y, Math.Max(View.Y, targetCenter.Y + View.Y / 2)));
+				Math.Min(borders.X - View.X, Math.Max(0, targetCenter.X - View.X / 2)),
+				Math.Min(borders.Y, Math.Max(View.Y, targetCenter.Y + View.Y / 2)));
 		}
 
 		public Vector2f GetPosition(double interpolation)

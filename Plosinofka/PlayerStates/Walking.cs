@@ -1,5 +1,6 @@
 ﻿using Ujeby.Plosinofka.Interfaces;
 using Ujeby.Plosinofka.Entities;
+using Ujeby.Plosinofka.Core;
 
 namespace Ujeby.Plosinofka
 {
@@ -40,13 +41,16 @@ namespace Ujeby.Plosinofka
 
 				// if the last direction of movement is released
 				else if (button == InputButton.Right || button == InputButton.Left)
+				{
+					player.Velocity.X = 0;
 					player.CurrentState = player.State.Change(this, new Standing());
+				}
 			}
 		}
 
 		public override void Update(Player player)
 		{
-			player.Position.X += player.Velocity.X;
+			player.BoundingBox.TopLeft.X += player.Velocity.X;
 		}
 	}
 }

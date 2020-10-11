@@ -1,5 +1,6 @@
 ﻿using System;
 using Ujeby.Plosinofka.Common;
+using Ujeby.Plosinofka.Core;
 
 namespace Ujeby.Plosinofka
 {
@@ -9,7 +10,7 @@ namespace Ujeby.Plosinofka
 		{
 			try
 			{
-				new Game("Plosinofka")
+				new Game("Plosinofka", new Vector2i(1920, 1080))
 					.Run();
 			}
 			catch (Exception ex)

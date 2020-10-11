@@ -1,12 +1,9 @@
 ﻿using SDL2;
 using System;
-using System.Diagnostics;
-using System.Linq;
-using Ujeby.Plosinofka.Interfaces;
-using Ujeby.Plosinofka.Entities;
 using Ujeby.Plosinofka.Common;
+using Ujeby.Plosinofka.Core;
 
-namespace Ujeby.Plosinofka
+namespace Ujeby.Plosinofka.Graphics
 {
 	class Renderer
 	{
@@ -18,8 +15,6 @@ namespace Ujeby.Plosinofka
 		/// <summary>max number of skippable frames to render</summary>
 		public const int MaxFrameSkip = 5;
 		public double LastFrameDuration { get; internal set; }
-
-		private Stopwatch Stopwatch = new Stopwatch();
 
 		public long FrameCount { get; private set; } = 0;
 
@@ -61,30 +56,19 @@ namespace Ujeby.Plosinofka
 
 		public void Render(Simulation simulation, double interpolation)
 		{
-			Stopwatch.Restart();
+			var start = Game.GetElapsed();
 
 			// clear backbuffer
 			SDL.SDL_SetRenderDrawColor(RendererPtr, 0, 0, 0, 255);
 			SDL.SDL_RenderClear(RendererPtr);
 
-			// render world background
-			simulation.World.RenderBackground(simulation.Camera, interpolation);
-
-			// render dynamic entities
-			foreach (IRender entity in simulation.Entities.Where(e => e is IRender))
-				entity.Render(simulation.Camera,
-					simulation.EntitiesBeforeUpdate.SingleOrDefault(e => e.Id == (entity as Entity).Id), 
-					interpolation);
-
-			// render world foreground
-			simulation.World.RenderForeground(simulation.Camera, interpolation);
+			simulation.Render(interpolation);
 
 			// display backbuffer
 			SDL.SDL_RenderPresent(RendererPtr);
 
 			FrameCount++;
-			Stopwatch.Stop();
-			LastFrameDuration = Game.GetElapsed(Stopwatch);
+			LastFrameDuration = Game.GetElapsed() - start;
 		}
 
 		internal void SetWindowTitle(string title)
@@ -119,6 +103,26 @@ namespace Ujeby.Plosinofka
 				h = (int)(sprite.Size.Y * viewScale.Y),
 			};
 			SDL.SDL_RenderCopy(RendererPtr, sprite.TexturePtr, IntPtr.Zero, ref destination);
+		}
+
+		/// <summary>
+		/// render sprite to screen
+		/// </summary>
+		/// <param name="camera"></param>
+		/// <param name="sprite"></param>
+		/// <param name="interpolation"></param>
+		internal void RenderSprite(Camera camera, Sprite sprite, double interpolation)
+		{
+			var cameraPosition = camera.GetPosition(interpolation);
+
+			var source = new SDL.SDL_Rect
+			{
+				x = (int)cameraPosition.X,
+				y = sprite.Size.Y - (int)cameraPosition.Y, // because sdl surface starts at topleft
+				w = camera.View.X,
+				h = camera.View.Y
+			};
+			SDL.SDL_RenderCopy(RendererPtr, sprite.TexturePtr, ref source, IntPtr.Zero);
 		}
 	}
 }

@@ -1,24 +1,14 @@
 ﻿using SDL2;
 using Ujeby.Plosinofka.Interfaces;
 
-namespace Ujeby.Plosinofka
+namespace Ujeby.Plosinofka.Core
 {
 	class Input
 	{
 		private static byte[] CurrentKeys = new byte[(int)SDL.SDL_Scancode.SDL_NUM_SCANCODES];
 		private static byte[] PreviousKeys = new byte[(int)SDL.SDL_Scancode.SDL_NUM_SCANCODES];
 
-		public Input()
-		{
-			Initialize();
-		}
-
-		private void Initialize()
-		{
-
-		}
-
-		public bool Handle(Simulation simulation)
+		public static bool Handle(Simulation simulation)
 		{
 			while (SDL.SDL_PollEvent(out SDL.SDL_Event e) != 0)
 			{
@@ -69,12 +59,12 @@ namespace Ujeby.Plosinofka
 			return true;
 		}
 
-		private bool KeyPressed(SDL.SDL_Scancode scanCode)
+		private static bool KeyPressed(SDL.SDL_Scancode scanCode)
 		{
 			return CurrentKeys[(int)scanCode] == 1 && PreviousKeys[(int)scanCode] == 0;
 		}
 
-		private bool KeyReleased(SDL.SDL_Scancode scanCode)
+		private static bool KeyReleased(SDL.SDL_Scancode scanCode)
 		{
 			return CurrentKeys[(int)scanCode] == 0 && PreviousKeys[(int)scanCode] == 1;
 		}
