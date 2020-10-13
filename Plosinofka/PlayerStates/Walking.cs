@@ -8,18 +8,16 @@ namespace Ujeby.Plosinofka
 {
 	abstract class Moving : PlayerState
 	{
-		protected Vector2i Direction;
+		protected Vector2f Direction;
 
-		protected Moving(Vector2i direction) => Direction = direction;
+		protected Moving(Vector2f direction) => Direction = direction;
 
-		protected Moving(InputButton button) => Direction = GetDirection(button);
-
-		public static Vector2i GetDirection(InputButton button) => new Vector2i(button == InputButton.Left ? -1 : 1, 0);
+		protected Moving(InputButton button) => Direction = new Vector2f(button == InputButton.Left ? -1 : 1, 0);
 	}
 
 	class Walking : Moving
 	{
-		public Walking(Vector2i direction) : base(direction)
+		public Walking(Vector2f direction) : base(direction)
 		{
 		}
 

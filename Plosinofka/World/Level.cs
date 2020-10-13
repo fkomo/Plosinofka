@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Ujeby.Plosinofka.Common;
 using Ujeby.Plosinofka.Core;
 using Ujeby.Plosinofka.Entities;
@@ -53,72 +54,7 @@ namespace Ujeby.Plosinofka
 			var elapsed = Game.GetElapsed() - start;
 			Log.Add($"Level.Load('{ name }'): { (int)elapsed }ms");
 
-			Test();
-
 			return level;
-		}
-
-		private static void Test()
-		{
-			var bb = new BoundingBox { Position = new Vector2f(100, 200), Size = new Vector2i(300, 400) };
-
-			Vector2f n;
-
-			// top
-			if (!double.IsInfinity(bb.Interserction(new Vector2f(bb.Position.X - 1, 1000), new Vector2f(0, -1), out n)))
-				throw new Exception("bb.Interserction bad!");
-			if (!double.IsInfinity(bb.Interserction(new Vector2f(bb.Position.X + bb.Size.X, 1000), new Vector2f(0, -1), out n)))
-				throw new Exception("bb.Interserction bad!");
-			if (!(0 < bb.Interserction(new Vector2f(bb.Position.X, 601), new Vector2f(0, -1), out n)))
-				throw new Exception("bb.Interserction bad!");
-			if (!(0 < bb.Interserction(new Vector2f(bb.Position.X + 1, 1000), new Vector2f(0, -1), out n)))
-				throw new Exception("bb.Interserction bad!");
-			if (!(0 < bb.Interserction(new Vector2f(bb.Position.X + bb.Size.X - 1, 1000), new Vector2f(0, -1), out n)))
-				throw new Exception("bb.Interserction bad!");
-			if (!(0 == bb.Interserction(new Vector2f(bb.Position.X, bb.Position.Y + bb.Size.Y - 1), new Vector2f(0, 1), out n)))
-				throw new Exception("bb.Interserction bad!");
-			if (!(-1 == bb.Interserction(new Vector2f(bb.Position.X, bb.Position.Y + bb.Size.Y), new Vector2f(0, 1), out n)))
-				throw new Exception("bb.Interserction bad!");
-			if (!(1 == bb.Interserction(new Vector2f(bb.Position.X, bb.Position.Y + bb.Size.Y), new Vector2f(0, -1), out n)))
-				throw new Exception("bb.Interserction bad!");
-
-			// bottom
-			if (!double.IsInfinity(bb.Interserction(new Vector2f(bb.Position.X - 1, 0), new Vector2f(0, 1), out n)))
-				throw new Exception("bb.Interserction bad!");
-			if (!double.IsInfinity(bb.Interserction(new Vector2f(bb.Position.X + bb.Size.X, 0), new Vector2f(0, 1), out n)))
-				throw new Exception("bb.Interserction bad!");
-			if (!(0 < bb.Interserction(new Vector2f(bb.Position.X, 0), new Vector2f(0, 1), out n)))
-				throw new Exception("bb.Interserction bad!");
-			if (!(0 < bb.Interserction(new Vector2f(bb.Position.X + 1, 0), new Vector2f(0, 1), out n)))
-				throw new Exception("bb.Interserction bad!");
-			if (!(0 < bb.Interserction(new Vector2f(bb.Position.X + bb.Size.X - 1, 0), new Vector2f(0, 1), out n)))
-				throw new Exception("bb.Interserction bad!");
-			if (!(0 == bb.Interserction(new Vector2f(bb.Position.X, bb.Position.Y), new Vector2f(0, -1), out n)))
-				throw new Exception("bb.Interserction bad!");
-			if (!(-1 == bb.Interserction(new Vector2f(bb.Position.X, bb.Position.Y - 1), new Vector2f(0, -1), out n)))
-				throw new Exception("bb.Interserction bad!");
-			if (!(1 == bb.Interserction(new Vector2f(bb.Position.X, bb.Position.Y - 1), new Vector2f(0, 1), out n)))
-				throw new Exception("bb.Interserction bad!");
-
-			// left
-			if (!double.IsInfinity(bb.Interserction(new Vector2f(0, bb.Position.Y - 1), new Vector2f(1, 0), out n)))
-				throw new Exception("bb.Interserction bad!");
-			if (!double.IsInfinity(bb.Interserction(new Vector2f(0, bb.Position.Y + bb.Size.Y), new Vector2f(1, 0), out n)))
-				throw new Exception("bb.Interserction bad!");
-			if (!(0 < bb.Interserction(new Vector2f(0, bb.Position.Y), new Vector2f(1, 0), out n)))
-				throw new Exception("bb.Interserction bad!");
-			if (!(0 < bb.Interserction(new Vector2f(0, bb.Position.Y + 1), new Vector2f(1, 0), out n)))
-				throw new Exception("bb.Interserction bad!");
-			if (!(0 < bb.Interserction(new Vector2f(0, bb.Position.Y + bb.Size.Y - 1), new Vector2f(1, 0), out n)))
-				throw new Exception("bb.Interserction bad!");
-			if (!(0 == bb.Interserction(new Vector2f(bb.Position.X, bb.Position.Y), new Vector2f(-1, 0), out n)))
-				throw new Exception("bb.Interserction bad!");
-			if (!(-1 == bb.Interserction(new Vector2f(bb.Position.X - 1, bb.Position.Y), new Vector2f(-1, 0), out n)))
-				throw new Exception("bb.Interserction bad!");
-			if (!(1 == bb.Interserction(new Vector2f(bb.Position.X - 1, bb.Position.Y), new Vector2f(1, 0), out n)))
-				throw new Exception("bb.Interserction bad!");
-
-			return;
 		}
 
 		/// <summary>
@@ -140,7 +76,7 @@ namespace Ujeby.Plosinofka
 
 					// skip if point is already in another collider
 					if (FindCollider(colliders, x, y, out BoundingBox oldCollider))
-						x += oldCollider.Size.X;
+						x += (int)oldCollider.Size.X;
 
 					else if (IsCollider(map.Data[p]))
 					{
@@ -148,36 +84,39 @@ namespace Ujeby.Plosinofka
 						var collider = new BoundingBox
 						{
 							Position = new Vector2f(x, y),
-							Size = new Vector2i(1, 1)
 						};
 
+						var width = 1;
+						var height = 1;
+
 						// find width
-						while (x + collider.Size.X < map.Size.X &&
-							IsCollider(map.Data[p + collider.Size.X]) &&
-							!colliders.Any(c => c.IsIn(x + collider.Size.X, y)))
-							collider.Size.X++;
+						while (x + width < map.Size.X &&
+							IsCollider(map.Data[p + width]) &&
+							!colliders.Any(c => c.IsIn(x + width, y)))
+							width++;
 
 						// find height
 						var cleanRow = true;
-						while (y + collider.Size.Y < map.Size.Y && cleanRow)
+						while (y + height < map.Size.Y && cleanRow)
 						{
-							var offset = p + collider.Size.Y * map.Size.X;
-							for (var i = 0; i < collider.Size.X; i++)
+							var offset = p + height * map.Size.X;
+							for (var i = 0; i < width; i++)
 								if (!IsCollider(map.Data[offset + i]) ||
-									colliders.Any(c => c.IsIn(x + i, y + collider.Size.Y)))
+									colliders.Any(c => c.IsIn(x + i, y + height)))
 								{
 									cleanRow = false;
 									break;
 								}
 
 							if (cleanRow)
-								collider.Size.Y++;
+								height++;
 						}
 
+						collider.Size = new Vector2f(width, height);
 						colliders.Add(collider);
 
 						// advance just after collider
-						x += collider.Size.X;
+						x += width;
 					}
 				}
 			}
@@ -216,33 +155,40 @@ namespace Ujeby.Plosinofka
 			// TODO one only 3 Intersections are needed
 
 			// bottom left
-			var tMin = Intersect(box.Position, direction, out Vector2f n1);
-			normal = n1;
+			var tMin = double.PositiveInfinity;
+				
+			var t1 = Intersect(box.Position, direction, out Vector2f n1);
+			if (t1 < tMin && Math.Abs(t1) < Math.Abs(tMin))
+			{
+				tMin = t1;
+				normal = n1;
+			}
 
 			// bottom right
-			var t2 = Intersect(box.Position + Vector2i.Right * (box.Size.X - 1), direction, out Vector2f n2);
-			if (t2 < tMin)
+			var t2 = Intersect(box.Position + Vector2f.Right * box.Size.X, direction, out Vector2f n2);
+			if (t2 < tMin && Math.Abs(t2) < Math.Abs(tMin))
 			{
 				tMin = t2;
 				normal = n2;
 			}
 
 			// top left
-			var t3 = Intersect(box.Position + Vector2i.Up * (box.Size.Y - 1), direction, out Vector2f n3);
-			if (t3 < tMin)
+			var t3 = Intersect(box.Position + Vector2f.Up * box.Size.Y, direction, out Vector2f n3);
+			if (t3 < tMin && Math.Abs(t3) < Math.Abs(tMin))
 			{
 				tMin = t3;
 				normal = n3;
 			}
 
 			// top right
-			var t4 = Intersect(box.Position + box.Size + new Vector2f(-1, -1), direction, out Vector2f n4);
-			if (t4 < tMin)
+			var t4 = Intersect(box.Position + box.Size, direction, out Vector2f n4);
+			if (t4 < tMin && Math.Abs(t4) < Math.Abs(tMin))
 			{
 				tMin = t4;
 				normal = n4;
 			}
 
+			Log.Add($"Level.Intersect(box={ box }, dir={ direction }): { tMin }, normal={ normal }");
 			return tMin;
 		}
 
@@ -251,9 +197,9 @@ namespace Ujeby.Plosinofka
 			normal = Vector2f.Zero;
 
 			var tMin = double.PositiveInfinity;
-			foreach (var bb in Colliders)
+			foreach (var bb in Colliders.Take(2))
 			{
-				var t = bb.Interserction(origin, direction, out Vector2f n);
+				var t = bb.Intersect(origin, direction, out Vector2f n);
 				if (t < tMin)
 				{
 					tMin = t;

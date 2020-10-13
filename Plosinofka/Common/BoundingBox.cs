@@ -3,127 +3,166 @@ using System;
 
 namespace Ujeby.Plosinofka.Common
 {
-	struct BoundingBox
+	public struct BoundingBox
 	{
 		/// <summary>bottom left</summary>
 		public Vector2f Position;
-		public Vector2i Size;
+		public Vector2f Size;
 
-		public bool IsIn(Vector2f p)
-		{
-			return !(p.X < Position.X || p.Y < Position.Y || p.X >= Position.X + Size.X || p.Y >= Position.Y + Size.Y);
-		}
+		public double Top => Position.Y + Size.Y;
+		public double Bottom => Position.Y;
+		public double Left => Position.X;
+		public double Right => Position.X + Size.X;
 
-		public bool IsIn(int x, int y)
-		{
-			return !(x < Position.X || y < Position.Y || x >= Position.X + Size.X || y >= Position.Y + Size.Y);
-		}
+		public bool IsIn(Vector2f p) => IsIn(p.X, p.Y);
+		public bool IsIn(double x, double y) => !(x < Left || y < Bottom || x >= Right || y >= Top);
+		public bool IsIn(int x, int y) => !(x < Left || y < Bottom || x >= Right || y >= Top);
 
-		public bool Overlapping(BoundingBox box)
+		public override string ToString() => $"{ Position }x{ Size }";
+
+		public bool IsOverlapping(BoundingBox box) => IsOverlapping(box.Position, box.Size);
+
+		public bool IsOverlapping(Vector2f position, Vector2f size)
 		{
 			// above
-			if (box.Position.Y >= Position.Y + Size.Y)
+			if (position.Y > Position.Y + Size.Y)
 				return false;
 
 			// bellow
-			if (box.Position.Y + box.Size.Y <= Position.Y)
+			if (position.Y + size.Y < Position.Y)
 				return false;
 
 			// left
-			if (box.Position.X + box.Size.X <= Position.X)
+			if (position.X + size.X < Position.X)
 				return false;
 
 			// right
-			if (box.Position.X >= Position.X + Size.X)
+			if (position.X > Position.X + Size.X)
 				return false;
 
 			return true;
 		}
 
-		public bool Overlapping(Vector2f position, Vector2i size)
-		{
-			// above
-			if (position.Y >= Position.Y + Size.Y)
-				return false;
-
-			// bellow
-			if (position.Y + size.Y <= Position.Y)
-				return false;
-
-			// left
-			if (position.X + size.X <= Position.X)
-				return false;
-
-			// right
-			if (position.X >= Position.X + Size.X)
-				return false;
-
-			return true;
-		}
-
-		internal double Interserction(Vector2f origin, Vector2f direction, out Vector2f normal)
+		public double Intersect(Vector2f origin, Vector2f direction, out Vector2f normal)
 		{
 			normal = Vector2f.Zero;
 			var tMin = double.PositiveInfinity;
 
-			if (IsIn(origin))
-				return 0;
+			if (!IsIn(origin))
+			{
+				if (origin.X <= Position.X && direction.X > 0)
+				{
+					var t = (-origin.X + Math.Abs(Position.X)) / direction.X;
+					if (t < tMin && !double.IsInfinity(t))
+					{
+						var hit = origin.Y + direction.Y * t;
+						if (hit >= Position.Y && hit < Position.Y + Size.Y)
+						{
+							tMin = t;
+							normal = Vector2f.Left;
+						}
+					}
+				}
+				else if (origin.X >= Position.X + Size.X && direction.X < 0)
+				{
+					var t = (-origin.X + Math.Abs(Position.X + Size.X)) / direction.X;
+					if (t < tMin && !double.IsInfinity(t))
+					{
+						var hit = origin.Y + direction.Y * t;
+						if (hit >= Position.Y && hit < Position.Y + Size.Y)
+						{
+							tMin = t;
+							normal = Vector2f.Right;
+						}
+					}
+				}
 
-			// ! origin is not inside
+				if (origin.Y <= Position.Y && direction.Y > 0)
+				{
+					var t = (-origin.Y + Math.Abs(Position.Y)) / direction.Y;
+					if (t < tMin && !double.IsInfinity(t))
+					{
+						var hit = origin.X + direction.X * t;
+						if (hit >= Position.X && hit < Position.X + Size.X)
+						{
+							tMin = t;
+							normal = Vector2f.Down;
+						}
+					}
+				}
+				else if (origin.Y >= Position.Y + Size.Y && direction.Y < 0)
+				{
+					var t = (-origin.Y + Math.Abs(Position.Y + Size.Y)) / direction.Y;
+					if (t < tMin && !double.IsInfinity(t))
+					{
+						var hit = origin.X + direction.X * t;
+						if (hit >= Position.X && hit < Position.X + Size.X)
+						{
+							tMin = t;
+							normal = Vector2f.Up;
+						}
+					}
+				}
+			}
+			else
+			{
+				if (direction.X > 0)
+				{
+					var t = (-origin.X + Right) / direction.X;
+					if (t < tMin)
+					{
+						var hit = origin.Y + direction.Y * t;
+						if (hit > Bottom && hit < Top)
+						{
+							tMin = t;
+							normal = Vector2f.Left;
+						}
+					}
+				}
+				else
+				{
+					var t = (-origin.X + Left) / direction.X;
+					if (t < tMin)
+					{
+						var hit = origin.Y + direction.Y * t;
+						if (hit > Bottom && hit < Top)
+						{
+							tMin = t;
+							normal = Vector2f.Right;
+						}
+					}
+				}
 
-			if (origin.X <= Position.X)
-			{
-				var t = (-origin.X + Math.Abs(Position.X)) / direction.X;
-				if (t < tMin)
+				if (direction.Y > 0)
 				{
-					var hit = origin.Y + direction.Y * t;
-					if (hit >= Position.Y && hit < Position.Y + Size.Y)
+					var t = (-origin.Y + Top) / direction.Y;
+					if (t < tMin)
 					{
-						tMin = t;
-						normal = Vector2f.Left;
+						var hit = origin.X + direction.X * t;
+						if (hit > Left && hit < Right)
+						{
+							tMin = t;
+							normal = Vector2f.Down;
+						}
 					}
 				}
-			}
-			else if (origin.X >= Position.X + Size.X - 1)
-			{
-				var t = (-origin.X + Math.Abs(Position.X + Size.X - 1)) / direction.X;
-				if (t < tMin)
+				else
 				{
-					var hit = origin.Y + direction.Y * t;
-					if (hit >= Position.Y && hit < Position.Y + Size.Y)
+					var t = (-origin.Y + Bottom) / direction.Y;
+					if (t < tMin)
 					{
-						tMin = t;
-						normal = Vector2f.Right;
+						var hit = origin.X + direction.X * t;
+						if (hit > Left && hit < Right)
+						{
+							tMin = t;
+							normal = Vector2f.Up;
+						}
 					}
 				}
 			}
 
-			if (origin.Y <= Position.Y)
-			{
-				var t = (-origin.Y + Math.Abs(Position.Y)) / direction.Y;
-				if (t < tMin)
-				{
-					var hit = origin.X + direction.X * t;
-					if (hit >= Position.X && hit < Position.X + Size.X)
-					{
-						tMin = t;
-						normal = Vector2f.Down;
-					}
-				}
-			}
-			else if (origin.Y >= Position.Y + Size.Y - 1)
-			{
-				var t = (-origin.Y + Math.Abs(Position.Y + Size.Y - 1)) / direction.Y;
-				if (t < tMin)
-				{
-					var hit = origin.X + direction.X * t;
-					if (hit >= Position.X && hit < Position.X + Size.X)
-					{
-						tMin = t;
-						normal = Vector2f.Up;
-					}
-				}
-			}
+			if (double.IsInfinity(tMin))
+				normal = Vector2f.Zero;
 
 			return tMin;
 		}

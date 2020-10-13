@@ -8,12 +8,12 @@ namespace Ujeby.Plosinofka
 {
 	class Jumping : Moving
 	{
-		public Jumping() : this(new Vector2i())
+		public Jumping() : this(new Vector2f())
 		{
 
 		}
 
-		public Jumping(Vector2i direction) : base(direction)
+		public Jumping(Vector2f direction) : base(direction)
 		{
 		}
 

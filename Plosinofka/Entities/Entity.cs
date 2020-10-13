@@ -15,7 +15,7 @@ namespace Ujeby.Plosinofka.Entities
 
 		/// <summary>bottom left</summary>
 		public Vector2f Position { get { return BoundingBox.Position; } set { BoundingBox.Position = value; } }
-		public Vector2i Size => BoundingBox.Size;
+		public Vector2f Size => BoundingBox.Size;
 		public Vector2f Center => Position + Size / 2;
 
 		public override string ToString() => $"{ Id }-{ Name }";

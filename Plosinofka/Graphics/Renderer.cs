@@ -70,6 +70,21 @@ namespace Ujeby.Plosinofka.Graphics
 			LastFrameDuration = Game.GetElapsed() - start;
 		}
 
+		internal void RenderLine(Camera camera, Vector2f a, Vector2f b, double interpolation)
+		{
+			var viewScale = WindowSize / camera.InterpolatedView(interpolation);
+			a = camera.RelateTo(a, interpolation) * viewScale;
+			b = camera.RelateTo(b, interpolation) * viewScale;
+
+			// TODO RenderLine set thickness 
+			//SDL.SDL_RenderSetScale(RendererPtr, 2, 2);
+
+			SDL.SDL_SetRenderDrawColor(RendererPtr, 0xff, 0, 0, 0xff);
+			SDL.SDL_RenderDrawLine(RendererPtr,
+				(int)a.X, (int)(camera.View.Y * viewScale.Y - a.Y),
+				(int)b.X, (int)(camera.View.Y * viewScale.Y - b.Y));
+		}
+
 		internal void SetWindowTitle(string title)
 		{
 			SDL.SDL_SetWindowTitle(WindowPtr, title);
@@ -113,12 +128,12 @@ namespace Ujeby.Plosinofka.Graphics
 		/// <param name="interpolation"></param>
 		internal void RenderSprite(Camera camera, Sprite sprite, double interpolation)
 		{
-			var cameraPosition = camera.GetPosition(interpolation);
+			var cameraPosition = camera.InterpolatedPosition(interpolation);
 
 			var source = new SDL.SDL_Rect
 			{
-				x = (int)cameraPosition.X,
-				y = (int)(sprite.Size.Y - camera.View.Y - cameraPosition.Y), // because sdl surface starts at topleft
+				x = cameraPosition.X,
+				y = sprite.Size.Y - camera.View.Y - cameraPosition.Y, // because sdl surface starts at topleft
 				w = camera.View.X,
 				h = camera.View.Y
 			};

@@ -4,12 +4,12 @@ using Ujeby.Plosinofka.Entities;
 
 namespace Ujeby.Plosinofka.Common
 {
-	internal abstract class State
+	public abstract class State
 	{
 		
 	}
 
-	class StateMachine<T> where T : State
+	public class StateMachine<T> where T : State
 	{
 		public Stack<T> States = new Stack<T>();
 

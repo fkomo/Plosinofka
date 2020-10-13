@@ -1,6 +1,5 @@
 ﻿using System;
 using Ujeby.Plosinofka.Common;
-using Ujeby.Plosinofka.Core;
 using Ujeby.Plosinofka.Graphics;
 using Ujeby.Plosinofka.Interfaces;
 
@@ -27,7 +26,7 @@ namespace Ujeby.Plosinofka.Entities
 
 			BoundingBox = new BoundingBox
 			{
-				Size = sprite.Size,
+				Size = (Vector2f)sprite.Size,
 			};
 
 			CurrentState = States.Change(null, new Standing());
@@ -48,8 +47,13 @@ namespace Ujeby.Plosinofka.Entities
 		public void Render(Camera camera, double interpolation)
 		{
 			var interpolatedPosition = BeforeUpdate.Position + (Position - BeforeUpdate.Position) * interpolation;
+
 			Renderer.Instance.RenderSprite(camera, 
 				interpolatedPosition, ResourceCache.Get<Sprite>(PlayerSpriteId), 
+				interpolation);
+
+			Renderer.Instance.RenderLine(camera, 
+				interpolatedPosition + Size / 2, interpolatedPosition + Size / 2 + Velocity, 
 				interpolation);
 		}
 
@@ -67,13 +71,9 @@ namespace Ujeby.Plosinofka.Entities
 			// update player, set velocity for new position
 			CurrentState?.Update(this);
 
-			//Log.Add($"Player.Update#BeforeSolve: position={ Position }; velocity={ Velocity }");
-
 			// resolve collisions
 			if (collisionSolver.Solve(this, out Vector2f position, out Vector2f velocity))
 			{
-				//Log.Add($"Player.Update#Solved: position={ position }; velocity={ velocity }");
-
 				Position = position;
 				Velocity = velocity;
 

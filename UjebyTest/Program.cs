@@ -1,126 +1,102 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using SDL2;
+using System;
 using System.Diagnostics;
+using Ujeby.Plosinofka.Common;
 
 namespace UjebyTest
 {
-	public class Vector2f
-	{
-		public double X = 0.0;
-		public double Y = 0.0;
-
-		public Vector2f()
-		{
-		}
-
-		public Vector2f(Vector2f v) : this(v.X, v.Y)
-		{
-		}
-
-		public Vector2f(double x, double y)
-		{
-			X = x;
-			Y = y;
-		}
-
-		public Vector2f(double d) : this(d, d)
-		{
-		}
-
-		public override string ToString() => $"{ X:0.00}, { Y:0.00}";
-		public static Vector2f operator +(Vector2f a, Vector2f b) => new Vector2f(a.X + b.X, a.Y + b.Y);
-		public static Vector2f operator *(Vector2f a, double k) => new Vector2f(a.X * k, a.Y * k);
-	}
-
-	public struct Vector2f_s
-	{
-		public double X;
-		public double Y;
-
-		public Vector2f_s(Vector2f_s v) : this(v.X, v.Y)
-		{
-		}
-
-		public Vector2f_s(double x, double y)
-		{
-			X = x;
-			Y = y;
-		}
-
-		public Vector2f_s(double d) : this(d, d)
-		{
-		}
-
-		public override string ToString() => $"{ X:0.00}, { Y:0.00}";
-		public static Vector2f_s operator +(Vector2f_s a, Vector2f_s b) => new Vector2f_s(a.X + b.X, a.Y + b.Y);
-		public static Vector2f_s operator *(Vector2f_s a, double k) => new Vector2f_s(a.X * k, a.Y * k);
-	}
-
 	class Program
 	{
-		private static Random rng = new Random();
-		private static Stopwatch sw = new Stopwatch();
-		private const long count = 10000000;
+		public static IntPtr WindowPtr;
+		public static IntPtr RendererPtr;
+		public static Vector2i WindowSize = new Vector2i(1920, 1080);
+		public static Random Rng = new Random();
 
 		static void Main(string[] args)
 		{
-			//ClassVsStruct();
+			try
+			{
+				stopwatch.Restart();
+				BoundingBoxTest.BoundingBoxStressTest();
 
-			var sList = new List<Vector2f_s>();
-
-			sw.Restart();
-			for (var i = 0; i < count; i++)
-				sList.Add(new Vector2f_s(rng.NextDouble() * -1.0, rng.NextDouble() * -1.0));
-			sw.Stop();
-			Console.WriteLine($"sList# *-1: { sw.ElapsedMilliseconds }ms");
-
-			sw.Restart();
-			for (var i = 0; i < count; i++)
-				sList.Add(new Vector2f_s(-rng.NextDouble(), -rng.NextDouble()));
-			sw.Stop();
-			Console.WriteLine($"sList# -: { sw.ElapsedMilliseconds }ms");
+				InitSDL();
+				new BoundingBoxTest().Run(HandleInput);
+			}
+			catch (Exception ex)
+			{
+				Log.Add(ex.ToString());
+			}
+			finally
+			{
+				Destroy();
+			}
 		}
 
-		private static void ClassVsStruct()
+		private static Stopwatch stopwatch = Stopwatch.StartNew();
+		public static double Elapsed()
 		{
-			var cList = new List<Vector2f>();
-			var sList = new List<Vector2f_s>();
+			return stopwatch.ElapsedTicks / (Stopwatch.Frequency / (1000L * 1000L)) / 1000.0;
+		}
 
-			sw.Restart();
-			for (var i = 0; i < count; i++)
-				cList.Add(new Vector2f(rng.NextDouble(), rng.NextDouble()));
-			sw.Stop();
-			Console.WriteLine($"cList#Fill: { sw.ElapsedMilliseconds }ms");
+		private static void InitSDL()
+		{
+			if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) < 0)
+				throw new Exception($"Failed to initialize SDL2 library. SDL2Error({ SDL.SDL_GetError() })");
 
-			sw.Restart();
-			for (var i = 0; i < count; i++)
-				sList.Add(new Vector2f_s(rng.NextDouble(), rng.NextDouble()));
-			sw.Stop();
-			Console.WriteLine($"sList#Fill: { sw.ElapsedMilliseconds }ms");
+			WindowPtr = SDL.SDL_CreateWindow("UjebyTest",
+				SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED,
+				WindowSize.X, WindowSize.Y,
+				SDL.SDL_WindowFlags.SDL_WINDOW_VULKAN);
+			if (WindowPtr == null)
+				throw new Exception($"Failed to create window. SDL2Error({ SDL.SDL_GetError() })");
 
-			sw.Restart();
-			for (var i = 1; i < count; i++)
-				cList[i - 1] = cList[i] * cList[i - 1].X;
-			sw.Stop();
-			Console.WriteLine($"cList# *k: { sw.ElapsedMilliseconds }ms");
+			RendererPtr = SDL.SDL_CreateRenderer(WindowPtr, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED);
+			if (RendererPtr == null)
+				throw new Exception($"Failed to create renderer. SDL2Error({ SDL.SDL_GetError() })");
+		}
 
-			sw.Restart();
-			for (var i = 1; i < count; i++)
-				sList[i - 1] = sList[i] * sList[i - 1].X;
-			sw.Stop();
-			Console.WriteLine($"sList# *k: { sw.ElapsedMilliseconds }ms");
+		private static void Destroy()
+		{
+			SDL.SDL_DestroyRenderer(RendererPtr);
+			SDL.SDL_DestroyWindow(WindowPtr);
+			SDL.SDL_Quit();
+		}
 
-			sw.Restart();
-			for (var i = 1; i < count; i++)
-				cList[i - 1] = cList[i] + cList[i - 1];
-			sw.Stop();
-			Console.WriteLine($"cList# i1+i2: { sw.ElapsedMilliseconds }ms");
+		private static byte[] CurrentKeys = new byte[(int)SDL.SDL_Scancode.SDL_NUM_SCANCODES];
+		private static byte[] PreviousKeys = new byte[(int)SDL.SDL_Scancode.SDL_NUM_SCANCODES];
 
-			sw.Restart();
-			for (var i = 1; i < count; i++)
-				sList[i - 1] = sList[i] + sList[i - 1];
-			sw.Stop();
-			Console.WriteLine($"sList# i1+i2: { sw.ElapsedMilliseconds }ms");
+		private static bool HandleInput()
+		{
+			while (SDL.SDL_PollEvent(out SDL.SDL_Event e) != 0)
+			{
+				switch (e.type)
+				{
+					case SDL.SDL_EventType.SDL_QUIT:
+						return false;
+				};
+
+				if (e.type == SDL.SDL_EventType.SDL_KEYUP || e.type == SDL.SDL_EventType.SDL_KEYDOWN)
+				{
+					CurrentKeys.CopyTo(PreviousKeys, 0);
+					var keysBuffer = SDL.SDL_GetKeyboardState(out int keysBufferLength);
+					System.Runtime.InteropServices.Marshal.Copy(keysBuffer, CurrentKeys, 0, keysBufferLength);
+
+					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE))
+						return false;
+				}
+			}
+
+			return true;
+		}
+
+		private static bool KeyPressed(SDL.SDL_Scancode scanCode)
+		{
+			return CurrentKeys[(int)scanCode] == 1 && PreviousKeys[(int)scanCode] == 0;
+		}
+
+		private static bool KeyReleased(SDL.SDL_Scancode scanCode)
+		{
+			return CurrentKeys[(int)scanCode] == 0 && PreviousKeys[(int)scanCode] == 1;
 		}
 	}
 }

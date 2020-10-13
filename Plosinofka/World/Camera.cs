@@ -10,10 +10,10 @@ namespace Ujeby.Plosinofka
 	class Camera
 	{
 		/// <summary>bottomLeft</summary>
-		public Vector2f Position { get; private set; }
+		public Vector2i Position;
 		public Vector2i View { get; private set; }
 
-		private Vector2f PositionBeforeUpdate;
+		private Vector2i PositionBeforeUpdate;
 		private Vector2i ViewBeforeUpdate;
 
 		public Camera(Vector2i view, Entity target)
@@ -30,24 +30,24 @@ namespace Ujeby.Plosinofka
 			PositionBeforeUpdate = Position;
 
 			// camera is targeted at entity and its view wont go beyond world borders
-			Position = new Vector2f(
-				Math.Min(borders.X - View.X, Math.Max(0, target.Center.X - View.X / 2)),
-				Math.Min(borders.Y - View.Y, Math.Max(0, target.Center.Y - View.Y / 2)));
+			Position = target.Center - View / 2;
+			Position.X = Math.Min(borders.X - View.X, Math.Max(0, Position.X));
+			Position.Y = Math.Min(borders.Y - View.Y, Math.Max(0, Position.Y));
 		}
 
-		public Vector2f GetPosition(double interpolation)
+		public Vector2i InterpolatedPosition(double interpolation)
 		{
 			return PositionBeforeUpdate + (Position - PositionBeforeUpdate) * interpolation;
-		}
-
-		internal Vector2f RelateTo(Vector2f position, double interpolation)
-		{
-			return position - GetPosition(interpolation);
 		}
 
 		internal Vector2i InterpolatedView(double interpolation)
 		{
 			return ViewBeforeUpdate + (View - ViewBeforeUpdate) * interpolation;
+		}
+
+		internal Vector2f RelateTo(Vector2f position, double interpolation)
+		{
+			return position - InterpolatedPosition(interpolation);
 		}
 	}
 }

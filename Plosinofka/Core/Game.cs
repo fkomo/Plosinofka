@@ -20,6 +20,8 @@ namespace Ujeby.Plosinofka.Core
 			Renderer.Instance.Initialize(windowSize);
 		}
 
+		public static int Fps = 0;
+
 		public void Run()
 		{
 			var simulation = new World();
@@ -28,6 +30,7 @@ namespace Ujeby.Plosinofka.Core
 
 			var running = true;
 
+			var lastTitleUpdate = 0.0;
 			var lastFrameTime = GetElapsed();
 			var nextGameTick = lastFrameTime;
 			while (running)
@@ -46,11 +49,15 @@ namespace Ujeby.Plosinofka.Core
 				var interpolation = (GetElapsed() + skipTicks - nextGameTick) / skipTicks;
 				Renderer.Instance.Render(simulation, interpolation);
 
-				var fps = (int)(1000.0 / (GetElapsed() - lastFrameTime));
+				Fps = (int)(1000.0 / (GetElapsed() - lastFrameTime));
 				lastFrameTime = GetElapsed();
 
-				var title = $"{ Title } [fps: { fps } | lastUpdate: { simulation.LastUpdateDuration:0.00}ms | lastRender: { Renderer.Instance.LastFrameDuration:0.00}ms]";
-				Renderer.Instance.SetWindowTitle(title);
+				if (lastFrameTime - lastTitleUpdate > 500)
+				{
+					var title = $"{ Title } [fps: { Fps } | lastUpdate: { simulation.LastUpdateDuration:0.00}ms | lastRender: { Renderer.Instance.LastFrameDuration:0.00}ms]";
+					Renderer.Instance.SetWindowTitle(title);
+					lastTitleUpdate = lastFrameTime;
+				}
 			}
 
 			simulation.Destroy();

@@ -7,7 +7,7 @@ namespace Ujeby.Plosinofka
 {
 	class Running : Moving
 	{
-		public Running(Vector2i direction) : base(direction)
+		public Running(Vector2f direction) : base(direction)
 		{
 		}
 

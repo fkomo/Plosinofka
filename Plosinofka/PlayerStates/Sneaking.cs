@@ -7,7 +7,7 @@ namespace Ujeby.Plosinofka
 {
 	class Sneaking : Moving
 	{
-		public Sneaking(Vector2i direction) : base(direction)
+		public Sneaking(Vector2f direction) : base(direction)
 		{
 		}
 

@@ -20,7 +20,7 @@ namespace Ujeby.Plosinofka
 			});
 
 			// make camera view smaller then window size for more pixelated look!
-			Camera = new Camera(Renderer.Instance.WindowSize, GetPlayerEntity());
+			Camera = new Camera(Renderer.Instance.WindowSize / 2, GetPlayerEntity());
 		}
 
 		public override void Update()
@@ -69,6 +69,10 @@ namespace Ujeby.Plosinofka
 			position = entity.Position;
 			velocity = entity.Velocity;
 
+			// no velocity ? no collision!
+			if (velocity == Vector2f.Zero)
+				return false;
+
 			var collisionFound = false;
 			while (true)
 			{
@@ -76,39 +80,49 @@ namespace Ujeby.Plosinofka
 				var direction = velocity.Normalize();
 
 				var t = CurrentLevel.Intersect(entity.BoundingBox, velocity.Normalize(), out Vector2f normal);
-
-				if (normal == Vector2f.Up && t >= 0 && t < distance)
+				if (t <= distance)
 				{
-					t -= 1;
-
 					// obstacle in path
 					collisionFound = true;
-					// compute new position & velocity
+
+					// new position
 					position += direction * t;
 
+					// new velocity
 					velocity = Vector2f.Zero;
-					if (direction.X > 0)
-						velocity = Vector2f.Right * (distance - t);
-					else if (direction.X < 0)
-						velocity = Vector2f.Left * (distance - t);
-				}
-				else if (normal == Vector2f.Left && t >= 0 && t < distance + entity.Size.X)
-				{
-					// obstacle in path
-					collisionFound = true;
-					// compute new position & velocity
-					position += (direction * t) - new Vector2f(entity.Size.X, 0);
+					if (normal == Vector2f.Up)
+					{
+						if (direction.X > 0)
+							velocity = Vector2f.Right * (distance - t);
+						else if (direction.X < 0)
+							velocity = Vector2f.Left * (distance - t);
+					}
+					else if (normal == Vector2f.Down)
+					{
+						//if (direction.X > 0)
+						//	velocity = Vector2f.Right * (distance - t);
+						//else if (direction.X < 0)
+						//	velocity = Vector2f.Left * (distance - t);
+					}
+					else if (normal == Vector2f.Left)
+					{
+						//if (direction.Y > 0)
+						//	velocity = Vector2f.Up * (distance - t);
+						//else if (direction.Y < 0)
+						//	velocity = Vector2f.Down * (distance - t);
+					}
+					else if (normal == Vector2f.Right)
+					{
+						//if (direction.Y > 0)
+						//	velocity = Vector2f.Up * (distance - t);
+						//else if (direction.Y < 0)
+						//	velocity = Vector2f.Down * (distance - t);
+					}
 
-					velocity = Vector2f.Zero;
-					if (direction.Y > 0)
-						velocity = Vector2f.Up * (distance - t);
-					else if (direction.Y < 0)
-						velocity = Vector2f.Down * (distance - t);
+					if (velocity == Vector2f.Zero) // or distance < ~1 ?
+						break;
 				}
 				else
-					break;
-
-				if (velocity == Vector2f.Zero) // or distance < ~1 ?
 					break;
 
 				//if (t >= 0 && t < distance)
@@ -146,6 +160,11 @@ namespace Ujeby.Plosinofka
 				//			velocity = Vector2f.Down * (distance - t);
 				//	}
 			}
+
+			if (collisionFound)
+				Log.Add($"World.Solve(): position={ position }; velocity={ velocity }");
+			else
+				Log.Add($"World.Solve(): false");
 
 			return collisionFound;
 		}

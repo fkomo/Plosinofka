@@ -2,7 +2,7 @@
 
 namespace Ujeby.Plosinofka.Common
 {
-	class Log
+	public class Log
 	{
 		public static string Add(string message)
 		{

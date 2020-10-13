@@ -1,7 +1,6 @@
 ﻿using SDL2;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design.Serialization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Ujeby.Plosinofka.Common;
@@ -21,7 +20,7 @@ namespace Ujeby.Plosinofka.Graphics
 		/// <summary></summary>
 		public string Filename;
 
-		/// <summary>width * height</summary>
+		/// <summary>width x height</summary>
 		public Vector2i Size;
 		
 		/// <summary>
