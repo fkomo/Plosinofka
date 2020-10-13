@@ -34,15 +34,15 @@ namespace Ujeby.Plosinofka.Core
 					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_UP))
 						player.HandleButton(InputButton.Up, InputButtonState.Released);
 
-					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_LEFT))
-						player.HandleButton(InputButton.Left, InputButtonState.Pressed);
-					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_LEFT))
-						player.HandleButton(InputButton.Left, InputButtonState.Released);
-
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_DOWN))
 						player.HandleButton(InputButton.Down, InputButtonState.Pressed);
 					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_DOWN))
 						player.HandleButton(InputButton.Down, InputButtonState.Released);
+
+					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_LEFT))
+						player.HandleButton(InputButton.Left, InputButtonState.Pressed);
+					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_LEFT))
+						player.HandleButton(InputButton.Left, InputButtonState.Released);
 
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_RIGHT))
 						player.HandleButton(InputButton.Right, InputButtonState.Pressed);

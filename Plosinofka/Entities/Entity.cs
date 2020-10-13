@@ -11,12 +11,12 @@ namespace Ujeby.Plosinofka.Entities
 		public string Name { get; private set; }
 
 		public BoundingBox BoundingBox;
-		public Vector2f Velocity = Simulation.Gravity;
+		public Vector2f Velocity = Simulation.Gravity; // add gravity to created entity
 
-		/// <summary>top left</summary>
-		public Vector2f Position { get { return BoundingBox.TopLeft; } set { BoundingBox.TopLeft = value; } }
+		/// <summary>bottom left</summary>
+		public Vector2f Position { get { return BoundingBox.Position; } set { BoundingBox.Position = value; } }
 		public Vector2i Size => BoundingBox.Size;
-		public Vector2f Center => new Vector2f(Position.X + (Size.X / 2), Position.Y - Size.Y / 2);
+		public Vector2f Center => Position + Size / 2;
 
 		public override string ToString() => $"{ Id }-{ Name }";
 

@@ -32,7 +32,6 @@ namespace Ujeby.Plosinofka.Graphics
 
 		private Renderer()
 		{
-
 		}
 
 		public void Initialize(Vector2i windowSize)
@@ -87,18 +86,19 @@ namespace Ujeby.Plosinofka.Graphics
 		/// render sprite to screen
 		/// </summary>
 		/// <param name="camera"></param>
-		/// <param name="worldPosition">sprite position in world (top left)</param>
+		/// <param name="worldPosition">sprite position in world (bottomLeft)</param>
 		/// <param name="sprite"></param>
 		/// <param name="interpolation"></param>
 		internal void RenderSprite(Camera camera, Vector2f worldPosition, Sprite sprite, double interpolation)
 		{
 			var viewScale = WindowSize / camera.InterpolatedView(interpolation);
-			var screenSpaceTopLeft = camera.RelateTo(worldPosition, interpolation) * viewScale;
+			var relativeToCamera = camera.RelateTo(worldPosition, interpolation) * viewScale;
 
+			// SDL rect starts at topLeft
 			var destination = new SDL.SDL_Rect
 			{
-				x = (int)screenSpaceTopLeft.X,
-				y = -(int)screenSpaceTopLeft.Y,
+				x = (int)relativeToCamera.X,
+				y = (int)((camera.View.Y - sprite.Size.Y) * viewScale.Y - relativeToCamera.Y),
 				w = (int)(sprite.Size.X * viewScale.X),
 				h = (int)(sprite.Size.Y * viewScale.Y),
 			};
@@ -118,7 +118,7 @@ namespace Ujeby.Plosinofka.Graphics
 			var source = new SDL.SDL_Rect
 			{
 				x = (int)cameraPosition.X,
-				y = sprite.Size.Y - (int)cameraPosition.Y, // because sdl surface starts at topleft
+				y = (int)(sprite.Size.Y - camera.View.Y - cameraPosition.Y), // because sdl surface starts at topleft
 				w = camera.View.X,
 				h = camera.View.Y
 			};

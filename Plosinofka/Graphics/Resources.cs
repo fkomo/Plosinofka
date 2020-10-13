@@ -1,6 +1,7 @@
 ﻿using SDL2;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design.Serialization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Ujeby.Plosinofka.Common;
@@ -65,13 +66,18 @@ namespace Ujeby.Plosinofka.Graphics
 				var tmpData = new byte[surface.w * surface.h * 4];
 				Marshal.Copy(surface.pixels, tmpData, 0, tmpData.Length);
 
+				var i2 = 0;
 				sprite.Data = new uint[surface.w * surface.h];
-				for (var i = 0; i < sprite.Data.Length; i++)
-					sprite.Data[i] = 
-						((uint)tmpData[i * 4 + 0]) +
-						((uint)tmpData[i * 4 + 1] << 8) +
-						((uint)tmpData[i * 4 + 2] << 16) +
-						((uint)tmpData[i * 4 + 3] << 24);
+				for (var y = surface.h - 1; y >= 0; y--)
+					for (var x = 0; x < surface.w; x++, i2++)
+					{
+						var i = y * surface.w + x;
+						sprite.Data[i2] =
+							((uint)tmpData[i * 4 + 0]) +
+							((uint)tmpData[i * 4 + 1] << 8) +
+							((uint)tmpData[i * 4 + 2] << 16) +
+							((uint)tmpData[i * 4 + 3] << 24);
+					}
 			}
 
 			SDL.SDL_FreeSurface(imagePtr);

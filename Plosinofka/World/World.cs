@@ -14,10 +14,13 @@ namespace Ujeby.Plosinofka
 		public World()
 		{
 			CurrentLevel = Level.Load("world1");
-			Entities.Add(new Player("Jebko") { Position = new Vector2f(128, 128) });
+			Entities.Add(new Player("jebko") 
+			{ 
+				Position = new Vector2f(128, 128)
+			});
 
 			// make camera view smaller then window size for more pixelated look!
-			Camera = new Camera(Renderer.Instance.WindowSize / 4, GetPlayerEntity());
+			Camera = new Camera(Renderer.Instance.WindowSize, GetPlayerEntity());
 		}
 
 		public override void Update()
@@ -63,105 +66,88 @@ namespace Ujeby.Plosinofka
 
 		public bool Solve(Entity entity, out Vector2f position, out Vector2f velocity)
 		{
-			var solved = false;
 			position = entity.Position;
 			velocity = entity.Velocity;
 
-			if (position.Y < entity.Size.Y)
+			var collisionFound = false;
+			while (true)
 			{
-				position.Y = entity.Size.Y;
-				velocity.Y = 0;
-				solved = true;
+				var distance = velocity.Length();
+				var direction = velocity.Normalize();
+
+				var t = CurrentLevel.Intersect(entity.BoundingBox, velocity.Normalize(), out Vector2f normal);
+
+				if (normal == Vector2f.Up && t >= 0 && t < distance)
+				{
+					t -= 1;
+
+					// obstacle in path
+					collisionFound = true;
+					// compute new position & velocity
+					position += direction * t;
+
+					velocity = Vector2f.Zero;
+					if (direction.X > 0)
+						velocity = Vector2f.Right * (distance - t);
+					else if (direction.X < 0)
+						velocity = Vector2f.Left * (distance - t);
+				}
+				else if (normal == Vector2f.Left && t >= 0 && t < distance + entity.Size.X)
+				{
+					// obstacle in path
+					collisionFound = true;
+					// compute new position & velocity
+					position += (direction * t) - new Vector2f(entity.Size.X, 0);
+
+					velocity = Vector2f.Zero;
+					if (direction.Y > 0)
+						velocity = Vector2f.Up * (distance - t);
+					else if (direction.Y < 0)
+						velocity = Vector2f.Down * (distance - t);
+				}
+				else
+					break;
+
+				if (velocity == Vector2f.Zero) // or distance < ~1 ?
+					break;
+
+				//if (t >= 0 && t < distance)
+				//{
+				//	velocity = Vector2f.Zero;
+
+				//	if (normal == Vector2f.Up)
+				//	{
+				//		if (direction.X > 0)
+				//			velocity = Vector2f.Right * (distance - t);
+				//		else if (direction.X < 0)
+				//			velocity = Vector2f.Left * (distance - t);
+				//	}
+				//	else if (normal == Vector2f.Down)
+				//	{
+				//		position.Y -= entity.Size.Y;
+				//		if (direction.X > 0)
+				//			velocity = Vector2f.Right * (distance - t);
+				//		else if (direction.X < 0)
+				//			velocity = Vector2f.Left * (distance - t);
+				//	}
+				//	else if (normal == Vector2f.Left)
+				//	{
+				//		position.X -= entity.Size.X;
+				//		if (direction.Y > 0)
+				//			velocity = Vector2f.Up * (distance - t);
+				//		else if (direction.Y < 0)
+				//			velocity = Vector2f.Down * (distance - t);
+				//	}
+				//	else if (normal == Vector2f.Right)
+				//	{
+				//		if (direction.Y > 0)
+				//			velocity = Vector2f.Up * (distance - t);
+				//		else if (direction.Y < 0)
+				//			velocity = Vector2f.Down * (distance - t);
+				//	}
 			}
 
-			if (position.Y > CurrentLevel.Size.Y)
-			{
-				position.Y = CurrentLevel.Size.Y;
-				velocity.Y = 0;
-				solved = true;
-			}
-
-			if (position.X < 0)
-			{
-				position.X = 0;
-				velocity.X = 0;
-				solved = true;
-			}
-
-			if (position.X > CurrentLevel.Size.X - entity.Size.X)
-			{
-				position.X = CurrentLevel.Size.X - entity.Size.X;
-				velocity.X = 0;
-				solved = true;
-			}
-
-			return solved;
-
-			//// no movement, no collision
-			//if (velocity.X == 0 && velocity.Y == 0)
-			//	return false;
-
-			//// no collision map, nothing to collide with
-			//var ws = ResourceCache.Get<Sprite>(CurrentLevel.CollisionResourceId);
-			//if (ws == null || ws.Data == null)
-			//	return false;
-
-			//position.X = Math.Max(0, Math.Min(ws.Size.X - entity.Size.X, position.X));
-			//position.Y = Math.Max(entity.Size.Y, Math.Min(ws.Size.Y, position.Y));
-
-			//Log.Add($"position: { position } -> velocity: { velocity }");
-
-			//// starting/ending index of entity sprite in world map
-			//var wsStart = (int)((ws.Size.Y - position.Y) * ws.Size.X + position.X) * 4;
-			//var wsEnd = wsStart + ((entity.Size.Y - 1) * ws.Size.X + (entity.Size.X - 1)) * 4;
-
-			//for (var y = 0; y < entity.Size.Y; y++)
-			//	for (var x = 0; x < entity.Size.X; x++)
-			//	{
-			//		// if velocity is solved
-			//		if (velocity.X == 0 && velocity.Y == 0)
-			//			return true;
-
-			//		var offset = (y * ws.Size.X + x) * 4;
-			//		if (ws.Data[wsStart + offset] == 255 && ws.Data[wsStart + offset + 3] == 255)
-			//		{
-			//			if (velocity.Y < 0)
-			//			{
-			//				Log.Add($"{ entity } collision y:{ entity.Size.Y - y }");
-
-			//				position.Y += entity.Size.Y - y;
-			//				velocity.Y = 0;
-			//			}
-			//			if (velocity.X > 0 && y < entity.Size.Y / 2)
-			//			{
-			//				Log.Add($"{ entity } collision x:-{ entity.Size.X - x }");
-
-			//				position.X -= entity.Size.X - x;
-			//				velocity.X = 0;
-			//			}
-			//		}
-
-			//		if (ws.Data[wsEnd - offset] == 255 && ws.Data[wsEnd - offset + 3] == 255)
-			//		{
-			//			if (velocity.Y > 0)
-			//			{
-			//				Log.Add($"{ entity } collision y:-{ y + 1 }");
-
-			//				position.Y -= y + 1;
-			//				velocity.Y = 0;
-			//			}
-			//			if (velocity.X < 0 && y > entity.Size.Y / 2)
-			//			{
-			//				Log.Add($"{ entity } collision x:{ entity.Size.X - x }");
-
-			//				position.X += entity.Size.X - x;
-			//				velocity.X = 0;
-			//			}
-			//		}
-			//	}
-
-			//// if position was changed, collision was solved
-			//return entity.Position != position;
+			return collisionFound;
 		}
 
 		public override void Destroy()

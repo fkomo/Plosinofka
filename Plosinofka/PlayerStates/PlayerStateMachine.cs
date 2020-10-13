@@ -12,6 +12,8 @@ namespace Ujeby.Plosinofka
 		Running,
 		Sneaking,
 		Jumping,
+		Falling,
+
 		HitWall,
 	}
 
@@ -34,6 +36,16 @@ namespace Ujeby.Plosinofka
 		public new PlayerState Pop()
 		{
 			return base.Pop() ?? new Standing();
+		}
+
+		public PlayerState Change(PlayerState previous, PlayerState next, bool pushPreviousState = true)
+		{
+			Log.Add($"StateChange({ (previous != null ? $"{ previous } -> " : null) }{ next })");
+
+			if (previous != null && pushPreviousState)
+				Push(previous);
+
+			return next;
 		}
 	}
 }

@@ -1,10 +1,18 @@
 ﻿
+using System;
+
 namespace Ujeby.Plosinofka.Common
 {
 	public struct Vector2f
 	{
 		public double X;
 		public double Y;
+
+		public static Vector2f Up = new Vector2f(0, 1);
+		public static Vector2f Down = new Vector2f(0, -1);
+		public static Vector2f Left = new Vector2f(-1, 0);
+		public static Vector2f Right = new Vector2f(1, 0);
+		public static Vector2f Zero = new Vector2f(0);
 
 		public Vector2f(Vector2f v) : this(v.X, v.Y)
 		{
@@ -44,12 +52,22 @@ namespace Ujeby.Plosinofka.Common
 
 		public static bool operator ==(Vector2f a, Vector2i b) => a.X == b.X && a.Y == b.Y;
 		public static bool operator !=(Vector2f a, Vector2i b) => a.X != b.X || a.Y != b.Y;
+
+		internal double Length() => Math.Sqrt(X * X + Y * Y);
+
+		internal Vector2f Normalize() => this * 1 / Length();
 	}
 
 	public struct Vector2i
 	{
 		public int X;
 		public int Y;
+
+		public static Vector2i Up = new Vector2i(0, 1);
+		public static Vector2i Down = new Vector2i(0, -1);
+		public static Vector2i Left = new Vector2i(-1, 0);
+		public static Vector2i Right = new Vector2i(1, 0);
+		public static Vector2i Zero = new Vector2i(0);
 
 		public Vector2i(Vector2i v) : this(v.X, v.Y)
 		{

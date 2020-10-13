@@ -1,56 +1,76 @@
 ﻿using Ujeby.Plosinofka.Interfaces;
 using Ujeby.Plosinofka.Entities;
 using Ujeby.Plosinofka.Core;
+using Ujeby.Plosinofka.Common;
+using System.IO;
 
 namespace Ujeby.Plosinofka
 {
-	class Walking : PlayerState
+	abstract class Moving : PlayerState
 	{
+		protected Vector2i Direction;
+
+		protected Moving(Vector2i direction) => Direction = direction;
+
+		protected Moving(InputButton button) => Direction = GetDirection(button);
+
+		public static Vector2i GetDirection(InputButton button) => new Vector2i(button == InputButton.Left ? -1 : 1, 0);
+	}
+
+	class Walking : Moving
+	{
+		public Walking(Vector2i direction) : base(direction)
+		{
+		}
+
+		public Walking(InputButton button) : base(button)
+		{
+		}		
+
 		public override PlayerStateEnum AsEnum { get { return PlayerStateEnum.Walking; } }
+
+		public bool Freeze = false;
 
 		public override void HandleButton(InputButton button, InputButtonState state, Player player)
 		{
 			if (state == InputButtonState.Pressed)
 			{
-				// if crouch was pressed
-				if (button == Settings.Current.PlayerControls.Crouch)
-				{
-					player.Velocity.X = player.Velocity.X > 0 ? Player.SneakingStep : -Player.SneakingStep;
-					player.CurrentState = player.State.Change(this, new Sneaking());
-				}
-				else if (button == Settings.Current.PlayerControls.Running)
-				{
-					player.Velocity.X = player.Velocity.X > 0 ? Player.RunningStep : -Player.RunningStep;
-					player.CurrentState = player.State.Change(this, new Running());
-				}
-				else if (button == Settings.Current.PlayerControls.Jump)
-				{
-					player.Velocity = player.JumpingVelocity + player.Velocity;
-					player.CurrentState = player.State.Change(this, new Jumping());
-				}
+				// opposite direction was pressed while moving, freeze
+				if (button == InputButton.Left || button == InputButton.Right)
+					Freeze = true;
 
-				// if opposite direction was pressed while moving, freeze
-				else if (player.Velocity.X != 0 && (button == InputButton.Left || button == InputButton.Right))
-					player.Velocity.X = 0;
+				else if (button == Settings.Current.PlayerControls.Jump)
+					player.CurrentState = player.States.Change(this, new Jumping(Direction));
+
+				//else if (button == Settings.Current.PlayerControls.Crouch)
+				//	player.CurrentState = player.States.Change(this, new Sneaking(Direction));
+
+				//else if (button == Settings.Current.PlayerControls.Running)
+				//	player.CurrentState = player.States.Change(this, new Running(Direction));
 			}
 			else if (state == InputButtonState.Released)
 			{
-				// if both directions are pressed and one is released, player should continue moving in the other one
-				if (player.Velocity.X == 0 && (button == InputButton.Right || button == InputButton.Left))
-					player.Velocity.X = button == InputButton.Right ? -Player.WalkingStep : Player.WalkingStep;
-
-				// if the last direction of movement is released
-				else if (button == InputButton.Right || button == InputButton.Left)
+				if (button == InputButton.Right || button == InputButton.Left)
 				{
-					player.Velocity.X = 0;
-					player.CurrentState = player.State.Change(this, new Standing());
+					if (Freeze)
+					{
+						Direction.X = button == InputButton.Right ? -1 : 1;
+						Freeze = false;
+					}
+					else
+						player.CurrentState = player.States.Change(this, new Standing());
 				}
 			}
 		}
 
 		public override void Update(Player player)
 		{
-			player.BoundingBox.TopLeft.X += player.Velocity.X;
+			Log.Add($"Walking.Update: freeze={ Freeze }; Direction.X={ Direction.X }");
+
+			if (!Freeze)
+				player.Velocity.X = Direction.X * Player.WalkingStep;
+			else
+				player.Velocity.X = 0;
 		}
 	}
 }

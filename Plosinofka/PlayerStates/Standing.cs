@@ -10,7 +10,6 @@ namespace Ujeby.Plosinofka
 
 		public Standing()
 		{
-			//player.State.Clear();
 		}
 
 		public override void HandleButton(InputButton button, InputButtonState state, Player player)
@@ -18,25 +17,20 @@ namespace Ujeby.Plosinofka
 			if (state == InputButtonState.Pressed)
 			{
 				if (button == InputButton.Left || button == InputButton.Right)
-				{
-					player.Velocity.X = button == InputButton.Left ? -Player.WalkingStep : Player.WalkingStep;
-					player.CurrentState = player.State.Change(player.CurrentState, new Walking());
-				}
-				else if (button == Settings.Current.PlayerControls.Crouch)
-				{
-					player.CurrentState = player.State.Change(this, new Crouching());
-				}
+					player.CurrentState = player.States.Change(player.CurrentState, new Walking(button));
+
 				else if (button == Settings.Current.PlayerControls.Jump)
-				{
-					player.CurrentState = player.State.Change(this, new Jumping());
-					player.Velocity = player.JumpingVelocity;
-				}
+					player.CurrentState = player.States.Change(this, new Jumping());
+
+				//else if (button == Settings.Current.PlayerControls.Crouch)
+				//	player.CurrentState = player.States.Change(this, new Crouching());
 			}
 		}
 
 		public override void Update(Player player)
 		{
 			// just standing
+			player.Velocity.X = 0;
 		}
 	}
 }

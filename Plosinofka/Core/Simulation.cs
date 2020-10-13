@@ -11,7 +11,7 @@ namespace Ujeby.Plosinofka.Core
 		/// desired number of updates per second
 		/// </summary>
 		public const int GameSpeed = 25;
-		public static Vector2f Gravity = new Vector2f(0.0, -5);
+		public static Vector2f Gravity = new Vector2f(0.0, -8);
 
 		public double LastUpdateDuration { get; protected set; }
 
