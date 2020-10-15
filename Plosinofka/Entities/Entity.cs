@@ -20,7 +20,7 @@ namespace Ujeby.Plosinofka.Entities
 
 		public override string ToString() => $"{ Id }-{ Name }";
 
-		public abstract void Update(ICollisionSolver collisionSolver);
+		public abstract void Update(ICollisionSolver collision, IRayCasting level);
 
 		protected Entity BeforeUpdate;
 

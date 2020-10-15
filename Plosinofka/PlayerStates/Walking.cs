@@ -2,17 +2,26 @@
 using Ujeby.Plosinofka.Entities;
 using Ujeby.Plosinofka.Core;
 using Ujeby.Plosinofka.Common;
-using System.IO;
 
 namespace Ujeby.Plosinofka
 {
 	abstract class Moving : PlayerState
 	{
-		protected Vector2f Direction;
+		public Vector2f Direction { get; protected set; }
+		public bool Freeze { get; protected set; } = false;
 
 		protected Moving(Vector2f direction) => Direction = direction;
 
 		protected Moving(InputButton button) => Direction = new Vector2f(button == InputButton.Left ? -1 : 1, 0);
+
+		protected Moving(Moving previousState)
+		{
+			if (previousState != null)
+			{
+				Direction = previousState.Direction;
+				Freeze = previousState.Freeze;
+			}
+		}
 	}
 
 	class Walking : Moving
@@ -23,11 +32,13 @@ namespace Ujeby.Plosinofka
 
 		public Walking(InputButton button) : base(button)
 		{
-		}		
+		}
+
+		public Walking(PlayerState previousState) : base(previousState as Moving)
+		{
+		}
 
 		public override PlayerStateEnum AsEnum { get { return PlayerStateEnum.Walking; } }
-
-		public bool Freeze = false;
 
 		public override void HandleButton(InputButton button, InputButtonState state, Player player)
 		{
@@ -52,7 +63,7 @@ namespace Ujeby.Plosinofka
 				{
 					if (Freeze)
 					{
-						Direction.X = button == InputButton.Right ? -1 : 1;
+						Direction = new Vector2f(button == InputButton.Right ? -1 : 1, Direction.Y);
 						Freeze = false;
 					}
 					else

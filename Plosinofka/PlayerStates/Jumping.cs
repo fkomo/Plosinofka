@@ -8,6 +8,8 @@ namespace Ujeby.Plosinofka
 {
 	class Jumping : Moving
 	{
+		public override PlayerStateEnum AsEnum { get { return PlayerStateEnum.Jumping; } }
+
 		public Jumping() : this(new Vector2f())
 		{
 
@@ -20,8 +22,6 @@ namespace Ujeby.Plosinofka
 		public Jumping(InputButton button) : base(button)
 		{
 		}
-
-		public override PlayerStateEnum AsEnum { get { return PlayerStateEnum.Jumping; } }
 
 		public override void HandleButton(InputButton button, InputButtonState state, Player player)
 		{
@@ -37,12 +37,12 @@ namespace Ujeby.Plosinofka
 						(button == InputButton.Right && Direction.X < 0))
 					{
 						Freeze = true;
-						player.States.Push(new Walking(Direction) { Freeze = true });
+						player.States.Push(new Walking(this));
 					}
 					else
 					{
 						// set new direction
-						Direction.X = button == InputButton.Right ? 1 : -1;
+						Direction = new Vector2f(button == InputButton.Right ? 1 : -1, Direction.Y);
 						player.States.Push(new Walking(Direction));
 					}
 				}
@@ -54,21 +54,20 @@ namespace Ujeby.Plosinofka
 					if (Freeze)
 					{
 						// player should continue moving in the one that is still pressed
-						Direction.X = button == InputButton.Right ? -1 : 1;
+						Direction = new Vector2f(button == InputButton.Right ? -1 : 1, Direction.Y);
 						Freeze = false;
 
 						player.States.Push(new Walking(Direction));
 					}
 					else 
 					{
-						Direction.X = 0;
+						Direction = new Vector2f(0, Direction.Y);
 						player.States.Clear();
 					}
 				}
 			}
 		}
 
-		private bool Freeze = false;
 		private bool InAir = false;
 
 		public override void Update(Player player)
@@ -82,8 +81,7 @@ namespace Ujeby.Plosinofka
 			}
 
 			player.Velocity += Simulation.Gravity;
-			// terminal velocity
-			player.Velocity.Y = Math.Max(player.Velocity.Y, -32);
+			player.Velocity.Y = Math.Max(player.Velocity.Y, Simulation.TerminalFallingVelocity);
 
 			// air control
 			if (!Freeze && Direction.X != 0)

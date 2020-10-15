@@ -17,7 +17,6 @@ namespace UjebyTest
 			try
 			{
 				stopwatch.Restart();
-				BoundingBoxTest.BoundingBoxStressTest();
 
 				InitSDL();
 				new BoundingBoxTest().Run(HandleInput);
@@ -33,6 +32,10 @@ namespace UjebyTest
 		}
 
 		private static Stopwatch stopwatch = Stopwatch.StartNew();
+		/// <summary>
+		/// miliseconds since start
+		/// </summary>
+		/// <returns></returns>
 		public static double Elapsed()
 		{
 			return stopwatch.ElapsedTicks / (Stopwatch.Frequency / (1000L * 1000L)) / 1000.0;

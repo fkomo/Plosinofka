@@ -1,7 +1,7 @@
 ﻿
 namespace Ujeby.Plosinofka.Interfaces
 {
-	interface IRender
+	interface IRenderable
 	{
 		void Render(Camera camera, double interpolation);
 	}

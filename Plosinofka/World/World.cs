@@ -29,7 +29,7 @@ namespace Ujeby.Plosinofka
 
 			// update all entities
 			foreach (var entity in Entities)
-				entity.Update(this);
+				entity.Update(this, CurrentLevel);
 
 			// update camera with respect to world/level borders
 			Camera.Update(GetPlayerEntity(), CurrentLevel.Size);
@@ -43,7 +43,7 @@ namespace Ujeby.Plosinofka
 			RenderBackground(interpolation);
 
 			// render renderable entities
-			foreach (IRender entity in Entities.Where(e => e is IRender))
+			foreach (IRenderable entity in Entities.Where(e => e is IRenderable))
 				entity.Render(Camera, interpolation);
 
 			// render foreground
@@ -93,30 +93,30 @@ namespace Ujeby.Plosinofka
 					if (normal == Vector2f.Up)
 					{
 						if (direction.X > 0)
-							velocity = Vector2f.Right * (distance - t);
+							velocity = Vector2f.Right * (t);
 						else if (direction.X < 0)
-							velocity = Vector2f.Left * (distance - t);
+							velocity = Vector2f.Left * (t);
 					}
 					else if (normal == Vector2f.Down)
 					{
-						//if (direction.X > 0)
-						//	velocity = Vector2f.Right * (distance - t);
-						//else if (direction.X < 0)
-						//	velocity = Vector2f.Left * (distance - t);
+						if (direction.X > 0)
+							velocity = Vector2f.Right * (t);
+						else if (direction.X < 0)
+							velocity = Vector2f.Left * (t);
 					}
 					else if (normal == Vector2f.Left)
 					{
-						//if (direction.Y > 0)
-						//	velocity = Vector2f.Up * (distance - t);
-						//else if (direction.Y < 0)
-						//	velocity = Vector2f.Down * (distance - t);
+						if (direction.Y > 0)
+							velocity = Vector2f.Up * (t);
+						else if (direction.Y < 0)
+							velocity = Vector2f.Down * (t);
 					}
 					else if (normal == Vector2f.Right)
 					{
-						//if (direction.Y > 0)
-						//	velocity = Vector2f.Up * (distance - t);
-						//else if (direction.Y < 0)
-						//	velocity = Vector2f.Down * (distance - t);
+						if (direction.Y > 0)
+							velocity = Vector2f.Up * (t);
+						else if (direction.Y < 0)
+							velocity = Vector2f.Down * (t);
 					}
 
 					if (velocity == Vector2f.Zero) // or distance < ~1 ?
@@ -124,47 +124,10 @@ namespace Ujeby.Plosinofka
 				}
 				else
 					break;
-
-				//if (t >= 0 && t < distance)
-				//{
-				//	velocity = Vector2f.Zero;
-
-				//	if (normal == Vector2f.Up)
-				//	{
-				//		if (direction.X > 0)
-				//			velocity = Vector2f.Right * (distance - t);
-				//		else if (direction.X < 0)
-				//			velocity = Vector2f.Left * (distance - t);
-				//	}
-				//	else if (normal == Vector2f.Down)
-				//	{
-				//		position.Y -= entity.Size.Y;
-				//		if (direction.X > 0)
-				//			velocity = Vector2f.Right * (distance - t);
-				//		else if (direction.X < 0)
-				//			velocity = Vector2f.Left * (distance - t);
-				//	}
-				//	else if (normal == Vector2f.Left)
-				//	{
-				//		position.X -= entity.Size.X;
-				//		if (direction.Y > 0)
-				//			velocity = Vector2f.Up * (distance - t);
-				//		else if (direction.Y < 0)
-				//			velocity = Vector2f.Down * (distance - t);
-				//	}
-				//	else if (normal == Vector2f.Right)
-				//	{
-				//		if (direction.Y > 0)
-				//			velocity = Vector2f.Up * (distance - t);
-				//		else if (direction.Y < 0)
-				//			velocity = Vector2f.Down * (distance - t);
-				//	}
 			}
 
 			if (collisionFound)
-				Log.Add($"World.Solve(): position={ position }; velocity={ velocity }");
-			else
-				Log.Add($"World.Solve(): false");
+				Log.Add($"World.Solved: position={ position }; velocity={ velocity }");
 
 			return collisionFound;
 		}

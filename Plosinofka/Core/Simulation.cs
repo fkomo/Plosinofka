@@ -12,6 +12,7 @@ namespace Ujeby.Plosinofka.Core
 		/// </summary>
 		public const int GameSpeed = 25;
 		public static Vector2f Gravity = new Vector2f(0.0, -8);
+		public static double TerminalFallingVelocity = -32;
 
 		public double LastUpdateDuration { get; protected set; }
 

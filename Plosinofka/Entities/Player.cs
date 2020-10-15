@@ -5,14 +5,14 @@ using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka.Entities
 {
-	class Player : Entity, IRender, IHandleInput
+	class Player : Entity, IRenderable, IHandleInput
 	{
 		public const double WalkingStep = 16;
 		public const double SneakingStep = WalkingStep / 2;
 		public const double RunningStep = WalkingStep * 2;
 		public const double AirStep = WalkingStep;
 		/// <summary>initial upwards jump velocity</summary>
-		public readonly Vector2f JumpingVelocity = new Vector2f(0, 64);
+		public readonly Vector2f JumpingVelocity = new Vector2f(0, 48);
 
 		public PlayerState CurrentState;
 		public PlayerStateMachine States { get; private set; } = new PlayerStateMachine();
@@ -62,7 +62,7 @@ namespace Ujeby.Plosinofka.Entities
 			CurrentState?.HandleButton(button, state, this);
 		}
 
-		public override void Update(ICollisionSolver collisionSolver)
+		public override void Update(ICollisionSolver collision, IRayCasting level)
 		{
 			// save state before update
 			BeforeUpdate.BoundingBox = BoundingBox;
@@ -72,35 +72,35 @@ namespace Ujeby.Plosinofka.Entities
 			CurrentState?.Update(this);
 
 			// resolve collisions
-			if (collisionSolver.Solve(this, out Vector2f position, out Vector2f velocity))
+			if (collision.Solve(this, out Vector2f position, out Vector2f velocity))
 			{
+				// collision found, use new position / velocity
 				Position = position;
 				Velocity = velocity;
 
-				// landed on ground from fall/jump
+				// landed on ground from fall/jump so change to previous state
 				if (velocity.Y == 0 && (CurrentState is Falling || CurrentState is Jumping))
-				{
-					// TODO this does not work when i hit ceiling with player head
 					CurrentState = States.Change(CurrentState, States.Pop(), false);
-				}
 			}
 			else
+				// no collisions, add velocity
 				Position += Velocity;
 
 			// if not falling / jumping
 			if (!(CurrentState is Falling) && !(CurrentState is Jumping))
 			{
-				// if velocity is pointing down
-				if (Velocity.Y < 0 || !GroundBeneathMyFeet())
-					CurrentState = States.Change(CurrentState, new Falling());
+				// if velocity is pointing down or no ground beneath the feet
+				if (Velocity.Y < 0 || !GroundBeneathMyFeet(level))
+					CurrentState = States.Change(CurrentState, new Falling(CurrentState));
 			}
 		}
 
-		private bool GroundBeneathMyFeet()
+		private bool GroundBeneathMyFeet(IRayCasting level)
 		{
-			// TODO check if there is ground beneath my feet (raycast down)
+			var leftFoot = level.Intersect(Position, Vector2f.Down, out Vector2f n1);
+			var rightFoot = level.Intersect(new Vector2f(BoundingBox.Right, Position.Y), Vector2f.Down, out Vector2f n2);
 
-			return true;
+			return leftFoot == 0 || rightFoot == 0;
 		}
 	}
 }

@@ -11,7 +11,7 @@ using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka
 {
-	enum LevelResourceType
+	public enum LevelResourceType
 	{
 		Background = 0,
 		Collision = 1,
@@ -19,11 +19,7 @@ namespace Ujeby.Plosinofka
 		Count
 	}
 
-	class Collider
-	{
-	}
-
-	class Level : IRayCaster
+	public class Level : IRayCasting, IRayMarching
 	{
 		public string Name;
 		public Vector2i Size;
@@ -31,6 +27,12 @@ namespace Ujeby.Plosinofka
 		public BoundingBox[] Colliders;
 
 		public Level(string name) => Name = name;
+
+		public Level(string name, IEnumerable<BoundingBox> colliders) : this(name)
+		{
+			Colliders = colliders.ToArray();
+			Size = new Vector2i((int)Colliders.Max(c => c.Right), (int)Colliders.Max(c => c.Top));
+		}
 
 		/// <summary>
 		/// load level by name
@@ -151,44 +153,64 @@ namespace Ujeby.Plosinofka
 		public double Intersect(BoundingBox box, Vector2f direction, out Vector2f normal)
 		{
 			normal = Vector2f.Zero;
-
-			// TODO one only 3 Intersections are needed
+			var tMin = double.PositiveInfinity;
 
 			// bottom left
-			var tMin = double.PositiveInfinity;
-				
-			var t1 = Intersect(box.Position, direction, out Vector2f n1);
-			if (t1 < tMin && Math.Abs(t1) < Math.Abs(tMin))
-			{
-				tMin = t1;
-				normal = n1;
-			}
+			if (!(direction.X > 0 && direction.Y > 0))
+				tMin = GetClosest(box.Position, direction, tMin, normal, out normal);
 
 			// bottom right
-			var t2 = Intersect(box.Position + Vector2f.Right * box.Size.X, direction, out Vector2f n2);
-			if (t2 < tMin && Math.Abs(t2) < Math.Abs(tMin))
-			{
-				tMin = t2;
-				normal = n2;
-			}
+			if (!(direction.X < 0 && direction.Y > 0))
+				tMin = GetClosest(box.Position + Vector2f.Right * box.Size.X, direction, tMin, normal, out normal);
 
 			// top left
-			var t3 = Intersect(box.Position + Vector2f.Up * box.Size.Y, direction, out Vector2f n3);
-			if (t3 < tMin && Math.Abs(t3) < Math.Abs(tMin))
-			{
-				tMin = t3;
-				normal = n3;
-			}
+			if (!(direction.X > 0 && direction.Y < 0))
+				tMin = GetClosest(box.Position + Vector2f.Up * box.Size.Y, direction, tMin, normal, out normal);
 
 			// top right
-			var t4 = Intersect(box.Position + box.Size, direction, out Vector2f n4);
-			if (t4 < tMin && Math.Abs(t4) < Math.Abs(tMin))
+			if (!(direction.X < 0 && direction.Y < 0))
+				tMin = GetClosest(box.Position + box.Size, direction, tMin, normal, out normal);
+
+			// right side
+			if (direction.X > 0)
 			{
-				tMin = t4;
-				normal = n4;
+				tMin = GetClosest(box.Position + Vector2f.Right * box.Size.X + Vector2f.Up * box.Size.Y * 0.25, direction,
+					tMin, normal, out normal);
+
+				tMin = GetClosest(box.Position + Vector2f.Right * box.Size.X + Vector2f.Up * box.Size.Y * 0.5, direction,
+					tMin, normal, out normal);
+
+				tMin = GetClosest(box.Position + Vector2f.Right * box.Size.X + Vector2f.Up * box.Size.Y * 0.75, direction,
+					tMin, normal, out normal);
+			}
+
+			// left side
+			if (direction.X < 0)
+			{
+				tMin = GetClosest(box.Position + Vector2f.Up * box.Size.Y * 0.25, direction,
+					tMin, normal, out normal);
+
+				tMin = GetClosest(box.Position + Vector2f.Up * box.Size.Y * 0.5, direction,
+					tMin, normal, out normal);
+
+				tMin = GetClosest(box.Position + Vector2f.Up * box.Size.Y * 0.75, direction,
+					tMin, normal, out normal);
 			}
 
 			Log.Add($"Level.Intersect(box={ box }, dir={ direction }): { tMin }, normal={ normal }");
+			return tMin;
+		}
+
+		private double GetClosest(Vector2f origin, Vector2f direction, double tMin, Vector2f nMin, out Vector2f normal)
+		{
+			var t = Intersect(origin, direction, out Vector2f n);
+			if (t < tMin && Math.Abs(t) < Math.Abs(tMin))
+			{
+				normal = n;
+				return t;
+			}
+
+			normal = nMin;
 			return tMin;
 		}
 
@@ -197,14 +219,83 @@ namespace Ujeby.Plosinofka
 			normal = Vector2f.Zero;
 
 			var tMin = double.PositiveInfinity;
-			foreach (var bb in Colliders.Take(2))
+			foreach (var bb in Colliders)
 			{
-				var t = bb.Intersect(origin, direction, out Vector2f n);
+				var t = bb.Trace(origin, direction, out Vector2f n);
 				if (t < tMin)
 				{
 					tMin = t;
 					normal = n;
 				}
+			}
+
+			return tMin;
+		}
+
+		private const double RAY_MARCH_EPSILON = 0.1;
+		private const double RAY_MARCH_MAX_STEPS = 128;
+
+		private double Distance(Vector2f point)
+		{
+			var tMin = double.PositiveInfinity;
+			foreach (ISdf sdf in Colliders)
+			{
+				var t = sdf.Distance(point);
+				if (t < tMin)
+					tMin = t;
+			}
+
+			return tMin;
+		}
+
+		public double RayMarch(Vector2f origin, Vector2f direction, out Vector2f normal)
+		{
+			normal = Vector2f.Zero;
+
+			// only raymarch sdf's which are in front of ray
+			var validColliders = Colliders.Where(c =>
+			{
+				if (direction.X < 0 && origin.X < c.Left)
+					return false;
+
+				if (direction.X > 0 && origin.X > c.Right)
+					return false;
+
+				if (direction.Y < 0 && origin.Y < c.Bottom)
+					return false;
+
+				if (direction.Y > 0 && origin.Y > c.Top)
+					return false;
+
+				return true;
+			}).ToArray();
+
+			var tMin = double.PositiveInfinity;
+			if (validColliders.Length > 0)
+			{
+				var t = 0.0;
+				for (var step = 0; step < RAY_MARCH_MAX_STEPS; step++)
+				{
+					var p = origin + direction * t;
+					var d = Colliders.Min(c => c.Distance(p));
+
+					if (Math.Abs(d) < RAY_MARCH_EPSILON)
+					{
+						tMin = t;
+						break;
+					}
+
+					t += d;
+				}
+			}
+
+			if (tMin > 0 && !double.IsInfinity(tMin))
+			{
+				var p = origin + direction * tMin;
+				normal = new Vector2f(
+					Distance(p + Vector2f.Right * RAY_MARCH_EPSILON) - Distance(p - Vector2f.Right * RAY_MARCH_EPSILON),
+					Distance(p + Vector2f.Up * RAY_MARCH_EPSILON) - Distance(p - Vector2f.Up * RAY_MARCH_EPSILON))
+					.Normalize();
 			}
 
 			return tMin;

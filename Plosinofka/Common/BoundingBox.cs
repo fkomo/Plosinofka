@@ -1,9 +1,10 @@
 ﻿
 using System;
+using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka.Common
 {
-	public struct BoundingBox
+	public struct BoundingBox : IRayTracable, ISdf
 	{
 		/// <summary>bottom left</summary>
 		public Vector2f Position;
@@ -15,8 +16,11 @@ namespace Ujeby.Plosinofka.Common
 		public double Right => Position.X + Size.X;
 
 		public bool IsIn(Vector2f p) => IsIn(p.X, p.Y);
+		public bool IsIn(int x, int y) => IsIn((double)x, (double)y);
 		public bool IsIn(double x, double y) => !(x < Left || y < Bottom || x >= Right || y >= Top);
-		public bool IsIn(int x, int y) => !(x < Left || y < Bottom || x >= Right || y >= Top);
+
+		public bool IsOutOrOnSurface(Vector2f p) => IsOutOrOnSurface(p.X, p.Y);
+		public bool IsOutOrOnSurface(double x, double y) => (x <= Left || y <= Bottom || x >= Right || y >= Top);
 
 		public override string ToString() => $"{ Position }x{ Size }";
 
@@ -43,12 +47,13 @@ namespace Ujeby.Plosinofka.Common
 			return true;
 		}
 
-		public double Intersect(Vector2f origin, Vector2f direction, out Vector2f normal)
+		public double Trace(Vector2f origin, Vector2f direction, out Vector2f normal)
 		{
 			normal = Vector2f.Zero;
 			var tMin = double.PositiveInfinity;
 
-			if (!IsIn(origin))
+			// if ray is coming from outside or from surface
+			if (IsOutOrOnSurface(origin))
 			{
 				if (origin.X <= Position.X && direction.X > 0)
 				{
@@ -56,7 +61,7 @@ namespace Ujeby.Plosinofka.Common
 					if (t < tMin && !double.IsInfinity(t))
 					{
 						var hit = origin.Y + direction.Y * t;
-						if (hit >= Position.Y && hit < Position.Y + Size.Y)
+						if (hit > Position.Y && hit < Position.Y + Size.Y)
 						{
 							tMin = t;
 							normal = Vector2f.Left;
@@ -69,7 +74,7 @@ namespace Ujeby.Plosinofka.Common
 					if (t < tMin && !double.IsInfinity(t))
 					{
 						var hit = origin.Y + direction.Y * t;
-						if (hit >= Position.Y && hit < Position.Y + Size.Y)
+						if (hit > Position.Y && hit < Position.Y + Size.Y)
 						{
 							tMin = t;
 							normal = Vector2f.Right;
@@ -83,7 +88,7 @@ namespace Ujeby.Plosinofka.Common
 					if (t < tMin && !double.IsInfinity(t))
 					{
 						var hit = origin.X + direction.X * t;
-						if (hit >= Position.X && hit < Position.X + Size.X)
+						if (hit > Position.X && hit < Position.X + Size.X)
 						{
 							tMin = t;
 							normal = Vector2f.Down;
@@ -96,7 +101,7 @@ namespace Ujeby.Plosinofka.Common
 					if (t < tMin && !double.IsInfinity(t))
 					{
 						var hit = origin.X + direction.X * t;
-						if (hit >= Position.X && hit < Position.X + Size.X)
+						if (hit > Position.X && hit < Position.X + Size.X)
 						{
 							tMin = t;
 							normal = Vector2f.Up;
@@ -106,6 +111,7 @@ namespace Ujeby.Plosinofka.Common
 			}
 			else
 			{
+				// ray from inside
 				if (direction.X > 0)
 				{
 					var t = (-origin.X + Right) / direction.X;
@@ -165,6 +171,13 @@ namespace Ujeby.Plosinofka.Common
 				normal = Vector2f.Zero;
 
 			return tMin;
+		}
+
+		public double Distance(Vector2f p)
+		{
+			var size2 = Size * 0.5;
+			var q = (p - (Position + size2)).Abs() - size2;
+			return q.Max(Vector2f.Zero).Length() + Math.Min(Math.Max(q.X, q.Y), 0.0);
 		}
 	}
 }
