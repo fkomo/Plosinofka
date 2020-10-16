@@ -5,7 +5,7 @@ using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka.Entities
 {
-	abstract class Entity
+	public abstract class Entity
 	{
 		public Guid Id { get; private set; } = Guid.NewGuid();
 		public string Name { get; private set; }
@@ -25,5 +25,7 @@ namespace Ujeby.Plosinofka.Entities
 		protected Entity BeforeUpdate;
 
 		protected Entity(string name) => Name = name;
+
+		public abstract void AfterUpdate(bool collisionFound, IRayCasting rayCasting);
 	}
 }

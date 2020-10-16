@@ -5,9 +5,9 @@ using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka.Entities
 {
-	class Player : Entity, IRenderable, IHandleInput
+	public class Player : Entity, IRenderable, IHandleInput
 	{
-		public const double WalkingStep = 16;
+		public const double WalkingStep = 8;
 		public const double SneakingStep = WalkingStep / 2;
 		public const double RunningStep = WalkingStep * 2;
 		public const double AirStep = WalkingStep;
@@ -48,12 +48,12 @@ namespace Ujeby.Plosinofka.Entities
 		{
 			var interpolatedPosition = BeforeUpdate.Position + (Position - BeforeUpdate.Position) * interpolation;
 
-			Renderer.Instance.RenderSprite(camera, 
-				interpolatedPosition, ResourceCache.Get<Sprite>(PlayerSpriteId), 
+			Renderer.Instance.RenderSprite(camera,
+				interpolatedPosition, ResourceCache.Get<Sprite>(PlayerSpriteId),
 				interpolation);
 
-			Renderer.Instance.RenderLine(camera, 
-				interpolatedPosition + Size / 2, interpolatedPosition + Size / 2 + Velocity, 
+			Renderer.Instance.RenderLine(camera,
+				interpolatedPosition + Size / 2, interpolatedPosition + Size / 2 + Velocity,
 				interpolation);
 		}
 
@@ -68,39 +68,33 @@ namespace Ujeby.Plosinofka.Entities
 			BeforeUpdate.BoundingBox = BoundingBox;
 			BeforeUpdate.Velocity = Velocity;
 
-			// update player, set velocity for new position
+			// update player according to his state and set new moving vector
 			CurrentState?.Update(this);
+		}
 
-			// resolve collisions
-			if (collision.Solve(this, out Vector2f position, out Vector2f velocity))
+		public override void AfterUpdate(bool collisionFound, IRayCasting rayCasting)
+		{
+			if (collisionFound)
 			{
-				// collision found, use new position / velocity
-				Position = position;
-				Velocity = velocity;
-
-				// landed on ground from fall/jump so change to previous state
-				if (velocity.Y == 0 && (CurrentState is Falling || CurrentState is Jumping))
+				// if landed on ground from fall/jump so change to previous state
+				if (Velocity.Y == 0 && (CurrentState is Falling || CurrentState is Jumping))
 					CurrentState = States.Change(CurrentState, States.Pop(), false);
 			}
-			else
-				// no collisions, add velocity
-				Position += Velocity;
 
 			// if not falling / jumping
 			if (!(CurrentState is Falling) && !(CurrentState is Jumping))
 			{
 				// if velocity is pointing down or no ground beneath the feet
-				if (Velocity.Y < 0 || !GroundBeneathMyFeet(level))
+				if (Velocity.Y < 0 || !GroundBeneathHerFeet(rayCasting))
 					CurrentState = States.Change(CurrentState, new Falling(CurrentState));
 			}
 		}
 
-		private bool GroundBeneathMyFeet(IRayCasting level)
+		private bool GroundBeneathHerFeet(IRayCasting rayCasting)
 		{
-			var leftFoot = level.Intersect(Position, Vector2f.Down, out Vector2f n1);
-			var rightFoot = level.Intersect(new Vector2f(BoundingBox.Right, Position.Y), Vector2f.Down, out Vector2f n2);
-
-			return leftFoot == 0 || rightFoot == 0;
+			return
+				rayCasting.Intersect(Position, Vector2f.Down, out Vector2f n1) == 0 ||
+				rayCasting.Intersect(new Vector2f(BoundingBox.Right, Position.Y), Vector2f.Down, out Vector2f n2) == 0;
 		}
 	}
 }

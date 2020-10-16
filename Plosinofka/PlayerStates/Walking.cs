@@ -74,8 +74,6 @@ namespace Ujeby.Plosinofka
 
 		public override void Update(Player player)
 		{
-			Log.Add($"Walking.Update: freeze={ Freeze }; Direction.X={ Direction.X }");
-
 			if (!Freeze)
 				player.Velocity.X = Direction.X * Player.WalkingStep;
 			else

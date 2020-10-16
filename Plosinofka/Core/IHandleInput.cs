@@ -1,7 +1,7 @@
 ﻿
 namespace Ujeby.Plosinofka.Interfaces
 {
-	enum InputButton
+	public enum InputButton
 	{
 		Up,
 		Down,
@@ -17,13 +17,13 @@ namespace Ujeby.Plosinofka.Interfaces
 		R2
 	}
 
-	enum InputButtonState
+	public enum InputButtonState
 	{
 		Pressed,
 		Released
 	}
 
-	interface IHandleInput
+	public interface IHandleInput
 	{
 		void HandleButton(InputButton button, InputButtonState state);
 	}

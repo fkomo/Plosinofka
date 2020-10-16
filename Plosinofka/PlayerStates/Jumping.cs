@@ -72,8 +72,6 @@ namespace Ujeby.Plosinofka
 
 		public override void Update(Player player)
 		{
-			Log.Add($"Jumping.Update: freeze={ Freeze }; Direction.X={ Direction.X }; air={InAir}; velocityY={ player.Velocity.Y }");
-
 			if (!InAir)
 			{
 				player.Velocity = player.JumpingVelocity;

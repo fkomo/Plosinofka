@@ -5,7 +5,7 @@ using Ujeby.Plosinofka.Entities;
 
 namespace Ujeby.Plosinofka.Core
 {
-	abstract class Simulation
+	public abstract class Simulation
 	{
 		/// <summary>
 		/// desired number of updates per second

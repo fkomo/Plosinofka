@@ -4,7 +4,7 @@ using Ujeby.Plosinofka.Common;
 
 namespace Ujeby.Plosinofka
 {
-	enum PlayerStateEnum
+	public enum PlayerStateEnum
 	{
 		Standing,
 		Crouching,
@@ -17,7 +17,7 @@ namespace Ujeby.Plosinofka
 		HitWall,
 	}
 
-	internal abstract class PlayerState : State
+	public abstract class PlayerState : State
 	{
 		public abstract void HandleButton(InputButton button, InputButtonState state, Player player);
 
@@ -31,7 +31,7 @@ namespace Ujeby.Plosinofka
 		public abstract PlayerStateEnum AsEnum { get; }
 	}
 
-	class PlayerStateMachine : StateMachine<PlayerState>
+	public class PlayerStateMachine : StateMachine<PlayerState>
 	{
 		public new PlayerState Pop()
 		{

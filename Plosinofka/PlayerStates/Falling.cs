@@ -73,8 +73,6 @@ namespace Ujeby.Plosinofka
 
 		public override void Update(Player player)
 		{
-			Log.Add($"Falling.Update: freeze={ Freeze }; Direction.X={ Direction.X }; velocityY={ player.Velocity.Y }");
-
 			player.Velocity += Simulation.Gravity;
 			player.Velocity.Y = Math.Max(player.Velocity.Y, Simulation.TerminalFallingVelocity);
 

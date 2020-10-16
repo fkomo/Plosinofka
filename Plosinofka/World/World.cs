@@ -7,20 +7,26 @@ using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka
 {
-	class World : Simulation, ICollisionSolver
+	public class World : Simulation, ICollisionSolver
 	{
 		private Level CurrentLevel;
 
 		public World()
 		{
 			CurrentLevel = Level.Load("world1");
+
 			Entities.Add(new Player("jebko") 
 			{ 
 				Position = new Vector2f(128, 128)
 			});
 
 			// make camera view smaller then window size for more pixelated look!
-			Camera = new Camera(Renderer.Instance.WindowSize / 2, GetPlayerEntity());
+			Camera = new Camera(CurrentLevel.Size / 4, GetPlayerEntity());
+		}
+
+		public World(Level level)
+		{
+			CurrentLevel = level;
 		}
 
 		public override void Update()
@@ -29,7 +35,20 @@ namespace Ujeby.Plosinofka
 
 			// update all entities
 			foreach (var entity in Entities)
+			{
+				// update entity
 				entity.Update(this, CurrentLevel);
+
+				// solve possible collisions
+				var collisionsFound = Solve(entity, out Vector2f position, out Vector2f velocity);
+				Log.Add($"pos={ entity.Position } + vel={ entity.Velocity } => pos={ position }/vel={ velocity }");
+
+				entity.Position = position;
+				entity.Velocity = velocity;
+
+				// update entity after collision were resolved
+				entity.AfterUpdate(collisionsFound, CurrentLevel);
+			}
 
 			// update camera with respect to world/level borders
 			Camera.Update(GetPlayerEntity(), CurrentLevel.Size);
@@ -68,6 +87,8 @@ namespace Ujeby.Plosinofka
 		{
 			position = entity.Position;
 			velocity = entity.Velocity;
+			var entityBox = entity.BoundingBox;
+			var remainingVelocity = velocity;
 
 			// no velocity ? no collision!
 			if (velocity == Vector2f.Zero)
@@ -79,55 +100,34 @@ namespace Ujeby.Plosinofka
 				var distance = velocity.Length();
 				var direction = velocity.Normalize();
 
-				var t = CurrentLevel.Intersect(entity.BoundingBox, velocity.Normalize(), out Vector2f normal);
+				var t = CurrentLevel.Intersect(entityBox, direction, out Vector2f normal);
 				if (t <= distance)
 				{
-					// obstacle in path
 					collisionFound = true;
 
-					// new position
-					position += direction * t;
+					var hitPosition = position + direction * t;
+					
+					// set new position & velocity
+					velocity = (position + velocity) 
+						+ normal * Vector2f.Dot(direction.Inv(), normal) * (distance - t) 
+						- hitPosition;
+					position = hitPosition;
+					entityBox.Position = position;
 
-					// new velocity
-					velocity = Vector2f.Zero;
-					if (normal == Vector2f.Up)
-					{
-						if (direction.X > 0)
-							velocity = Vector2f.Right * (t);
-						else if (direction.X < 0)
-							velocity = Vector2f.Left * (t);
-					}
-					else if (normal == Vector2f.Down)
-					{
-						if (direction.X > 0)
-							velocity = Vector2f.Right * (t);
-						else if (direction.X < 0)
-							velocity = Vector2f.Left * (t);
-					}
-					else if (normal == Vector2f.Left)
-					{
-						if (direction.Y > 0)
-							velocity = Vector2f.Up * (t);
-						else if (direction.Y < 0)
-							velocity = Vector2f.Down * (t);
-					}
-					else if (normal == Vector2f.Right)
-					{
-						if (direction.Y > 0)
-							velocity = Vector2f.Up * (t);
-						else if (direction.Y < 0)
-							velocity = Vector2f.Down * (t);
-					}
+					if (normal.X == 0)
+						remainingVelocity.Y = 0;
+					else 
+						remainingVelocity.X = 0;
 
-					if (velocity == Vector2f.Zero) // or distance < ~1 ?
-						break;
+					if (velocity == Vector2f.Zero) // or better just close to zero ?
+						break; // solved - nowhere to move
 				}
 				else
-					break;
+					break; // solved - nothing else stands in the way
 			}
 
-			if (collisionFound)
-				Log.Add($"World.Solved: position={ position }; velocity={ velocity }");
+			position += velocity;
+			velocity = remainingVelocity;
 
 			return collisionFound;
 		}

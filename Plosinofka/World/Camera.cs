@@ -7,7 +7,7 @@ namespace Ujeby.Plosinofka
 	/// <summary>
 	/// camera is a window to the world
 	/// </summary>
-	class Camera
+	public class Camera
 	{
 		/// <summary>bottomLeft</summary>
 		public Vector2i Position;

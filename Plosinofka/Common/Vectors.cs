@@ -58,9 +58,12 @@ namespace Ujeby.Plosinofka.Common
 
 		public Vector2f Normalize() => this * 1 / Length();
 
-		internal Vector2f Abs() => new Vector2f(Math.Abs(X), Math.Abs(Y));
-		internal Vector2f Min(Vector2f v) => new Vector2f(Math.Min(X, v.X), Math.Min(Y, v.Y));
-		internal Vector2f Max(Vector2f v) => new Vector2f(Math.Max(X, v.X), Math.Max(Y, v.Y));
+		public static double Dot(Vector2f v1, Vector2f v2) => v1.X * v2.X + v1.Y * v2.Y;
+
+		public Vector2f Abs() => new Vector2f(Math.Abs(X), Math.Abs(Y));
+		public Vector2f Min(Vector2f v) => new Vector2f(Math.Min(X, v.X), Math.Min(Y, v.Y));
+		public Vector2f Max(Vector2f v) => new Vector2f(Math.Max(X, v.X), Math.Max(Y, v.Y));
+		public Vector2f Inv() => new Vector2f(-X, -Y);
 	}
 
 	public struct Vector2i

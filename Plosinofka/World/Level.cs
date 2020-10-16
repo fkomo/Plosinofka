@@ -197,7 +197,6 @@ namespace Ujeby.Plosinofka
 					tMin, normal, out normal);
 			}
 
-			Log.Add($"Level.Intersect(box={ box }, dir={ direction }): { tMin }, normal={ normal }");
 			return tMin;
 		}
 

@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using Ujeby.Plosinofka.Interfaces;
-using Ujeby.Plosinofka.Entities;
 
 namespace Ujeby.Plosinofka.Common
 {
@@ -29,8 +27,6 @@ namespace Ujeby.Plosinofka.Common
 
 		public T Change(T from, T to)
 		{
-			Log.Add($"StateChange({ from } -> { to })");
-
 			if (from != null)
 				Push(from);
 

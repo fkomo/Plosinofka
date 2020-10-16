@@ -1,6 +1,8 @@
 ﻿using SDL2;
 using System.Collections.Generic;
+using Ujeby.Plosinofka;
 using Ujeby.Plosinofka.Common;
+using Ujeby.Plosinofka.Entities;
 
 namespace UjebyTest
 {
@@ -23,20 +25,32 @@ namespace UjebyTest
 			BoundingBoxTest.BoundingBoxRayMarchingStressTest();
 
 			var colliders = new List<BoundingBox>();
-			for (var i = 0; i < 10; i++)
-			{
-				colliders.Add(
-					new BoundingBox()
-					{
-						Size = new Vector2f(
-							Program.WindowSize.X / 4 * Program.Rng.NextDouble(),
-							Program.WindowSize.Y / 4 * Program.Rng.NextDouble()),
-						Position = new Vector2f(
-							Program.WindowSize.X / 4 + Program.Rng.NextDouble() * Program.WindowSize.X / 2,
-							Program.WindowSize.Y / 4 + Program.Rng.NextDouble() * Program.WindowSize.Y / 2)
-					});
-			}
+			//for (var i = 0; i < 10; i++)
+			//{
+			//	colliders.Add(
+			//		new BoundingBox()
+			//		{
+			//			Size = new Vector2f(
+			//				Program.WindowSize.X / 4 * Program.Rng.NextDouble(),
+			//				Program.WindowSize.Y / 4 * Program.Rng.NextDouble()),
+			//			Position = new Vector2f(
+			//				Program.WindowSize.X / 4 + Program.Rng.NextDouble() * Program.WindowSize.X / 2,
+			//				Program.WindowSize.Y / 4 + Program.Rng.NextDouble() * Program.WindowSize.Y / 2)
+			//		});
+			//}
+
+			colliders.Add(new BoundingBox { Position = new Vector2f(0, 0), Size = new Vector2f(1920, 16) });
+			colliders.Add(new BoundingBox { Position = new Vector2f(352, 16), Size = new Vector2f(128, 64) });
+
 			TestLevel = new Ujeby.Plosinofka.Level("test-room", colliders);
+
+			var world = new World(TestLevel);
+			var entity = new Player("asdf")
+			{
+				BoundingBox = new BoundingBox { Position = new Vector2f(320, 80), Size = new Vector2f(32, 64) },
+				Velocity = new Vector2f(-16, 0)
+			};
+			var solved = world.Solve(entity, out Vector2f position, out Vector2f velocity);
 		}
 
 		protected override void Update()
