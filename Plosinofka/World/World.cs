@@ -15,10 +15,8 @@ namespace Ujeby.Plosinofka
 		{
 			CurrentLevel = Level.Load("world1");
 
-			Entities.Add(new Player("jebko") 
-			{ 
-				Position = new Vector2f(128, 128)
-			});
+			var player = new Player("jebko") { Position = new Vector2f(128, 128) };
+			Entities.Add(player);
 
 			// make camera view smaller then window size for more pixelated look!
 			Camera = new Camera(CurrentLevel.Size / 4, GetPlayerEntity());
@@ -35,19 +33,14 @@ namespace Ujeby.Plosinofka
 
 			// update all entities
 			foreach (var entity in Entities)
+				entity.Update(CurrentLevel);
+
+			// solve collisions of dynamic entities
+			foreach (DynamicEntity dynamicEntity in Entities.Where(e => e is DynamicEntity))
 			{
-				// update entity
-				entity.Update(this, CurrentLevel);
-
-				// solve possible collisions
-				var collisionsFound = Solve(entity, out Vector2f position, out Vector2f velocity);
-				Log.Add($"pos={ entity.Position } + vel={ entity.Velocity } => pos={ position }/vel={ velocity }");
-
-				entity.Position = position;
-				entity.Velocity = velocity;
-
-				// update entity after collision were resolved
-				entity.AfterUpdate(collisionsFound, CurrentLevel);
+				Solve(dynamicEntity, out Vector2f position, out Vector2f velocity);
+				dynamicEntity.Position = position;
+				dynamicEntity.Velocity = velocity;
 			}
 
 			// update camera with respect to world/level borders
@@ -83,7 +76,7 @@ namespace Ujeby.Plosinofka
 			// TODO render world foreground
 		}
 
-		public bool Solve(Entity entity, out Vector2f position, out Vector2f velocity)
+		public bool Solve(DynamicEntity entity, out Vector2f position, out Vector2f velocity)
 		{
 			position = entity.Position;
 			velocity = entity.Velocity;
@@ -128,6 +121,8 @@ namespace Ujeby.Plosinofka
 
 			position += velocity;
 			velocity = remainingVelocity;
+
+			Log.Add($"Solved({ entity }; position={ entity.Position }; velocity={ entity.Velocity }): position={ position }; velocity={ velocity }");
 
 			return collisionFound;
 		}

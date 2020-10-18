@@ -50,9 +50,9 @@ namespace Ujeby.Plosinofka.Core
 						player.HandleButton(InputButton.Right, InputButtonState.Released);
 
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_LSHIFT))
-						player.HandleButton(InputButton.R2, InputButtonState.Pressed);
+						player.HandleButton(InputButton.RB, InputButtonState.Pressed);
 					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_LSHIFT))
-						player.HandleButton(InputButton.R2, InputButtonState.Released);
+						player.HandleButton(InputButton.RB, InputButtonState.Released);
 				}
 			}
 	

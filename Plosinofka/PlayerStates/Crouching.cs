@@ -10,24 +10,21 @@ namespace Ujeby.Plosinofka
 
 		public override void HandleButton(InputButton button, InputButtonState state, Player player)
 		{
-			//if (state == InputButtonState.Released)
-			//{
-			//	if (button == Settings.Current.PlayerControls.Crouch)
-			//		player.CurrentState = player.State.Change(this, new Standing());
-			//}
-			//else if (state == InputButtonState.Pressed)
-			//{
-			//	if (button == InputButton.Left || button == InputButton.Right)
-			//	{
-			//		player.Velocity.X = button == InputButton.Left ? -Player.SneakingStep : Player.SneakingStep;
-			//		player.CurrentState = player.State.Change(this, new Sneaking());
-			//	}
-			//}
+			if (state == InputButtonState.Released)
+			{
+				if (button == Settings.Current.PlayerControls.Crouch)
+					player.ChangeState(new Standing());
+			}
+			else if (state == InputButtonState.Pressed)
+			{
+				if (button == InputButton.Left || button == InputButton.Right)
+					player.ChangeState(new Sneaking(button));
+			}
 		}
 
-		public override void Update(Player player)
+		public override void Update(Player player, IRayCasting environment)
 		{
-			// just crouching
+			base.Update(player, environment);
 		}
 	}
 }

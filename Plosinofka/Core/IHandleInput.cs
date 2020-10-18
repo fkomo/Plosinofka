@@ -11,10 +11,10 @@ namespace Ujeby.Plosinofka.Interfaces
 		B,
 		X,
 		Y,
-		L1,
-		R1,
-		L2,
-		R2
+		LT,
+		LB,
+		RT,
+		RB
 	}
 
 	public enum InputButtonState

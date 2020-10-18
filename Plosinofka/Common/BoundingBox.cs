@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Threading;
 using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka.Common
@@ -9,6 +10,12 @@ namespace Ujeby.Plosinofka.Common
 		/// <summary>bottom left</summary>
 		public Vector2f Position;
 		public Vector2f Size;
+
+		public BoundingBox(Vector2f position, Vector2f size)
+		{
+			Position = position;
+			Size = size;
+		}
 
 		public double Top => Position.Y + Size.Y;
 		public double Bottom => Position.Y;

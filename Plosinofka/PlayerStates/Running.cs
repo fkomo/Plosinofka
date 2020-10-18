@@ -15,10 +15,42 @@ namespace Ujeby.Plosinofka
 		{
 		}
 
+		public Running(Moving currentState) : base(currentState)
+		{
+		}
+
 		public override PlayerStateEnum AsEnum { get { return PlayerStateEnum.Running; } }
 
 		public override void HandleButton(InputButton button, InputButtonState state, Player player)
 		{
+			if (state == InputButtonState.Pressed)
+			{
+				// opposite direction was pressed while moving, freeze
+				if (button == InputButton.Left || button == InputButton.Right)
+					Freeze = true;
+
+				else if (button == Settings.Current.PlayerControls.Jump)
+					player.ChangeState(new Jumping(this));
+
+				else if (button == Settings.Current.PlayerControls.Crouch)
+					player.ChangeState(new Sneaking(this));
+			}
+			else if (state == InputButtonState.Released)
+			{
+				if (button == InputButton.Right || button == InputButton.Left)
+				{
+					if (Freeze)
+					{
+						Direction = new Vector2f(button == InputButton.Right ? -1 : 1, Direction.Y);
+						Freeze = false;
+					}
+					else
+						player.ChangeState(new Standing());
+				}
+				else if (button == Settings.Current.PlayerControls.Running)
+					player.ChangeState(new Walking(this));
+			}
+
 			//if (state == InputButtonState.Pressed)
 			//{
 			//	// if crouch was pressed
@@ -58,9 +90,13 @@ namespace Ujeby.Plosinofka
 			//}
 		}
 
-		public override void Update(Player player)
+		public override void Update(Player player, IRayCasting environment)
 		{
-			//base.Update(player);
+			if (!player.StandingOnGround(player.BoundingBox, environment))
+				player.ChangeState(new Falling(this));
+
+			else if (!Freeze)
+				player.Velocity.X = Direction.X * Player.RunningStep;
 		}
 	}
 }

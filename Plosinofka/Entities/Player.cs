@@ -5,48 +5,46 @@ using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka.Entities
 {
-	public class Player : Entity, IRenderable, IHandleInput
+	/// <summary>
+	/// LS - moving
+	/// RS - shooting in specified direction (single shot / auto)
+	/// LB - 
+	/// RB - dash (while jumping/walking)
+	/// LT - running ?
+	/// RT -  
+	/// A - jump/double jump (jump + down = dive)
+	/// B - 
+	/// X - melee attack
+	/// Y - super power
+	/// </summary>
+	public class Player : DynamicEntity, IRenderable, IHandleInput
 	{
-		public const double WalkingStep = 8;
+		public const double WalkingStep = 16;
 		public const double SneakingStep = WalkingStep / 2;
 		public const double RunningStep = WalkingStep * 2;
 		public const double AirStep = WalkingStep;
-		/// <summary>initial upwards jump velocity</summary>
 		public readonly Vector2f JumpingVelocity = new Vector2f(0, 48);
 
-		public PlayerState CurrentState;
-		public PlayerStateMachine States { get; private set; } = new PlayerStateMachine();
+		public PlayerState CurrentState { get; private set; }
+		private PlayerStateMachine States = new PlayerStateMachine();
 
 		public Guid PlayerSpriteId { get; private set; }
 
-		public Player(string name) : base(name)
+		public Player(string name)
 		{
+			Name = name;
+
 			var sprite = ResourceCache.LoadSprite(@".\Content\player.png");
 			PlayerSpriteId = sprite.Id;
 
-			BoundingBox = new BoundingBox
-			{
-				Size = (Vector2f)sprite.Size,
-			};
+			boundingBox = new BoundingBox { Size = (Vector2f)sprite.Size };
 
-			CurrentState = States.Change(null, new Standing());
-
-			BeforeUpdate = new Player(this);
-		}
-
-		/// <summary>
-		/// create initial copy of player object
-		/// </summary>
-		/// <param name="player"></param>
-		private Player(Player player) : base(player.Name)
-		{
-			BoundingBox = player.BoundingBox;
-			Velocity = player.Velocity;
+			ChangeState(new Falling());
 		}
 
 		public void Render(Camera camera, double interpolation)
 		{
-			var interpolatedPosition = BeforeUpdate.Position + (Position - BeforeUpdate.Position) * interpolation;
+			var interpolatedPosition = PreviousPosition + (Position - PreviousPosition) * interpolation;
 
 			Renderer.Instance.RenderSprite(camera,
 				interpolatedPosition, ResourceCache.Get<Sprite>(PlayerSpriteId),
@@ -62,39 +60,48 @@ namespace Ujeby.Plosinofka.Entities
 			CurrentState?.HandleButton(button, state, this);
 		}
 
-		public override void Update(ICollisionSolver collision, IRayCasting level)
+		public override void Update(IRayCasting environment)
 		{
 			// save state before update
-			BeforeUpdate.BoundingBox = BoundingBox;
-			BeforeUpdate.Velocity = Velocity;
+			PreviousPosition = Position;
+			PreviousVelocity = Velocity;
 
 			// update player according to his state and set new moving vector
-			CurrentState?.Update(this);
+			CurrentState?.Update(this, environment);
 		}
 
-		public override void AfterUpdate(bool collisionFound, IRayCasting rayCasting)
+		public bool StandingOnGround(BoundingBox bb, IRayCasting environment)
 		{
-			if (collisionFound)
-			{
-				// if landed on ground from fall/jump so change to previous state
-				if (Velocity.Y == 0 && (CurrentState is Falling || CurrentState is Jumping))
-					CurrentState = States.Change(CurrentState, States.Pop(), false);
-			}
-
-			// if not falling / jumping
-			if (!(CurrentState is Falling) && !(CurrentState is Jumping))
-			{
-				// if velocity is pointing down or no ground beneath the feet
-				if (Velocity.Y < 0 || !GroundBeneathHerFeet(rayCasting))
-					CurrentState = States.Change(CurrentState, new Falling(CurrentState));
-			}
+			return 
+				environment.Intersect(bb.Position, Vector2f.Down, out Vector2f n1) == 0 ||
+				environment.Intersect(new Vector2f(bb.Right, bb.Position.Y), Vector2f.Down, out Vector2f n2) == 0;
 		}
 
-		private bool GroundBeneathHerFeet(IRayCasting rayCasting)
+		/// <summary>
+		/// change current state (effective on next update)
+		/// </summary>
+		/// <param name="newState"></param>
+		public void ChangeState(PlayerState newState, bool pushCurrentState = true)
 		{
-			return
-				rayCasting.Intersect(Position, Vector2f.Down, out Vector2f n1) == 0 ||
-				rayCasting.Intersect(new Vector2f(BoundingBox.Right, Position.Y), Vector2f.Down, out Vector2f n2) == 0;
+			Log.Add($"Player.State={ newState }");
+			CurrentState = States.Change(CurrentState, newState, pushCurrentState);
+		}
+
+		/// <summary>
+		/// add new state to stack (effective if no next state is defined)
+		/// </summary>
+		/// <param name="nextState"></param>
+		public void PushState(PlayerState nextState)
+		{
+			States.Push(nextState);
+		}
+
+		/// <summary>
+		/// change to previous state (first on stack)
+		/// </summary>
+		internal void ChangeToPreviousState()
+		{
+			ChangeState(States.Pop(), false);
 		}
 	}
 }

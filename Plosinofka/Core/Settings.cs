@@ -18,7 +18,7 @@ namespace Ujeby.Plosinofka.Core
 
 		internal class Controls
 		{
-			public InputButton Running = InputButton.R2;
+			public InputButton Running = InputButton.RB;
 			public InputButton Jump = InputButton.Up;
 			public InputButton Crouch = InputButton.Down;
 		}

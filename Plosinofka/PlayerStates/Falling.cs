@@ -23,9 +23,8 @@ namespace Ujeby.Plosinofka
 		{
 		}
 
-		public Falling(PlayerState previousState) : base(previousState as Moving)
+		public Falling(Moving currentState) : base(currentState)
 		{
-
 		}
 
 		public override void HandleButton(InputButton button, InputButtonState state, Player player)
@@ -40,19 +39,23 @@ namespace Ujeby.Plosinofka
 						(button == InputButton.Right && Direction.X < 0))
 					{
 						Freeze = true;
-						player.States.Push(new Walking(this));
+						player.PushState(new Walking(this));
 					}
 					else
 					{
 						// set new direction
 						Direction = new Vector2f(button == InputButton.Right ? 1 : -1, Direction.Y);
-						player.States.Push(new Walking(Direction));
+						player.PushState(new Walking(Direction));
 					}
+				}
+				else if (button == Settings.Current.PlayerControls.Crouch)
+				{
+					// TODO dive
 				}
 			}
 			else if (state == InputButtonState.Released)
 			{
-				if (button == InputButton.Right || button == InputButton.Left)
+				if (button == InputButton.Left || button == InputButton.Right)
 				{
 					if (Freeze)
 					{
@@ -60,27 +63,30 @@ namespace Ujeby.Plosinofka
 						Direction = new Vector2f(button == InputButton.Right ? -1 : 1, Direction.Y);
 						Freeze = false;
 
-						player.States.Push(new Walking(Direction));
+						player.PushState(new Walking(Direction));
 					}
 					else
 					{
 						Direction = new Vector2f(0, Direction.Y);
-						player.States.Clear();
+						player.PushState(new Standing());
 					}
 				}
 			}
 		}
 
-		public override void Update(Player player)
+		public override void Update(Player player, IRayCasting environment)
 		{
-			player.Velocity += Simulation.Gravity;
-			player.Velocity.Y = Math.Max(player.Velocity.Y, Simulation.TerminalFallingVelocity);
+			if (player.Velocity.Y == 0 && player.StandingOnGround(player.BoundingBox, environment))
+				player.ChangeToPreviousState();
 
-			// air control
-			if (!Freeze && Direction.X != 0)
-				player.Velocity.X = Direction.X * Player.AirStep;
 			else
-				player.Velocity.X = 0;
+			{
+				player.Velocity.Y = Math.Max((player.Velocity + Simulation.Gravity).Y, Simulation.TerminalFallingVelocity);
+
+				// air control
+				if (!Freeze)
+					player.Velocity.X = Direction.X * Player.AirStep;
+			}
 		}
 	}
 }

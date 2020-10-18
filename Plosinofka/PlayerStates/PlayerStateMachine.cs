@@ -13,15 +13,13 @@ namespace Ujeby.Plosinofka
 		Sneaking,
 		Jumping,
 		Falling,
-
-		HitWall,
 	}
 
 	public abstract class PlayerState : State
 	{
 		public abstract void HandleButton(InputButton button, InputButtonState state, Player player);
 
-		public abstract void Update(Player player);
+		public abstract void Update(Player player, IRayCasting environment);
 
 		public override string ToString()
 		{
@@ -40,8 +38,6 @@ namespace Ujeby.Plosinofka
 
 		public PlayerState Change(PlayerState previous, PlayerState next, bool pushPreviousState = true)
 		{
-			Log.Add($"StateChange({ (previous != null ? $"{ previous } -> " : null) }{ next })");
-
 			if (previous != null && pushPreviousState)
 				Push(previous);
 

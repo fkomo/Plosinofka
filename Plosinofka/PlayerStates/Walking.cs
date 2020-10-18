@@ -34,7 +34,7 @@ namespace Ujeby.Plosinofka
 		{
 		}
 
-		public Walking(PlayerState previousState) : base(previousState as Moving)
+		public Walking(PlayerState currentState) : base(currentState as Moving)
 		{
 		}
 
@@ -49,13 +49,13 @@ namespace Ujeby.Plosinofka
 					Freeze = true;
 
 				else if (button == Settings.Current.PlayerControls.Jump)
-					player.CurrentState = player.States.Change(this, new Jumping(Direction));
+					player.ChangeState(new Jumping(this));
 
-				//else if (button == Settings.Current.PlayerControls.Crouch)
-				//	player.CurrentState = player.States.Change(this, new Sneaking(Direction));
+				else if (button == Settings.Current.PlayerControls.Crouch)
+					player.ChangeState(new Sneaking(this));
 
-				//else if (button == Settings.Current.PlayerControls.Running)
-				//	player.CurrentState = player.States.Change(this, new Running(Direction));
+				else if (button == Settings.Current.PlayerControls.Running)
+					player.ChangeState(new Running(this));
 			}
 			else if (state == InputButtonState.Released)
 			{
@@ -67,17 +67,18 @@ namespace Ujeby.Plosinofka
 						Freeze = false;
 					}
 					else
-						player.CurrentState = player.States.Change(this, new Standing());
+						player.ChangeState(new Standing());
 				}
 			}
 		}
 
-		public override void Update(Player player)
+		public override void Update(Player player, IRayCasting environment)
 		{
-			if (!Freeze)
+			if (!player.StandingOnGround(player.BoundingBox, environment))
+				player.ChangeState(new Falling(this));
+
+			else if (!Freeze)
 				player.Velocity.X = Direction.X * Player.WalkingStep;
-			else
-				player.Velocity.X = 0;
 		}
 	}
 }

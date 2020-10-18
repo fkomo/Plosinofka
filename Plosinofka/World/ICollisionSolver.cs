@@ -13,6 +13,6 @@ namespace Ujeby.Plosinofka.Interfaces
 		/// <param name="position">solved position</param>
 		/// <param name="velocity">remaining velocity</param>
 		/// <returns>true if any collisions occured</returns>
-		bool Solve(Entity entity, out Vector2f position, out Vector2f velocity);
+		bool Solve(DynamicEntity entity, out Vector2f position, out Vector2f velocity);
 	}
 }

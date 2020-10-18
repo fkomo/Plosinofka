@@ -1,31 +1,22 @@
 ﻿using System;
 using Ujeby.Plosinofka.Common;
-using Ujeby.Plosinofka.Core;
 using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka.Entities
 {
 	public abstract class Entity
 	{
-		public Guid Id { get; private set; } = Guid.NewGuid();
-		public string Name { get; private set; }
+		public string Name { get; protected set; } = Guid.NewGuid().ToString("N");
+		public override string ToString() => Name;
 
-		public BoundingBox BoundingBox;
-		public Vector2f Velocity = Simulation.Gravity; // add gravity to created entity
+		protected BoundingBox boundingBox;
+		public BoundingBox BoundingBox => boundingBox;
 
 		/// <summary>bottom left</summary>
-		public Vector2f Position { get { return BoundingBox.Position; } set { BoundingBox.Position = value; } }
+		public Vector2f Position { get { return BoundingBox.Position; } set { boundingBox.Position = value; } }
 		public Vector2f Size => BoundingBox.Size;
 		public Vector2f Center => Position + Size / 2;
 
-		public override string ToString() => $"{ Id }-{ Name }";
-
-		public abstract void Update(ICollisionSolver collision, IRayCasting level);
-
-		protected Entity BeforeUpdate;
-
-		protected Entity(string name) => Name = name;
-
-		public abstract void AfterUpdate(bool collisionFound, IRayCasting rayCasting);
+		public abstract void Update(IRayCasting environment);
 	}
 }

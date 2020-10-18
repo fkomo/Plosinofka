@@ -24,15 +24,15 @@ namespace Ujeby.Plosinofka
 			Position = PositionBeforeUpdate = targetCenter - view / 2;
 		}
 
-		public void Update(Entity target, Vector2i borders)
+		public void Update(Entity target, Vector2i worldBorders)
 		{
 			ViewBeforeUpdate = View;
 			PositionBeforeUpdate = Position;
 
 			// camera is targeted at entity and its view wont go beyond world borders
 			Position = target.Center - View / 2;
-			Position.X = Math.Min(borders.X - View.X, Math.Max(0, Position.X));
-			Position.Y = Math.Min(borders.Y - View.Y, Math.Max(0, Position.Y));
+			Position.X = Math.Min(worldBorders.X - View.X, Math.Max(0, Position.X));
+			Position.Y = Math.Min(worldBorders.Y - View.Y, Math.Max(0, Position.Y));
 		}
 
 		public Vector2i InterpolatedPosition(double interpolation)
