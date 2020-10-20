@@ -19,11 +19,11 @@ namespace Ujeby.Plosinofka.Entities
 	/// </summary>
 	public class Player : DynamicEntity, IRenderable, IHandleInput
 	{
-		public const double WalkingStep = 16;
+		public const double WalkingStep = 8;
 		public const double SneakingStep = WalkingStep / 2;
 		public const double RunningStep = WalkingStep * 2;
 		public const double AirStep = WalkingStep;
-		public readonly Vector2f JumpingVelocity = new Vector2f(0, 48);
+		public readonly Vector2f JumpingVelocity = new Vector2f(0, 40);
 
 		public PlayerState CurrentState { get; private set; }
 		private PlayerStateMachine States = new PlayerStateMachine();
@@ -47,7 +47,8 @@ namespace Ujeby.Plosinofka.Entities
 			var interpolatedPosition = PreviousPosition + (Position - PreviousPosition) * interpolation;
 
 			Renderer.Instance.RenderSprite(camera,
-				interpolatedPosition, ResourceCache.Get<Sprite>(PlayerSpriteId),
+				ResourceCache.Get<Sprite>(PlayerSpriteId),
+				interpolatedPosition,
 				interpolation);
 
 			Renderer.Instance.RenderLine(camera,

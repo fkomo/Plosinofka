@@ -1,6 +1,5 @@
 ﻿
 using System;
-using System.Threading;
 using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka.Common

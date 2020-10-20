@@ -1,4 +1,6 @@
 ﻿using SDL2;
+using Ujeby.Plosinofka.Common;
+using Ujeby.Plosinofka.Graphics;
 using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka.Core
@@ -10,12 +12,35 @@ namespace Ujeby.Plosinofka.Core
 
 		public static bool Handle(Simulation simulation)
 		{
+			var windowId = SDL.SDL_GetWindowID(Renderer.Instance.WindowPtr);
 			while (SDL.SDL_PollEvent(out SDL.SDL_Event e) != 0)
 			{
 				switch (e.type)
 				{
 					case SDL.SDL_EventType.SDL_QUIT:
 						return false;
+
+					//case SDL.SDL_EventType.SDL_WINDOWEVENT:
+					//	{
+					//		if (e.window.windowID == windowId)
+					//		{
+					//			switch (e.window.windowEvent)
+					//			{
+					//				case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_EXPOSED:
+					//				{
+					//					Log.Add($"SDL_WINDOWEVENT_EXPOSED");
+					//				}
+					//				break;
+
+					//				case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
+					//				{
+					//					Log.Add($"SDL_WINDOWEVENT_SIZE_CHANGED: { e.window.data1 }x{ e.window.data2 }");
+					//				}
+					//				break;
+					//			}
+					//		}
+					//	}
+					//	break;
 				};
 
 				if (e.type == SDL.SDL_EventType.SDL_KEYUP || e.type == SDL.SDL_EventType.SDL_KEYDOWN)

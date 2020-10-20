@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
@@ -6,38 +6,49 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<AssemblyName>Plosinofka</AssemblyName>
 		<RootNamespace>Ujeby.Plosinofka</RootNamespace>
+		<StartupObject>Ujeby.Plosinofka.Program</StartupObject>
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <None Remove="Content\Worlds\color-test.png" />
-	  <None Remove="Content\Worlds\player.png" />
-	  <None Remove="Content\Worlds\world1-collision.bmp" />
-	  <None Remove="Content\Worlds\world1-collision.png" />
-	  <None Remove="Content\Worlds\world1-color.png" />
-	  <None Remove="Content\Worlds\world1.bmp" />
+		<None Remove="Content\Worlds\color-test.png" />
+		<None Remove="Content\Worlds\player.png" />
+		<None Remove="Content\Worlds\world1-collision.bmp" />
+		<None Remove="Content\Worlds\world1-collision.png" />
+		<None Remove="Content\Worlds\world1-color.png" />
+		<None Remove="Content\Worlds\world1.bmp" />
+		<None Remove="Content\Worlds\world2-collision.png" />
+		<None Remove="Content\Worlds\world2-color.png" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Include="Content\test.png">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
-	  <Content Include="Content\player.png">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
-	  <Content Include="Content\Worlds\world1-collision.png">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
-	  <Content Include="Content\Worlds\world1-color.png">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
+		<Content Include="Content\test.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Content\player.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Content\Worlds\world1-color.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Content\Worlds\world2-color.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+
+		<Content Include="Content\Worlds\world1-data.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Content\Worlds\world2-data.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="SDL2-CS.NetCore" Version="2.0.8" />
+		<PackageReference Include="SDL2-CS.NetCore" Version="2.0.8" />
 	</ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-	  <Exec Command="copy $(SolutionDir)3rd\SDL2\*.dll $(OutDir)" />
+		<Exec Command="copy $(SolutionDir)3rd\SDL2\*.dll $(OutDir)" />
 	</Target>
 
 </Project>

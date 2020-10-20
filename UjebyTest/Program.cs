@@ -19,7 +19,9 @@ namespace UjebyTest
 				stopwatch.Restart();
 
 				InitSDL();
-				new BoundingBoxTest().Run(HandleInput);
+
+				//new BoundingBoxTest().Run(HandleInput);
+				new AllocTest().Run(HandleInput);
 			}
 			catch (Exception ex)
 			{

@@ -13,13 +13,16 @@ namespace Ujeby.Plosinofka
 
 		public World()
 		{
-			CurrentLevel = Level.Load("world1");
+			CurrentLevel = Level.Load("world2");
 
-			var player = new Player("jebko") { Position = new Vector2f(128, 128) };
+			var player = new Player("jebko") { Position = new Vector2f(64, 128) };
 			Entities.Add(player);
 
+			Entities.Add(new Light(new Color4f(1.0, 1.0, 0.8), 64.0) { Position = new Vector2f(240, 220) });
+			Entities.Add(new Light(new Color4f(1.0, 0.0, 0.0), 16.0) { Position = new Vector2f(80, 100) });
+
 			// make camera view smaller then window size for more pixelated look!
-			Camera = new Camera(CurrentLevel.Size / 4, GetPlayerEntity());
+			Camera = new Camera(Vector2i.FullHD / 4, GetPlayerEntity());
 		}
 
 		public World(Level level)
@@ -64,11 +67,21 @@ namespace Ujeby.Plosinofka
 
 		private void RenderBackground(double interpolation)
 		{
+			// TODO paralax scrolling, multiple background layers
+
 			var background = ResourceCache.Get<Sprite>(CurrentLevel.Resources[(int)LevelResourceType.Background]);
 			if (background == null)
 				return;
 
-			Renderer.Instance.RenderSprite(Camera, background, interpolation);
+			var data = ResourceCache.Get<Sprite>(CurrentLevel.Resources[(int)LevelResourceType.Data]);
+
+			var player = GetPlayerEntity();
+			var playerBb = player.BoundingBox;
+			playerBb.Position = player.InterpolatedPosition(interpolation);
+
+			Renderer.Instance.Render(Camera, background, data, interpolation,
+				Entities.Where(e => e is Light).Select(e => e as Light),
+				CurrentLevel.Colliders.Concat(new[] { playerBb }));
 		}
 
 		private void RenderForeground(double interpolation)
