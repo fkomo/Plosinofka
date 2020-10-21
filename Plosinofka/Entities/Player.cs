@@ -23,7 +23,7 @@ namespace Ujeby.Plosinofka.Entities
 		public const double SneakingStep = WalkingStep / 2;
 		public const double RunningStep = WalkingStep * 2;
 		public const double AirStep = WalkingStep;
-		public readonly Vector2f JumpingVelocity = new Vector2f(0, 40);
+		public readonly Vector2f JumpingVelocity = new Vector2f(0, 35);
 
 		public PlayerState CurrentState { get; private set; }
 		private PlayerStateMachine States = new PlayerStateMachine();
@@ -37,7 +37,7 @@ namespace Ujeby.Plosinofka.Entities
 			var sprite = ResourceCache.LoadSprite(@".\Content\player.png");
 			PlayerSpriteId = sprite.Id;
 
-			boundingBox = new BoundingBox { Size = (Vector2f)sprite.Size };
+			boundingBox = new BoundingBox(Position, Position + sprite.Size);
 
 			ChangeState(new Falling());
 		}
@@ -74,8 +74,9 @@ namespace Ujeby.Plosinofka.Entities
 		public bool StandingOnGround(BoundingBox bb, IRayCasting environment)
 		{
 			return 
-				environment.Intersect(bb.Position, Vector2f.Down, out Vector2f n1) == 0 ||
-				environment.Intersect(new Vector2f(bb.Right, bb.Position.Y), Vector2f.Down, out Vector2f n2) == 0;
+				environment.Trace(bb.Min, Vector2f.Down, out Vector2f n1) == 0 ||
+				environment.Trace(new Vector2f(bb.Center.X, bb.Bottom), Vector2f.Down, out Vector2f n2) == 0 ||
+				environment.Trace(new Vector2f(bb.Max.X, bb.Bottom), Vector2f.Down, out Vector2f n3) == 0;
 		}
 
 		/// <summary>

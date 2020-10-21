@@ -52,32 +52,30 @@ namespace Ujeby.Plosinofka.Core
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE))
 						return false;
 
-					var player = simulation.GetPlayerEntity();
-
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_UP))
-						player.HandleButton(InputButton.Up, InputButtonState.Pressed);
+						simulation.Player.HandleButton(InputButton.Up, InputButtonState.Pressed);
 					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_UP))
-						player.HandleButton(InputButton.Up, InputButtonState.Released);
+						simulation.Player.HandleButton(InputButton.Up, InputButtonState.Released);
 
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_DOWN))
-						player.HandleButton(InputButton.Down, InputButtonState.Pressed);
+						simulation.Player.HandleButton(InputButton.Down, InputButtonState.Pressed);
 					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_DOWN))
-						player.HandleButton(InputButton.Down, InputButtonState.Released);
+						simulation.Player.HandleButton(InputButton.Down, InputButtonState.Released);
 
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_LEFT))
-						player.HandleButton(InputButton.Left, InputButtonState.Pressed);
+						simulation.Player.HandleButton(InputButton.Left, InputButtonState.Pressed);
 					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_LEFT))
-						player.HandleButton(InputButton.Left, InputButtonState.Released);
+						simulation.Player.HandleButton(InputButton.Left, InputButtonState.Released);
 
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_RIGHT))
-						player.HandleButton(InputButton.Right, InputButtonState.Pressed);
+						simulation.Player.HandleButton(InputButton.Right, InputButtonState.Pressed);
 					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_RIGHT))
-						player.HandleButton(InputButton.Right, InputButtonState.Released);
+						simulation.Player.HandleButton(InputButton.Right, InputButtonState.Released);
 
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_LSHIFT))
-						player.HandleButton(InputButton.RB, InputButtonState.Pressed);
+						simulation.Player.HandleButton(InputButton.RB, InputButtonState.Pressed);
 					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_LSHIFT))
-						player.HandleButton(InputButton.RB, InputButtonState.Released);
+						simulation.Player.HandleButton(InputButton.RB, InputButtonState.Released);
 				}
 			}
 	

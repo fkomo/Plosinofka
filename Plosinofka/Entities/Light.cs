@@ -12,7 +12,6 @@ namespace Ujeby.Plosinofka.Entities
 		{
 			Color = color;
 			Intensity = intensity;
-			boundingBox = new BoundingBox { Size = new Vector2f(1, 1) };
 		}
 
 		//public void Render(Camera camera, double interpolation)

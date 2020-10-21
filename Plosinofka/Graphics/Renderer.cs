@@ -1,7 +1,5 @@
 ﻿using SDL2;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Ujeby.Plosinofka.Common;
@@ -119,73 +117,92 @@ namespace Ujeby.Plosinofka.Graphics
 		private SDL.SDL_Rect RenderRect = new SDL.SDL_Rect();
 
 		/// <summary>
+		/// renders sprite layer on whole screen (camera view) with specified offset
+		/// </summary>
+		/// <param name="camera"></param>
+		/// <param name="layer"></param>
+		/// <param name="layerOffset"></param>
+		/// <param name="interpolation"></param>
+		internal void RenderLayer(Camera camera, Sprite layer, Vector2f layerOffset)
+		{
+			RenderRect.x = (int)((layer.Size.X - camera.View.X) * layerOffset.X);
+			RenderRect.y = (int)(layer.Size.Y - camera.View.Y - ((layer.Size.Y - camera.View.Y) * layerOffset.Y));
+			RenderRect.w = camera.View.X;
+			RenderRect.h = camera.View.Y;
+			SDL.SDL_RenderCopy(RendererPtr, layer.TexturePtr, ref RenderRect, IntPtr.Zero);
+		}
+
+		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="camera"></param>
 		/// <param name="color"></param>
-		/// <param name="data"></param>
+		/// <param name="dataLayer"></param>
 		/// <param name="interpolation"></param>
 		/// <param name="lights"></param>
 		/// <param name="occluders"></param>
-		internal void Render(Camera camera, Sprite color, Sprite data, double interpolation, 
-			IEnumerable<Light> lights, IEnumerable<BoundingBox> occluders)
+		internal void Render(Camera camera, Sprite colorLayer, Sprite dataLayer, double interpolation, 
+			Light[] lights, BoundingBox[] occluders)
 		{
 			var cameraPosition = camera.InterpolatedPosition(interpolation);
 
-			// draw base color layer
+			// draw color layer
 			RenderRect.x = cameraPosition.X;
-			RenderRect.y = color.Size.Y - camera.View.Y - cameraPosition.Y; // because sdl surface starts at topleft
+			RenderRect.y = colorLayer.Size.Y - camera.View.Y - cameraPosition.Y; // because sdl surface starts at topleft
 			RenderRect.w = camera.View.X;
 			RenderRect.h = camera.View.Y;
-			SDL.SDL_RenderCopy(RendererPtr, color.TexturePtr, ref RenderRect, IntPtr.Zero);
+			SDL.SDL_RenderCopy(RendererPtr, colorLayer.TexturePtr, ref RenderRect, IntPtr.Zero);
 
 			var shadingStart = Game.GetElapsed();
-
-			// shading from dynamic lights
-			Parallel.For(0, ScreenBuffer.Data.Length / 4, (i, loopState) =>
+			if (dataLayer != null)
 			{
-				var screen = default(Vector2i);
-				screen.Set(i % camera.View.X, i / camera.View.X);
-
-				var worldMapIndex = (cameraPosition.Y + screen.Y) * data.Size.X + cameraPosition.X + screen.X;
-				var screenIndex = ((camera.View.Y - screen.Y - 1) * camera.View.X + screen.X) * 4;
-
-				if (Level.IsShadowReceiverMask(data.Data[worldMapIndex]))
+				// shading from dynamic lights
+				Parallel.For(0, ScreenBuffer.Data.Length / 4, (i, loopState) =>
+				//for (var i = 0; i < ScreenBuffer.Data.Length / 4; i++)
 				{
-					var tmpColor = new Color4f(color.Data[worldMapIndex]);
-					tmpColor *= Shading(screen + cameraPosition, lights, occluders);
-					tmpColor = tmpColor.GammaCorrection();
+					var screen = default(Vector2i);
+					screen.Set(i % camera.View.X, i / camera.View.X);
 
-					var finalColor = new Color4b(tmpColor);
-					ScreenBuffer.Data[screenIndex + 0] = finalColor.A;
-					ScreenBuffer.Data[screenIndex + 1] = finalColor.B;
-					ScreenBuffer.Data[screenIndex + 2] = finalColor.G;
-					ScreenBuffer.Data[screenIndex + 3] = finalColor.R;
+					var worldMapIndex = (cameraPosition.Y + screen.Y) * dataLayer.Size.X + cameraPosition.X + screen.X;
+					var screenIndex = ((camera.View.Y - screen.Y - 1) * camera.View.X + screen.X) * 4;
+
+					if (Level.IsShadowReceiverMask(dataLayer.Data[worldMapIndex]))
+					{
+						var tmpColor = new Color4f(colorLayer.Data[worldMapIndex]);
+						tmpColor *= Shading(screen + cameraPosition, lights, occluders);
+						//tmpColor = tmpColor.GammaCorrection();
+
+						var finalColor = new Color4b(tmpColor);
+						ScreenBuffer.Data[screenIndex + 0] = finalColor.A;
+						ScreenBuffer.Data[screenIndex + 1] = finalColor.B;
+						ScreenBuffer.Data[screenIndex + 2] = finalColor.G;
+						ScreenBuffer.Data[screenIndex + 3] = finalColor.R;
+					}
+					else
+						// just alpha channel
+						ScreenBuffer.Data[screenIndex] = 0;
 				}
-				else
-					// just alpha channel
-					ScreenBuffer.Data[screenIndex] = 0;
-			});
+				);
 
-			// copy to data to unmanaged array
-			Marshal.Copy(ScreenBuffer.Data, 0, ScreenBuffer.UnmanagedPtr,
-				ScreenBuffer.Data.Length);
+				// copy to data to unmanaged array
+				Marshal.Copy(ScreenBuffer.Data, 0, ScreenBuffer.UnmanagedPtr,
+					ScreenBuffer.Data.Length);
 
-			// create texture
-			var texturePtr = SDL.SDL_CreateTextureFromSurface(Instance.RendererPtr,
-				ScreenBuffer.SdlSurfacePtr);
+				// create texture
+				var texturePtr = SDL.SDL_CreateTextureFromSurface(Instance.RendererPtr,
+					ScreenBuffer.SdlSurfacePtr);
 
-			// draw shading layer
-			SDL.SDL_RenderCopy(RendererPtr, texturePtr, IntPtr.Zero, IntPtr.Zero);
-			SDL.SDL_DestroyTexture(texturePtr);
-
+				// draw shading layer
+				SDL.SDL_RenderCopy(RendererPtr, texturePtr, IntPtr.Zero, IntPtr.Zero);
+				SDL.SDL_DestroyTexture(texturePtr);
+			}
 			LastShadingDuration = Game.GetElapsed() - shadingStart;
 		}
 
 		internal void RenderRectangle(Camera camera, BoundingBox rectangle, Color4f color, double interpolation)
 		{
 			var viewScale = CurrentWindowSize / camera.InterpolatedView(interpolation);
-			var relativeToCamera = camera.RelateTo(rectangle.Position, interpolation) * viewScale;
+			var relativeToCamera = camera.RelateTo(rectangle.Min, interpolation) * viewScale;
 
 			var rect = new SDL.SDL_Rect
 			{
@@ -234,21 +251,31 @@ namespace Ujeby.Plosinofka.Graphics
 			SDL.SDL_RenderCopy(RendererPtr, sprite.TexturePtr, IntPtr.Zero, ref RenderRect);
 		}
 
-		private Color4f Shading(Vector2i origin, IEnumerable<Light> lights, IEnumerable<BoundingBox> occluders)
+		private Color4f Shading(Vector2i pixel, Light[] lights, BoundingBox[] occluders)
 		{
+			var origin = (Vector2f)pixel;
 			var result = Color4f.Black;
 			foreach (var light in lights)
 			{
 				var lightDistance = (light.Position - origin).Length();
-				var direction = (light.Position - origin).Normalize();
-				var occluded = occluders.Any(o =>
-				{
-					var t = o.Trace((Vector2f)origin, direction, out Vector2f n);
-					return (!double.IsInfinity(t) && t < lightDistance);
-				});
+				var ray = new Ray(origin, light.Position - origin);
 
-				if (!occluded)
-					result += light.Color * (light.Intensity / (lightDistance));
+				var occluded = false;
+				foreach (var occluder in occluders)
+				{
+					if (occluder.Intersects(ray, to: lightDistance))
+					{
+						occluded = true;
+						break;
+					}
+				}
+				if (occluded)
+					continue;
+
+				//if (occluders.Any(o => o.Intersects(ray, to:lightDistance)))
+				//	continue;
+
+				result += light.Color * (light.Intensity / (lightDistance));
 			}
 
 			return result;

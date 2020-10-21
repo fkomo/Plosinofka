@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Ujeby.Plosinofka.Common;
 using Ujeby.Plosinofka.Core;
 using Ujeby.Plosinofka.Entities;
@@ -11,18 +13,28 @@ namespace Ujeby.Plosinofka
 	{
 		private Level CurrentLevel;
 
+		private List<Light> Lights = new List<Light>();
+
 		public World()
 		{
 			CurrentLevel = Level.Load("world2");
 
-			var player = new Player("jebko") { Position = new Vector2f(64, 128) };
-			Entities.Add(player);
+			Player = new Player("jebko");
+			Player.Position = new Vector2f(64, 128);
+			DynamicEntities.Add(Player);
 
-			Entities.Add(new Light(new Color4f(1.0, 1.0, 0.8), 64.0) { Position = new Vector2f(240, 220) });
-			Entities.Add(new Light(new Color4f(1.0, 0.0, 0.0), 16.0) { Position = new Vector2f(80, 100) });
+			var light = new Light(new Color4f(1.0, 1.0, 0.8), 128.0);
+			light.Position = new Vector2f(240, 220);
+			StaticEntities.Add(light);
+			Lights.Add(light);
+
+			light = new Light(new Color4f(1.0, 0.0, 0.0), 32.0);
+			light.Position = new Vector2f(80, 100);
+			StaticEntities.Add(light);
+			Lights.Add(light);
 
 			// make camera view smaller then window size for more pixelated look!
-			Camera = new Camera(Vector2i.FullHD / 4, GetPlayerEntity());
+			Camera = new Camera(Vector2i.FullHD / 4, Player);
 		}
 
 		public World(Level level)
@@ -35,11 +47,13 @@ namespace Ujeby.Plosinofka
 			var start = Game.GetElapsed();
 
 			// update all entities
-			foreach (var entity in Entities)
+			foreach (var entity in StaticEntities)
+				entity.Update(CurrentLevel);
+			foreach (var entity in DynamicEntities)
 				entity.Update(CurrentLevel);
 
 			// solve collisions of dynamic entities
-			foreach (DynamicEntity dynamicEntity in Entities.Where(e => e is DynamicEntity))
+			foreach (var dynamicEntity in DynamicEntities)
 			{
 				Solve(dynamicEntity, out Vector2f position, out Vector2f velocity);
 				dynamicEntity.Position = position;
@@ -47,46 +61,51 @@ namespace Ujeby.Plosinofka
 			}
 
 			// update camera with respect to world/level borders
-			Camera.Update(GetPlayerEntity(), CurrentLevel.Size);
+			Camera.Update(Player, CurrentLevel.Size);
 
 			LastUpdateDuration = Game.GetElapsed() - start;
 		}
 
 		public override void Render(double interpolation)
 		{
-			// render background
-			RenderBackground(interpolation);
+			var layerOffset = Camera.InterpolatedPosition(interpolation) / (Vector2f)(CurrentLevel.Size - Camera.View);
 
-			// render renderable entities
-			foreach (IRenderable entity in Entities.Where(e => e is IRenderable))
-				entity.Render(Camera, interpolation);
+			// background layers
+			RenderLayers(CurrentLevel.BackgroundLayers, layerOffset,
+				interpolation);
 
-			// render foreground
-			RenderForeground(interpolation);
+			// main layer
+			var color = ResourceCache.Get<Sprite>(CurrentLevel.Resources[(int)LevelResourceType.BackgroundLayer]);
+			if (color != null)
+			{
+				var data = ResourceCache.Get<Sprite>(CurrentLevel.Resources[(int)LevelResourceType.Data]);
+				var playerPosition = Player.InterpolatedPosition(interpolation);
+
+				var colliders = CurrentLevel.Colliders.ToList();
+				colliders.Add(new BoundingBox(playerPosition, playerPosition + Player.BoundingBox.Size));
+
+				Renderer.Instance.Render(Camera, color, data, interpolation, Lights.ToArray(), colliders.ToArray());
+			}
+
+			// entities
+			foreach (var entity in StaticEntities)
+				(entity as IRenderable)?.Render(Camera, interpolation);
+			foreach (var entity in DynamicEntities)
+				(entity as IRenderable)?.Render(Camera, interpolation);
+
+			// foreground layers
+			RenderLayers(CurrentLevel.ForegroundLayers, layerOffset,
+				interpolation);
 		}
 
-		private void RenderBackground(double interpolation)
+		/// <summary>
+		/// render multiple layers with paralax scrolling
+		/// </summary>
+		/// <param name="interpolation"></param>
+		private void RenderLayers(IEnumerable<Guid> layers, Vector2f layerOffset, double interpolation)
 		{
-			// TODO paralax scrolling, multiple background layers
-
-			var background = ResourceCache.Get<Sprite>(CurrentLevel.Resources[(int)LevelResourceType.Background]);
-			if (background == null)
-				return;
-
-			var data = ResourceCache.Get<Sprite>(CurrentLevel.Resources[(int)LevelResourceType.Data]);
-
-			var player = GetPlayerEntity();
-			var playerBb = player.BoundingBox;
-			playerBb.Position = player.InterpolatedPosition(interpolation);
-
-			Renderer.Instance.Render(Camera, background, data, interpolation,
-				Entities.Where(e => e is Light).Select(e => e as Light),
-				CurrentLevel.Colliders.Concat(new[] { playerBb }));
-		}
-
-		private void RenderForeground(double interpolation)
-		{
-			// TODO render world foreground
+			foreach (var layerId in layers)
+				Renderer.Instance.RenderLayer(Camera, ResourceCache.Get<Sprite>(layerId), layerOffset);
 		}
 
 		public bool Solve(DynamicEntity entity, out Vector2f position, out Vector2f velocity)
@@ -106,7 +125,7 @@ namespace Ujeby.Plosinofka
 				var distance = velocity.Length();
 				var direction = velocity.Normalize();
 
-				var t = CurrentLevel.Intersect(entityBox, direction, out Vector2f normal);
+				var t = CurrentLevel.Trace(entityBox, direction, out Vector2f normal);
 				if (t <= distance)
 				{
 					collisionFound = true;
@@ -118,7 +137,8 @@ namespace Ujeby.Plosinofka
 						+ normal * Vector2f.Dot(direction.Inv(), normal) * (distance - t) 
 						- hitPosition;
 					position = hitPosition;
-					entityBox.Position = position;
+
+					entityBox = new BoundingBox(position, position + entityBox.Size);
 
 					if (normal.X == 0)
 						remainingVelocity.Y = 0;
@@ -135,7 +155,7 @@ namespace Ujeby.Plosinofka
 			position += velocity;
 			velocity = remainingVelocity;
 
-			Log.Add($"Solved({ entity }; position={ entity.Position }; velocity={ entity.Velocity }): position={ position }; velocity={ velocity }");
+			//Log.Add($"Solved({ entity }; position={ entity.Position }; velocity={ entity.Velocity }): position={ position }; velocity={ velocity }");
 
 			return collisionFound;
 		}

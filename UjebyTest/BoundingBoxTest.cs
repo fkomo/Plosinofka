@@ -1,5 +1,7 @@
 ﻿using SDL2;
 using System.Collections.Generic;
+using System.IO;
+using System.Net.NetworkInformation;
 using Ujeby.Plosinofka;
 using Ujeby.Plosinofka.Common;
 using Ujeby.Plosinofka.Entities;
@@ -25,24 +27,25 @@ namespace UjebyTest
 			BoundingBoxTest.BoundingBoxRayMarchingStressTest();
 
 			var colliders = new List<BoundingBox>();
+
 			for (var i = 0; i < 10; i++)
 			{
-				colliders.Add(
-					new BoundingBox()
-					{
-						Size = new Vector2f(
-							Program.WindowSize.X / 4 * Program.Rng.NextDouble(),
-							Program.WindowSize.Y / 4 * Program.Rng.NextDouble()),
-						Position = new Vector2f(
-							Program.WindowSize.X / 4 + Program.Rng.NextDouble() * Program.WindowSize.X / 2,
-							Program.WindowSize.Y / 4 + Program.Rng.NextDouble() * Program.WindowSize.Y / 2)
-					});
+				var min = new Vector2f(
+					Program.WindowSize.X / 4 * Program.Rng.NextDouble(),
+					Program.WindowSize.Y / 4 * Program.Rng.NextDouble());
+				var size = new Vector2f(
+					Program.WindowSize.X / 4 + Program.Rng.NextDouble() * Program.WindowSize.X / 2,
+					Program.WindowSize.Y / 4 + Program.Rng.NextDouble() * Program.WindowSize.Y / 2);
+
+				colliders.Add(new BoundingBox(min, min + size));
 			}
 
+			colliders.Add(new BoundingBox(new Vector2f(15, 5), new Vector2f(25, 15)));
+			//colliders.Add(new BoundingBox { Position = new Vector2f(500, 500), Size = new Vector2f(100, 200) });
 			//colliders.Add(new BoundingBox { Position = new Vector2f(0, 0), Size = new Vector2f(1920, 16) });
 			//colliders.Add(new BoundingBox { Position = new Vector2f(352, 16), Size = new Vector2f(128, 64) });
 
-			TestLevel = new Ujeby.Plosinofka.Level("test-room", colliders);
+			TestLevel = new Ujeby.Plosinofka.Level("test-room", colliders.ToArray());
 
 			//var world = new World(TestLevel);
 			//var entity = new Player("asdf")
@@ -51,6 +54,8 @@ namespace UjebyTest
 			//	Velocity = new Vector2f(-16, 0)
 			//};
 			//var solved = world.Solve(entity, out Vector2f position, out Vector2f velocity);
+
+			var intersection = TestLevel.Intersect(new Ray(new Vector2f(5, 10), new Vector2f(1, 0), true));
 		}
 
 		protected override void Update()
@@ -83,8 +88,8 @@ namespace UjebyTest
 			{
 				var rect = new SDL.SDL_Rect
 				{
-					x = (int)bb.Position.X,
-					y = Program.WindowSize.Y - (int)bb.Position.Y,
+					x = (int)bb.Min.X,
+					y = Program.WindowSize.Y - (int)bb.Min.Y,
 					w = (int)bb.Size.X,
 					h = -(int)bb.Size.Y,
 				};
@@ -97,16 +102,24 @@ namespace UjebyTest
 				var distance = (Point2 - Point1).Length();
 				var direction = (Point2 - Point1).Normalize();
 
-				var t = TestLevel.Intersect(Point1, direction, out Vector2f n);
-				Log.Add($"Level.Intersect(origin={ Point1 }, dir={ direction }): { t:0.00}, normal={ n }");
+				var ray = new Ray(Point1, direction, true);
 
-				//var t = TestLevel.RayMarch(Point1, direction, out Vector2f n);
-				//Log.Add($"Level.RayMarch(origin={ Point1 }, dir={ direction }): { t:0.00}, normal={ n }");
+				var tTrace = TestLevel.Trace(Point1, direction, out Vector2f n);
+				Log.Add($"Level.Intersect(origin={ Point1 }, dir={ direction }): { tTrace:0.00}, normal={ n }");
 
-				if (t < distance && !double.IsInfinity(t))
+				//var tMarch = TestLevel.RayMarch(Point1, direction, out Vector2f n2);
+				//Log.Add($"Level.RayMarch(origin={ Point1 }, dir={ direction }): { tMarch:0.00}, normal={ n }");
+
+				var intersection = TestLevel.Intersect(ray);
+
+				var title = $"p1={ Point1 } | t={ tTrace:0.00} | p2={ Point2 } |";
+				if (intersection)
+					title += " intersection |";
+
+				if (tTrace < distance && !double.IsInfinity(tTrace))
 				{
-					var point2 = Point1 + direction * t;
-					var point3 = point2 + direction * (distance - t);
+					var point2 = Point1 + direction * tTrace;
+					var point3 = point2 + direction * (distance - tTrace);
 
 					SDL.SDL_SetRenderDrawColor(Program.RendererPtr, 0xff, 0xff, 0, 0xff);
 					SDL.SDL_RenderDrawLine(Program.RendererPtr,
@@ -124,7 +137,7 @@ namespace UjebyTest
 						(int)point2.X, Program.WindowSize.Y - (int)point2.Y,
 						(int)point2.X + (int)n.X * 100, Program.WindowSize.Y - (int)(point2.Y + (int)n.Y * 100));
 
-					SDL.SDL_SetWindowTitle(Program.WindowPtr, $"p1={ Point1 }, t={ t:0.00}; p2={ point2 }; p3={ point3 }");
+					title += $" p3={ point3 } |";
 				}
 				else
 				{
@@ -132,9 +145,9 @@ namespace UjebyTest
 					SDL.SDL_RenderDrawLine(Program.RendererPtr,
 						(int)Point1.X, Program.WindowSize.Y - (int)Point1.Y,
 						(int)Point2.X, Program.WindowSize.Y - (int)Point2.Y);
-
-					SDL.SDL_SetWindowTitle(Program.WindowPtr, $"p1={ Point1 }, t={ t:0.00}; p2={ Point2 }");
 				}
+
+				SDL.SDL_SetWindowTitle(Program.WindowPtr, title);
 			}
 			else
 				SDL.SDL_SetWindowTitle(Program.WindowPtr, $"mouse={ Mouse }");
@@ -148,9 +161,11 @@ namespace UjebyTest
 		/// debug:2020-10-14 00:32:16.894: BoundingBoxStressTest(10000000): 13,03M intersections per second (full implementation)
 		/// release:2020-10-15 08:42:44.513: BoundingBoxStressTest(10000000): 26,67M intersections per second
 		/// release:2020-10-16 17:01:20.992: BoundingBoxStressTest(10000000): 26,72M intersections per second
+		/// release:2020-10-21 16:02:48.634: BoundingBoxStressTest(10000000): 24,21M intersections per second
+		/// 
 		/// </summary>
 		/// <param name="n"></param>
-		public static void BoundingBoxStressTest(long n = 100000)
+		public static void BoundingBoxStressTest(long n = 1000000)
 		{
 			var space = 1000;
 
@@ -165,7 +180,7 @@ namespace UjebyTest
 				directions[i] = new Vector2f(Program.Rng.NextDouble() - 0.5, Program.Rng.NextDouble() - 0.5)
 					.Normalize();
 
-			var bb = new BoundingBox { Position = new Vector2f(space / -8), Size = new Vector2f(space / 4) };
+			var bb = new BoundingBox(new Vector2f(space / -8), new Vector2f(space / -8) + new Vector2f(space / 4));
 
 			var start = Program.Elapsed();
 			for (var i = 0; i < n; i++)
@@ -176,9 +191,10 @@ namespace UjebyTest
 
 		/// <summary>
 		/// release:2020-10-16 17:01:32.824: BoundingBoxRayMarchingStressTest(10000000) : 0,88M intersections per second
+		/// release:2020-10-21 16:03:01.240: BoundingBoxRayMarchingStressTest(10000000) : 0,82M intersections per second
 		/// </summary>
 		/// <param name="n"></param>
-		public static void BoundingBoxRayMarchingStressTest(long n = 100000)
+		public static void BoundingBoxRayMarchingStressTest(long n = 1000000)
 		{
 			var space = 1000;
 
@@ -193,7 +209,7 @@ namespace UjebyTest
 				directions[i] = new Vector2f(Program.Rng.NextDouble() - 0.5, Program.Rng.NextDouble() - 0.5)
 					.Normalize();
 
-			var bb = new BoundingBox { Position = new Vector2f(space / -8), Size = new Vector2f(space / 4) };
+			var bb = new BoundingBox(new Vector2f(space / -8), new Vector2f(space / -8) + new Vector2f(space / 4));
 			var level = new Ujeby.Plosinofka.Level("test-room", new BoundingBox[]
 				{
 					bb,

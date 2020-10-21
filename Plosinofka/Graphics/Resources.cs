@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Ujeby.Plosinofka.Common;
+using Ujeby.Plosinofka.Core;
 
 namespace Ujeby.Plosinofka.Graphics
 {
-	class Resource
+	public class Resource
 	{
 		/// <summary>
 		/// internal resource id
@@ -15,7 +16,7 @@ namespace Ujeby.Plosinofka.Graphics
 		public Guid Id;
 	}
 
-	class Sprite : Resource
+	public class Sprite : Resource
 	{
 		/// <summary></summary>
 		public string Filename;
@@ -39,6 +40,8 @@ namespace Ujeby.Plosinofka.Graphics
 
 		public static Sprite LoadSprite(string filename, bool copyPixelData = false)
 		{
+			var start = Game.GetElapsed();
+
 			var imagePtr = SDL_image.IMG_Load(filename);
 			var surface = Marshal.PtrToStructure<SDL.SDL_Surface>(imagePtr);
 			var texturePtr = SDL.SDL_CreateTextureFromSurface(Renderer.Instance.RendererPtr, imagePtr);
@@ -82,6 +85,10 @@ namespace Ujeby.Plosinofka.Graphics
 			SDL.SDL_FreeSurface(imagePtr);
 
 			Resources.Add(sprite.Id, sprite);
+
+			var elapsed = Game.GetElapsed() - start;
+			Log.Add($"LoadSprite('{ filename }'): { (int)elapsed }ms");
+
 			return sprite;
 		}
 

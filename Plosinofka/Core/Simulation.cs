@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using Ujeby.Plosinofka.Common;
 using Ujeby.Plosinofka.Entities;
 
@@ -11,16 +10,16 @@ namespace Ujeby.Plosinofka.Core
 		/// desired number of updates per second
 		/// </summary>
 		public const int GameSpeed = 25;
-		public static Vector2f Gravity = new Vector2f(0.0, -8);
-		public static double TerminalFallingVelocity = -32;
+		public static Vector2f Gravity = new Vector2f(0.0, -6);
+		public static double TerminalFallingVelocity = -24;
 
 		public double LastUpdateDuration { get; protected set; }
 
-		public List<Entity> Entities { get; protected set; } = new List<Entity>();
+		public List<DynamicEntity> DynamicEntities { get; protected set; } = new List<DynamicEntity>();
+		public List<Entity> StaticEntities { get; protected set; } = new List<Entity>();
 
+		public Player Player { get; protected set; }
 		public Camera Camera { get; protected set; }
-
-		internal Player GetPlayerEntity() => Entities.SingleOrDefault(e => e is Player) as Player;
 
 		public abstract void Update();
 

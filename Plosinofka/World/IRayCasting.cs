@@ -5,7 +5,8 @@ namespace Ujeby.Plosinofka.Interfaces
 {
 	public interface IRayCasting
 	{
-		double Intersect(BoundingBox box, Vector2f direction, out Vector2f normal);
-		double Intersect(Vector2f origin, Vector2f direction, out Vector2f normal);
+		double Trace(BoundingBox box, Vector2f direction, out Vector2f normal);
+		double Trace(Vector2f origin, Vector2f direction, out Vector2f normal);
+		bool Intersect(Ray ray, double from = 0, double to = double.PositiveInfinity);
 	}
 }

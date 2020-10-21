@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Ujeby.Plosinofka.Common;
 using Ujeby.Plosinofka.Core;
-using Ujeby.Plosinofka.Entities;
 using Ujeby.Plosinofka.Graphics;
 using Ujeby.Plosinofka.Interfaces;
 
@@ -14,7 +11,7 @@ namespace Ujeby.Plosinofka
 {
 	public enum LevelResourceType
 	{
-		Background = 0,
+		BackgroundLayer = 0,
 		Data = 1,
 
 		Count
@@ -22,16 +19,22 @@ namespace Ujeby.Plosinofka
 
 	public class Level : IRayCasting, IRayMarching
 	{
-		public string Name;
-		public Vector2i Size;
+		public string Name { get; protected set; }
+		public Vector2i Size { get; protected set; }
 		public Guid[] Resources = new Guid[(int)LevelResourceType.Count];
 		public BoundingBox[] Colliders;
 
+		/// <summary>ordered from farthest to nearest</summary>
+		public Guid[] BackgroundLayers { get; protected set; }
+
+		/// <summary>ordered from farthest to nearest</summary>
+		public Guid[] ForegroundLayers { get; protected set; }
+
 		public Level(string name) => Name = name;
 
-		public Level(string name, IEnumerable<BoundingBox> colliders) : this(name)
+		public Level(string name, BoundingBox[] colliders) : this(name)
 		{
-			Colliders = colliders.ToArray();
+			Colliders = colliders;
 			Size = new Vector2i((int)Colliders.Max(c => c.Right), (int)Colliders.Max(c => c.Top));
 		}
 
@@ -48,11 +51,34 @@ namespace Ujeby.Plosinofka
 
 			var color = ResourceCache.LoadSprite($".\\Content\\Worlds\\{ name }-color.png", true);
 			level.Size = color.Size;
-			level.Resources[(int)LevelResourceType.Background] = color.Id;
+			level.Resources[(int)LevelResourceType.BackgroundLayer] = color.Id;
 
 			var data = ResourceCache.LoadSprite($".\\Content\\Worlds\\{ name }-data.png", true);
 			level.Resources[(int)LevelResourceType.Data] = data.Id;
 			level.Colliders = ProcessCollisionMap(data);
+
+			// load background layers
+			level.BackgroundLayers = Directory.EnumerateFiles($".\\Content\\Worlds\\", $"{ name }-bg-*")
+				.OrderBy(f => f).Select(layerFile =>
+				{
+					var fileInfo = new FileInfo(layerFile);
+					var layerId = Convert.ToInt32(fileInfo.Name
+						.Replace($"{ name }-bg-", string.Empty)
+						.Replace(fileInfo.Extension, string.Empty));
+					return ResourceCache.LoadSprite(layerFile).Id;
+				}).ToArray();
+
+			// load foreground layers
+			level.ForegroundLayers = Directory.EnumerateFiles($".\\Content\\Worlds\\", $"{ name }-fg-*")
+				.OrderBy(f => f).Select(layerFile =>
+				 {
+					 var fileInfo = new FileInfo(layerFile);
+					 var layerId = Convert.ToInt32(fileInfo.Name
+						 .Replace($"{ name }-bg-", string.Empty)
+						 .Replace(fileInfo.Extension, string.Empty));
+
+					 return ResourceCache.LoadSprite(layerFile).Id;
+				 }).ToArray();
 
 			var elapsed = Game.GetElapsed() - start;
 			Log.Add($"Level.Load('{ name }'): { (int)elapsed }ms");
@@ -83,12 +109,6 @@ namespace Ujeby.Plosinofka
 
 					else if (IsShadowCaster(map.Data[p]))
 					{
-						// new colider
-						var collider = new BoundingBox
-						{
-							Position = new Vector2f(x, y),
-						};
-
 						var width = 1;
 						var height = 1;
 
@@ -115,8 +135,9 @@ namespace Ujeby.Plosinofka
 								height++;
 						}
 
-						collider.Size = new Vector2f(width, height);
-						colliders.Add(collider);
+						// new colider
+						var min = new Vector2f(x, y);
+						colliders.Add(new BoundingBox(min, min + new Vector2f(width, height)));
 
 						// advance just after collider
 						x += width;
@@ -157,61 +178,57 @@ namespace Ujeby.Plosinofka
 			return (pixelValue & ShadowCasterMask) == ShadowCasterMask;
 		}
 
-		public double Intersect(BoundingBox box, Vector2f direction, out Vector2f normal)
+		public double Trace(BoundingBox box, Vector2f direction, out Vector2f normal)
 		{
 			normal = Vector2f.Zero;
 			var tMin = double.PositiveInfinity;
 
 			// bottom left
 			if (!(direction.X > 0 && direction.Y > 0))
-				tMin = GetClosest(box.Position, direction, tMin, normal, out normal);
+				tMin = GetClosest(box.Min, direction, tMin, normal, out normal);
 
 			// bottom right
 			if (!(direction.X < 0 && direction.Y > 0))
-				tMin = GetClosest(box.Position + Vector2f.Right * box.Size.X, direction, tMin, normal, out normal);
+				tMin = GetClosest(new Vector2f(box.Right, box.Bottom), direction, tMin, normal, out normal);
 
 			// top left
 			if (!(direction.X > 0 && direction.Y < 0))
-				tMin = GetClosest(box.Position + Vector2f.Up * box.Size.Y, direction, tMin, normal, out normal);
+				tMin = GetClosest(new Vector2f(box.Left, box.Top), direction, tMin, normal, out normal);
 
 			// top right
 			if (!(direction.X < 0 && direction.Y < 0))
-				tMin = GetClosest(box.Position + box.Size, direction, tMin, normal, out normal);
+				tMin = GetClosest(box.Max, direction, tMin, normal, out normal);
 
 			// top center
 			if (direction.Y > 0)
-				tMin = GetClosest(box.Position + Vector2f.Up * box.Size.Y + Vector2f.Right * box.Size.X * 0.5, 
-					direction, tMin, normal, out normal);
+				tMin = GetClosest(new Vector2f(box.Center.X, box.Top), direction, tMin, normal, out normal);
 
 			// bottom center
 			if (direction.Y < 0)
-				tMin = GetClosest(box.Position + Vector2f.Right * box.Size.X * 0.5,
-					direction, tMin, normal, out normal);
+				tMin = GetClosest(new Vector2f(box.Center.X, box.Bottom), direction, tMin, normal, out normal);
 
 			// right side
 			if (direction.X > 0)
 			{
-				tMin = GetClosest(box.Position + Vector2f.Right * box.Size.X + Vector2f.Up * box.Size.Y * 0.25, 
+				tMin = GetClosest(new Vector2f(box.Right, box.Bottom + box.Size.Y * 0.25),
 					direction, tMin, normal, out normal);
 
-				tMin = GetClosest(box.Position + Vector2f.Right * box.Size.X + Vector2f.Up * box.Size.Y * 0.5, 
-					direction, tMin, normal, out normal);
+				tMin = GetClosest(new Vector2f(box.Right, box.Center.Y), direction, tMin, normal, out normal);
 
-				tMin = GetClosest(box.Position + Vector2f.Right * box.Size.X + Vector2f.Up * box.Size.Y * 0.75, 
+				tMin = GetClosest(new Vector2f(box.Right, box.Bottom + box.Size.Y * 0.75),
 					direction, tMin, normal, out normal);
 			}
 
 			// left side
 			if (direction.X < 0)
 			{
-				tMin = GetClosest(box.Position + Vector2f.Up * box.Size.Y * 0.25, direction,
-					tMin, normal, out normal);
+				tMin = GetClosest(new Vector2f(box.Left, box.Bottom + box.Size.Y * 0.25),
+					direction, tMin, normal, out normal);
 
-				tMin = GetClosest(box.Position + Vector2f.Up * box.Size.Y * 0.5, direction,
-					tMin, normal, out normal);
+				tMin = GetClosest(new Vector2f(box.Left, box.Center.Y), direction, tMin, normal, out normal);
 
-				tMin = GetClosest(box.Position + Vector2f.Up * box.Size.Y * 0.75, direction,
-					tMin, normal, out normal);
+				tMin = GetClosest(new Vector2f(box.Left, box.Bottom + box.Size.Y * 0.75),
+					direction, tMin, normal, out normal);
 			}
 
 			return tMin;
@@ -219,7 +236,7 @@ namespace Ujeby.Plosinofka
 
 		private double GetClosest(Vector2f origin, Vector2f direction, double tMin, Vector2f nMin, out Vector2f normal)
 		{
-			var t = Intersect(origin, direction, out Vector2f n);
+			var t = Trace(origin, direction, out Vector2f n);
 			if (t < tMin && Math.Abs(t) < Math.Abs(tMin))
 			{
 				normal = n;
@@ -230,7 +247,7 @@ namespace Ujeby.Plosinofka
 			return tMin;
 		}
 
-		public double Intersect(Vector2f origin, Vector2f direction, out Vector2f normal)
+		public double Trace(Vector2f origin, Vector2f direction, out Vector2f normal)
 		{
 			normal = Vector2f.Zero;
 
@@ -315,6 +332,15 @@ namespace Ujeby.Plosinofka
 			}
 
 			return tMin;
+		}
+
+		public bool Intersect(Ray ray, double from = 0, double to = double.PositiveInfinity)
+		{
+			foreach (var collider in Colliders)
+				if (collider.Intersects(ray, from, to))
+					return true;
+
+			return false;
 		}
 	}
 }

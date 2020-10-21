@@ -33,6 +33,11 @@ namespace Ujeby.Plosinofka.Core
 			var lastTitleUpdate = 0.0;
 			var lastFrameTime = GetElapsed();
 			var nextGameTick = lastFrameTime;
+
+			var maxFps = double.NegativeInfinity;
+			var minFps = double.PositiveInfinity;
+
+			var loopStart = GetElapsed();
 			while (running)
 			{
 				running = Input.Handle(simulation);
@@ -50,15 +55,30 @@ namespace Ujeby.Plosinofka.Core
 				Renderer.Instance.Render(simulation, interpolation);
 
 				Fps = (int)(1000.0 / (GetElapsed() - lastFrameTime));
+
+				if (Fps > maxFps)
+					maxFps = Fps;
+				if (Fps < minFps)
+					minFps = Fps;
+
 				lastFrameTime = GetElapsed();
 
-				if (lastFrameTime - lastTitleUpdate > 100)
+				if (lastFrameTime - lastTitleUpdate > 500)
 				{
-					var title = $"{ Title } [fps: { Fps } | lastUpdate: { simulation.LastUpdateDuration:0.00}ms | lastRender: { Renderer.Instance.LastFrameDuration:0.00}ms / shading: { Renderer.Instance.LastShadingDuration:0.00}ms ]";
+					var upd = $"{ simulation.LastUpdateDuration:0.00}";
+					var render = $"{ Renderer.Instance.LastFrameDuration:0.00}";
+					var shading = $"{ (int)(Renderer.Instance.LastShadingDuration / Renderer.Instance.LastFrameDuration * 100) }";
+
+					var loopTime = (int)((GetElapsed() - loopStart) / 1000);
+					var title = $"{ Title } [time: { loopTime }s | fps: { Fps } | update:{ upd }ms | render:{ render }ms ~(shading:{ shading }%) | ]";
 					Renderer.Instance.SetWindowTitle(title);
 					lastTitleUpdate = lastFrameTime;
 				}
 			}
+
+			var loopDuration = (GetElapsed() - loopStart);
+			var avgFps = (int)(1000.0 / (loopDuration / Renderer.Instance.FrameCount));
+			Log.Add($"Game.Run(): gameLoop={ (int)(loopDuration / 1000)}s frames={ Renderer.Instance.FrameCount }; avgFps={ avgFps }; minFps={ (int)minFps }; maxFps={ (int)maxFps };");
 
 			simulation.Destroy();
 			Renderer.Destroy();
