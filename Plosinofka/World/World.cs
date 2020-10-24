@@ -76,7 +76,7 @@ namespace Ujeby.Plosinofka
 				var playerPosition = Player.InterpolatedPosition(interpolation);
 
 				var colliders = CurrentLevel.Colliders.ToList();
-				colliders.Add(new BoundingBox(playerPosition, playerPosition + Player.BoundingBox.Size));
+				colliders.Add(new AABB(playerPosition, playerPosition + Player.BoundingBox.Size));
 
 				Renderer.Instance.Render(Camera, color, data, interpolation, 
 					Lights.ToArray(), colliders.ToArray());
@@ -132,7 +132,7 @@ namespace Ujeby.Plosinofka
 						- hitPosition;
 					position = hitPosition;
 
-					entityBox = new BoundingBox(position, position + entityBox.Size);
+					entityBox = new AABB(position, position + entityBox.Size);
 
 					if (normal.X == 0)
 						remainingVelocity.Y = 0;

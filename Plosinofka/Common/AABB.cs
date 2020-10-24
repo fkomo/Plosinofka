@@ -4,7 +4,7 @@ using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka.Common
 {
-	public struct BoundingBox : IRayTracable, ISdf
+	public struct AABB : IRayTracable, ISdf
 	{
 		/// <summary>bottom left - world coordinates</summary>
 		public Vector2f Min { get; private set; }
@@ -17,7 +17,7 @@ namespace Ujeby.Plosinofka.Common
 
 		public Vector2f Size => Max - Min;
 
-		public BoundingBox(Vector2f min, Vector2f max)
+		public AABB(Vector2f min, Vector2f max)
 		{
 			Min = min;
 			Max = max;
@@ -28,6 +28,12 @@ namespace Ujeby.Plosinofka.Common
 		public double Top => Max.Y;
 		public double Bottom => Min.Y;
 		public double Left => Min.X;
+
+		public static void RayMarchingTest()
+		{
+			throw new NotImplementedException();
+		}
+
 		public double Right => Max.X;
 
 		public bool IsIn(Vector2f p) => IsIn(p.X, p.Y);
@@ -39,31 +45,29 @@ namespace Ujeby.Plosinofka.Common
 
 		public override string ToString() => $"{ Min }-{ Max }";
 
-		public bool Overlaps(BoundingBox other)
-		{
-			// above
-			if (other.Min.Y > Max.Y)
-				return false;
+		/// <summary>
+		/// old alg (slower)
+		/// </summary>
+		/// <param name="other"></param>
+		/// <returns></returns>
+		//public bool Overlaps(BoundingBox other)
+		//{
+		//	if (other.Min.Y > Max.Y)
+		//		return false;
+		//	if (other.Max.Y < Min.Y)
+		//		return false;
+		//	if (other.Max.X < Min.X)
+		//		return false;
+		//	if (other.Min.X > Max.X)
+		//		return false;
+		//	return true;
+		//}
 
-			// bellow
-			if (other.Max.Y < Min.Y)
-				return false;
-
-			// left
-			if (other.Max.X < Min.X)
-				return false;
-
-			// right
-			if (other.Min.X > Max.X)
-				return false;
-
-			return true;
-		}
-
-		public bool Overlaps2(BoundingBox other)
+		public bool Overlaps(AABB other)
 		{
 			if (Math.Abs(Center.X - other.Center.X) > HalfSize.X + other.HalfSize.X)
 				return false;
+
 			if (Math.Abs(Center.Y - other.Center.Y) > HalfSize.Y + other.HalfSize.Y)
 				return false;
 

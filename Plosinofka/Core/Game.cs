@@ -10,8 +10,6 @@ namespace Ujeby.Plosinofka.Core
 		private static readonly Stopwatch Stopwatch = new Stopwatch();
 		private string Title;
 
-		public Input Input { get; private set; }
-
 		public Game(string title, Vector2i windowSize)
 		{
 			Title = title;

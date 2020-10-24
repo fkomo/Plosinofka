@@ -9,11 +9,10 @@ namespace Ujeby.Plosinofka.Entities
 		public string Name { get; protected set; } = Guid.NewGuid().ToString("N");
 		public override string ToString() => Name;
 
+		protected AABB boundingBox;
+		public AABB BoundingBox { get { return boundingBox; } protected set { boundingBox = value; } }
+
 		protected Vector2f position;
-		protected BoundingBox boundingBox;
-
-		public BoundingBox BoundingBox => boundingBox;
-
 		/// <summary>bottom left</summary>
 		public Vector2f Position 
 		{ 
@@ -21,11 +20,11 @@ namespace Ujeby.Plosinofka.Entities
 			set
 			{
 				position = value;
-				boundingBox = new BoundingBox(position, position + BoundingBox.Size);
+				boundingBox = new AABB(position, position + boundingBox.Size);
 			}
 		}
-		public Vector2f Size => BoundingBox.Max - BoundingBox.Min;
-		public Vector2f Center => BoundingBox.Center;
+		public Vector2f Size => boundingBox.Size;
+		public Vector2f Center => boundingBox.Center;
 
 		public abstract void Update(IRayCasting environment);
 	}

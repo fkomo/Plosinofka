@@ -79,7 +79,7 @@ namespace Ujeby.Plosinofka.Graphics
 
 			WindowPtr = SDL.SDL_CreateWindow("sdl .net core test",
 				SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED,
-				windowSize.X, windowSize.Y, SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE);
+				windowSize.X, windowSize.Y, SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL);
 			if (WindowPtr == null)
 				throw new Exception($"Failed to create window. SDL2Error({ SDL.SDL_GetError() })");
 
@@ -148,7 +148,7 @@ namespace Ujeby.Plosinofka.Graphics
 		/// <param name="lights"></param>
 		/// <param name="occluders"></param>
 		internal void Render(Camera camera, Sprite colorLayer, Sprite dataLayer, double interpolation, 
-			Light[] lights, BoundingBox[] occluders)
+			Light[] lights, AABB[] occluders)
 		{
 			var cameraPosition = camera.InterpolatedPosition(interpolation);
 
@@ -163,16 +163,14 @@ namespace Ujeby.Plosinofka.Graphics
 			if (dataLayer != null && Settings.Current.GetVisual(VisualSetting.Shading))
 			{
 				// shading from dynamic lights
-				Parallel.For(0, ScreenBuffer.Data.Length / 4, (i, loopState) =>
 				//for (var i = 0; i < ScreenBuffer.Data.Length / 4; i++)
+				Parallel.For(0, ScreenBuffer.Data.Length / 4, (i, loopState) =>
 				{
-					var screen = default(Vector2i);
-					screen.Set(i % camera.View.X, i / camera.View.X);
-
+					var screen = new Vector2i(i % camera.View.X, i / camera.View.X);
 					var worldMapIndex = (cameraPosition.Y + screen.Y) * dataLayer.Size.X + cameraPosition.X + screen.X;
 					var screenIndex = ((camera.View.Y - screen.Y - 1) * camera.View.X + screen.X) * 4;
 
-					if (Level.IsShadowReceiver(dataLayer.Data[worldMapIndex]))
+ 					if (Level.IsShadowReceiver(dataLayer.Data[worldMapIndex]))
 					{
 						var tmpColor = new Color4f(colorLayer.Data[worldMapIndex]);
 						tmpColor += Shading(screen + cameraPosition, lights, occluders) * 0.5;
@@ -187,8 +185,7 @@ namespace Ujeby.Plosinofka.Graphics
 					else
 						// just alpha channel
 						ScreenBuffer.Data[screenIndex] = 0;
-				}
-				);
+				});
 
 				// copy to data to unmanaged array
 				Marshal.Copy(ScreenBuffer.Data, 0, ScreenBuffer.UnmanagedPtr,
@@ -205,7 +202,7 @@ namespace Ujeby.Plosinofka.Graphics
 			LastShadingDuration = Game.GetElapsed() - shadingStart;
 		}
 
-		internal void RenderRectangle(Camera camera, BoundingBox rectangle, Color4f color, double interpolation)
+		internal void RenderRectangle(Camera camera, AABB rectangle, Color4f color, double interpolation)
 		{
 			var viewScale = CurrentWindowSize / camera.InterpolatedView(interpolation);
 			var relativeToCamera = camera.RelateTo(rectangle.Min, interpolation) * viewScale;
@@ -228,9 +225,6 @@ namespace Ujeby.Plosinofka.Graphics
 			var viewScale = CurrentWindowSize / camera.InterpolatedView(interpolation);
 			a = camera.RelateTo(a, interpolation) * viewScale;
 			b = camera.RelateTo(b, interpolation) * viewScale;
-
-			// TODO set line thickness
-			//SDL.SDL_RenderSetScale(RendererPtr, 2, 2);
 
 			SDL.SDL_SetRenderDrawColor(RendererPtr, 0xff, 0, 0, 0xff);
 			SDL.SDL_RenderDrawLine(RendererPtr,
@@ -257,7 +251,7 @@ namespace Ujeby.Plosinofka.Graphics
 			SDL.SDL_RenderCopy(RendererPtr, sprite.TexturePtr, IntPtr.Zero, ref RenderRect);
 		}
 
-		private Color4f Shading(Vector2i pixel, Light[] lights, BoundingBox[] occluders)
+		private Color4f Shading(Vector2i pixel, Light[] lights, AABB[] occluders)
 		{
 			var origin = (Vector2f)pixel;
 			var result = Color4f.Black;

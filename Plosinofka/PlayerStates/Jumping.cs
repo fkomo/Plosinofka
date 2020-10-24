@@ -10,6 +10,8 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerStateEnum AsEnum { get { return PlayerStateEnum.Jumping; } }
 
+		// TODO jump higher if key is pressed longer
+
 		public Jumping() : this(new Vector2f())
 		{
 
@@ -52,7 +54,11 @@ namespace Ujeby.Plosinofka
 				}
 				else if (button == Settings.Current.PlayerControls.Jump)
 				{
-					// TODO double jump
+					if (ExtraJump > 0)
+					{
+						ExtraJump--;
+						DoubleJump = true;
+					}
 				}
 			}
 			else if (state == InputButtonState.Released)
@@ -82,6 +88,11 @@ namespace Ujeby.Plosinofka
 		}
 
 		private bool InAir = false;
+
+		/// <summary>number of extra jumps left (double/triple/... jump from air)</summary>
+		private int ExtraJump = 1;
+		private bool DoubleJump = false;
+
 		private double SpeedMultiplier = 1.0;
 
 		public override void Update(Player player, IRayCasting environment)
@@ -98,6 +109,12 @@ namespace Ujeby.Plosinofka
 				}
 				else
 				{
+					if (DoubleJump)
+					{
+						player.Velocity.Y = player.JumpingVelocity.Y;
+						DoubleJump = false;
+					}
+
 					// air control
 					if (!Freeze)
 						player.Velocity.X = Direction.X * Player.AirStep * SpeedMultiplier;

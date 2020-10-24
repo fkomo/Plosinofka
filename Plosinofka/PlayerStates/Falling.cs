@@ -10,6 +10,8 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerStateEnum AsEnum { get { return PlayerStateEnum.Falling; } }
 
+		// TODO coyote time (allow jump even after player is past the edge)
+
 		public Falling() : this(new Vector2f())
 		{
 

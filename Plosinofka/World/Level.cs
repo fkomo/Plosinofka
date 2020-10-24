@@ -27,7 +27,7 @@ namespace Ujeby.Plosinofka
 		public string Name { get; protected set; }
 		public Vector2i Size { get; protected set; }
 		public Guid[] Resources = new Guid[(int)LevelResourceType.Count];
-		public BoundingBox[] Colliders;
+		public AABB[] Colliders;
 
 		/// <summary>ordered from farthest to nearest</summary>
 		public Guid[] BackgroundLayers { get; protected set; }
@@ -37,10 +37,11 @@ namespace Ujeby.Plosinofka
 
 		public Level(string name) => Name = name;
 
-		public Level(string name, BoundingBox[] colliders) : this(name)
+		public Level(string name, AABB[] colliders) : this(name)
 		{
 			Colliders = colliders;
-			Size = new Vector2i((int)Colliders.Max(c => c.Right), (int)Colliders.Max(c => c.Top));
+			if (colliders.Any())
+				Size = new Vector2i((int)Colliders.Max(c => c.Right), (int)Colliders.Max(c => c.Top));
 		}
 
 		/// <summary>
@@ -97,11 +98,11 @@ namespace Ujeby.Plosinofka
 		/// resulting bounding boxes are not overlaping
 		/// </summary>
 		/// <param name="map"></param>
-		private static BoundingBox[] ProcessCollisionMap(Sprite map)
+		private static AABB[] ProcessCollisionMap(Sprite map)
 		{
 			var start = Game.GetElapsed();
 
-			var colliders = new List<BoundingBox>();
+			var colliders = new List<AABB>();
 			for (var y = 0; y < map.Size.Y; y++)
 			{
 				for (var x = 0; x < map.Size.X; x++)
@@ -109,7 +110,7 @@ namespace Ujeby.Plosinofka
 					var p = y * map.Size.X + x;
 
 					// skip if point is already in another collider
-					if (FindCollider(colliders, x, y, out BoundingBox oldCollider))
+					if (FindCollider(colliders, x, y, out AABB oldCollider))
 						x += (int)oldCollider.Size.X;
 
 					else if (IsShadowCaster(map.Data[p]))
@@ -142,7 +143,7 @@ namespace Ujeby.Plosinofka
 
 						// new colider
 						var min = new Vector2f(x, y);
-						colliders.Add(new BoundingBox(min, min + new Vector2f(width, height)));
+						colliders.Add(new AABB(min, min + new Vector2f(width, height)));
 
 						// advance just after collider
 						x += width;
@@ -156,7 +157,7 @@ namespace Ujeby.Plosinofka
 			return colliders.ToArray();
 		}
 
-		private static bool FindCollider(IEnumerable<BoundingBox> colliders, int x, int y, out BoundingBox oldCollider)
+		private static bool FindCollider(IEnumerable<AABB> colliders, int x, int y, out AABB oldCollider)
 		{
 			oldCollider = default;
 
@@ -183,7 +184,7 @@ namespace Ujeby.Plosinofka
 			return (pixelValue & ShadowCasterMask) == ShadowCasterMask;
 		}
 
-		public double Trace(BoundingBox box, Vector2f direction, out Vector2f normal)
+		public double Trace(AABB box, Vector2f direction, out Vector2f normal)
 		{
 			normal = Vector2f.Zero;
 			var tMin = double.PositiveInfinity;
@@ -268,6 +269,15 @@ namespace Ujeby.Plosinofka
 			}
 
 			return tMin;
+		}
+
+		public bool Overlaps(AABB box)
+		{
+			foreach (var bb in Colliders)
+				if (bb.Overlaps(box))
+					return true;
+
+			return false;
 		}
 
 		private const double RAY_MARCH_EPSILON = 0.1;

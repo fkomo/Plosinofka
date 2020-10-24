@@ -8,15 +8,15 @@ namespace Ujeby.Plosinofka.Entities
 	/// <summary></summary>
 	public class Player : DynamicEntity, IRenderable, IHandleInput
 	{
-		// TODO directional shooting
-		// TODO melee attack
 		// TODO animations
+		// TODO melee attack
+		// TODO directional shooting
 
 		public const double WalkingStep = 4;
 		public const double SneakingStep = WalkingStep / 2;
 		public const double RunningStep = WalkingStep * 2;
 		public const double AirStep = WalkingStep;
-		public readonly Vector2f JumpingVelocity = new Vector2f(0, 30);
+		public readonly Vector2f JumpingVelocity = new Vector2f(0, 20);
 
 		public PlayerState CurrentState { get; private set; }
 		private PlayerStateMachine States = new PlayerStateMachine();
@@ -30,7 +30,7 @@ namespace Ujeby.Plosinofka.Entities
 
 			PlayerSpriteId = ResourceCache.LoadSprite(@".\Content\plosinofka-guy.png", true).Id;
 
-			boundingBox = new BoundingBox(Position, Position + ResourceCache.Get<Sprite>(PlayerSpriteId).Size);
+			boundingBox = new AABB(Position, Position + ResourceCache.Get<Sprite>(PlayerSpriteId).Size);
 
 			ChangeState(new Falling());
 		}
@@ -66,7 +66,7 @@ namespace Ujeby.Plosinofka.Entities
 			Log.Add($"Player.Position={ Position }");
 		}
 
-		public bool StandingOnGround(BoundingBox bb, IRayCasting environment)
+		public bool StandingOnGround(AABB bb, IRayCasting environment)
 		{
 			return
 				0 == environment.Trace(bb.Min, Vector2f.Down, out Vector2f n1) ||

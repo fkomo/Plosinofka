@@ -20,7 +20,7 @@ namespace UjebyTest
 
 				InitSDL();
 
-				new BoundingBoxTest().Run(HandleInput);
+				new AABBTest().Run(HandleInput);
 				//new AllocTest().Run(HandleInput);
 			}
 			catch (Exception ex)

@@ -1,6 +1,5 @@
 ﻿
 using System;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Ujeby.Plosinofka.Common
 {
@@ -114,6 +113,12 @@ namespace Ujeby.Plosinofka.Common
 		public void Set(int x, int y) => (X, Y) = (x, y);
 
 		public int Area() => X * Y;
+
+		public static Vector2i Min(Vector2i v1, Vector2i v2)
+			=> new Vector2i(Math.Min(v1.X, v2.X), Math.Min(v1.Y, v2.Y));
+
+		public static Vector2i Max(Vector2i v1, Vector2i v2)
+			=> new Vector2i(Math.Max(v1.X, v2.X), Math.Max(v1.Y, v2.Y));
 
 		public static Vector2i operator +(Vector2i a, Vector2i b) => new Vector2i(a.X + b.X, a.Y + b.Y);
 		public static Vector2i operator -(Vector2i a, Vector2i b) => new Vector2i(a.X - b.X, a.Y - b.Y);
