@@ -175,7 +175,7 @@ namespace Ujeby.Plosinofka.Graphics
 					if (Level.IsShadowReceiver(dataLayer.Data[worldMapIndex]))
 					{
 						var tmpColor = new Color4f(colorLayer.Data[worldMapIndex]);
-						tmpColor += Shading(screen + cameraPosition, lights, occluders) * 0.2;
+						tmpColor += Shading(screen + cameraPosition, lights, occluders) * 0.5;
 						//tmpColor = tmpColor.GammaCorrection();
 
 						var finalColor = new Color4b(tmpColor);

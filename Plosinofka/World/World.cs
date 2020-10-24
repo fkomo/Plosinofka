@@ -24,7 +24,7 @@ namespace Ujeby.Plosinofka
 			DynamicEntities.Add(Player);
 
 			var light = new Light(new Color4f(1.0, 1.0, 0.8), 32.0);
-			light.Position = new Vector2f(240, 200);
+			light.Position = new Vector2f(300, 250);
 			StaticEntities.Add(light);
 			Lights.Add(light);
 

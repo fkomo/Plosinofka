@@ -1,4 +1,5 @@
 ﻿using SDL2;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.NetworkInformation;
@@ -23,8 +24,9 @@ namespace UjebyTest
 
 		protected override void Init()
 		{
-			BoundingBoxTest.BoundingBoxStressTest();
-			BoundingBoxTest.BoundingBoxRayMarchingStressTest();
+			BoundingBoxTest.BoundingBoxTraceTest();
+			BoundingBoxTest.BoundingBoxIntersectTest();
+			BoundingBoxTest.BoundingBoxRayMarchingTest();
 
 			var colliders = new List<BoundingBox>();
 
@@ -157,15 +159,15 @@ namespace UjebyTest
 		}
 
 		/// <summary>
-		/// debug:2020-10-13 15:10:07.533: BoundingBoxStressTest(10000000): 15,27M intersections per second (without inside checking)
-		/// debug:2020-10-14 00:32:16.894: BoundingBoxStressTest(10000000): 13,03M intersections per second (full implementation)
-		/// release:2020-10-15 08:42:44.513: BoundingBoxStressTest(10000000): 26,67M intersections per second
-		/// release:2020-10-16 17:01:20.992: BoundingBoxStressTest(10000000): 26,72M intersections per second
-		/// release:2020-10-21 16:02:48.634: BoundingBoxStressTest(10000000): 24,21M intersections per second
+		/// debug:2020-10-13 15:10:07.533: BoundingBox.Trace(10000000): 15,27M per second (without inside checking)
+		/// debug:2020-10-14 00:32:16.894: BoundingBox.Trace(10000000): 13,03M per second (full implementation)
+		/// release:2020-10-15 08:42:44.513: BoundingBox.Trace(10000000): 26,67M per second
+		/// release:2020-10-16 17:01:20.992: BoundingBox.Trace(10000000): 26,72M per second
+		/// release:2020-10-21 16:02:48.634: BoundingBox.Trace(10000000): 24,21M per second
 		/// 
 		/// </summary>
 		/// <param name="n"></param>
-		public static void BoundingBoxStressTest(long n = 1000000)
+		public static void BoundingBoxTraceTest(long n = 10000000)
 		{
 			var space = 1000;
 
@@ -186,15 +188,43 @@ namespace UjebyTest
 			for (var i = 0; i < n; i++)
 				bb.Trace(origins[i], directions[i], out Vector2f normal);
 
-			Log.Add($"BoundingBoxStressTest({ n }): { (n / (Program.Elapsed() - start) / 1000.0):0.00}M intersections per second");
+			Log.Add($"BoundingBox.Trace({ n }): { (n / (Program.Elapsed() - start) / 1000.0):0.00}M per second");
 		}
 
 		/// <summary>
-		/// release:2020-10-16 17:01:32.824: BoundingBoxRayMarchingStressTest(10000000) : 0,88M intersections per second
-		/// release:2020-10-21 16:03:01.240: BoundingBoxRayMarchingStressTest(10000000) : 0,82M intersections per second
+		/// 
 		/// </summary>
 		/// <param name="n"></param>
-		public static void BoundingBoxRayMarchingStressTest(long n = 1000000)
+		public static void BoundingBoxIntersectTest(long n = 10000000)
+		{
+			var space = 1000;
+
+			var origins = new Vector2f[n];
+			for (var i = 0; i < n; i++)
+				origins[i] = new Vector2f(
+					Program.Rng.NextDouble() * space - space / 2,
+					Program.Rng.NextDouble() * space - space / 2);
+
+			var directions = new Vector2f[n];
+			for (var i = 0; i < n; i++)
+				directions[i] = new Vector2f(Program.Rng.NextDouble() - 0.5, Program.Rng.NextDouble() - 0.5)
+					.Normalize();
+
+			var bb = new BoundingBox(new Vector2f(space / -8), new Vector2f(space / -8) + new Vector2f(space / 4));
+
+			var start = Program.Elapsed();
+			for (var i = 0; i < n; i++)
+				bb.Intersects(new Ray(origins[i], directions[i], true));
+
+			Log.Add($"BoundingBox.Intersects({ n }): { (n / (Program.Elapsed() - start) / 1000.0):0.00}M per second");
+		}
+
+		/// <summary>
+		/// release:2020-10-16 17:01:32.824: BoundingBox.RayMarch(10000000) : 0,88M per second
+		/// release:2020-10-21 16:03:01.240: BoundingBox.RayMarch(10000000) : 0,82M per second
+		/// </summary>
+		/// <param name="n"></param>
+		public static void BoundingBoxRayMarchingTest(long n = 1000000)
 		{
 			var space = 1000;
 
@@ -219,7 +249,7 @@ namespace UjebyTest
 			for (var i = 0; i < n; i++)
 				level.RayMarch(origins[i], directions[i], out Vector2f normal);
 
-			Log.Add($"BoundingBoxRayMarchingStressTest({ n }): { (n / (Program.Elapsed() - start) / 1000.0):0.00}M intersections per second");
+			Log.Add($"BoundingBox.RayMarch({ n }): { (n / (Program.Elapsed() - start) / 1000.0):0.00}M per second");
 		}
 	}
 }

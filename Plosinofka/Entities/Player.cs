@@ -69,14 +69,14 @@ namespace Ujeby.Plosinofka.Entities
 		public bool StandingOnGround(BoundingBox bb, IRayCasting environment)
 		{
 			return
-				//0 == environment.Trace(bb.Min, Vector2f.Down, out Vector2f n1) ||
-				//0 == environment.Trace(new Vector2f(bb.Max.X, bb.Bottom), Vector2f.Down, out Vector2f n2) ||
-				//0 == environment.Trace(new Vector2f(bb.Left + bb.Size.X * 0.33, bb.Bottom), Vector2f.Down, out Vector2f n3) ||
-				//0 == environment.Trace(new Vector2f(bb.Left + bb.Size.X * 0.66, bb.Bottom), Vector2f.Down, out Vector2f n4);
-				environment.Intersect(new Ray(bb.Min, Vector2f.Down, true), to: 1) ||
-				environment.Intersect(new Ray(new Vector2f(bb.Max.X, bb.Bottom), Vector2f.Down, true), to: 1) ||
-				environment.Intersect(new Ray(new Vector2f(bb.Left + bb.Size.X * 0.33, bb.Bottom), Vector2f.Down, true), to: 1) ||
-				environment.Intersect(new Ray(new Vector2f(bb.Left + bb.Size.X * 0.66, bb.Bottom), Vector2f.Down, true), to: 1);
+				0 == environment.Trace(bb.Min, Vector2f.Down, out Vector2f n1) ||
+				0 == environment.Trace(new Vector2f(bb.Max.X, bb.Bottom), Vector2f.Down, out Vector2f n2) ||
+				0 == environment.Trace(new Vector2f(bb.Left + bb.Size.X * 0.33, bb.Bottom), Vector2f.Down, out Vector2f n3) ||
+				0 == environment.Trace(new Vector2f(bb.Left + bb.Size.X * 0.66, bb.Bottom), Vector2f.Down, out Vector2f n4);
+				//environment.Intersect(new Ray(bb.Min, Vector2f.Down, true), to: 1) ||
+				//environment.Intersect(new Ray(new Vector2f(bb.Max.X, bb.Bottom), Vector2f.Down, true), to: 1) ||
+				//environment.Intersect(new Ray(new Vector2f(bb.Left + bb.Size.X * 0.33, bb.Bottom), Vector2f.Down, true), to: 1) ||
+				//environment.Intersect(new Ray(new Vector2f(bb.Left + bb.Size.X * 0.66, bb.Bottom), Vector2f.Down, true), to: 1);
 		}
 
 		/// <summary>

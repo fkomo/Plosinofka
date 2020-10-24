@@ -1,6 +1,5 @@
 ﻿
 using System;
-using System.Reflection.Metadata.Ecma335;
 using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka.Common
@@ -195,48 +194,64 @@ namespace Ujeby.Plosinofka.Common
 			return q.Max(Vector2f.Zero).Length() + Math.Min(Math.Max(q.X, q.Y), 0.0);
 		}
 
-		/// <summary>
-		/// "An Efficient and Robust Ray-Box Intersection Algorithm"
-		/// Journal of graphics tools, 10(1):49-54, 2005
-		/// Amy Williams, Steve Barrus, R. Keith Morley, and Peter Shirley
-		/// http://jgt.akpeters.com/papers/WilliamsEtAl05/
-		/// </summary>
-		/// <param name="ray"></param>
-		/// <param name="from"></param>
-		/// <param name="to"></param>
-		/// <returns></returns>
 		public bool Intersects(Ray ray, double from = 0, double to = double.PositiveInfinity)
 		{
-			ray.Origin = Center - ray.Origin;
-			var minCorner = HalfSize;
-			minCorner.X = -minCorner.X;
-			minCorner.Y = -minCorner.Y;
-			var maxCorner = HalfSize;
+			// "An Efficient and Robust Ray-Box Intersection Algorithm"
+			// Journal of graphics tools, 10(1):49-54, 2005
+			// Amy Williams, Steve Barrus, R. Keith Morley, and Peter Shirley
+			// http://jgt.akpeters.com/papers/WilliamsEtAl05/
 
-			var tmin = ((ray.Sign.X == 0 ? minCorner.X : maxCorner.X) + ray.Origin.X) * ray.InvDirection.X;
-			var tmax = ((ray.Sign.X == 1 ? minCorner.X : maxCorner.X) + ray.Origin.X) * ray.InvDirection.X;
-			var tymin = ((ray.Sign.Y == 0 ? minCorner.Y : maxCorner.Y) + ray.Origin.Y) * ray.InvDirection.Y;
-			var tymax = ((ray.Sign.Y == 1 ? minCorner.Y : maxCorner.Y) + ray.Origin.Y) * ray.InvDirection.Y;
+			//ray.Origin = Center - ray.Origin;
+			//var minCorner = HalfSize;
+			//minCorner.X = -minCorner.X;
+			//minCorner.Y = -minCorner.Y;
+			//var maxCorner = HalfSize;
 
-			if (double.IsNaN(tymin))
-				tymin = 0;
+			//var tmin = ((ray.Sign.X == 0 ? minCorner.X : maxCorner.X) + ray.Origin.X) * ray.InvDirection.X;
+			//var tmax = ((ray.Sign.X == 1 ? minCorner.X : maxCorner.X) + ray.Origin.X) * ray.InvDirection.X;
+			//var tymin = ((ray.Sign.Y == 0 ? minCorner.Y : maxCorner.Y) + ray.Origin.Y) * ray.InvDirection.Y;
+			//var tymax = ((ray.Sign.Y == 1 ? minCorner.Y : maxCorner.Y) + ray.Origin.Y) * ray.InvDirection.Y;
 
-			if (double.IsNaN(tymax))
-				tymax = 0;
+			//if (double.IsNaN(tymin))
+			//	tymin = 0;
 
-			if ((tmin > tymax) || (tymin > tmax))
-				return false;
+			//if (double.IsNaN(tymax))
+			//	tymax = 0;
 
-			else
-			{
-				if (tymin > tmin)
-					tmin = tymin;
+			//if ((tmin > tymax) || (tymin > tmax))
+			//	return false;
 
-				if (tymax < tmax)
-					tmax = tymax;
-			}
+			//else
+			//{
+			//	if (tymin > tmin)
+			//		tmin = tymin;
 
-			return (tmin < to) && (tmax > from);
+			//	if (tymax < tmax)
+			//		tmax = tymax;
+			//}
+
+			//return (tmin < to) && (tmax > from);
+
+			// Fast, Branchless Ray/Bounding Box Intersections
+			// https://tavianator.com/2015/ray_box_nan.html
+
+			var minCorner = Min;
+			var maxCorner = Max;
+
+			var tmin = double.NegativeInfinity;
+			var tmax = double.PositiveInfinity;
+
+			var t1 = (minCorner.X - ray.Origin.X) * ray.InvDirection.X;
+			var t2 = (maxCorner.X - ray.Origin.X) * ray.InvDirection.X;
+			tmin = Math.Max(tmin, Math.Min(t1, t2));
+			tmax = Math.Min(tmax, Math.Max(t1, t2));
+
+			t1 = (minCorner.Y - ray.Origin.Y) * ray.InvDirection.Y;
+			t2 = (maxCorner.Y - ray.Origin.Y) * ray.InvDirection.Y;
+			tmin = Math.Max(tmin, Math.Min(t1, t2));
+			tmax = Math.Min(tmax, Math.Max(t1, t2));
+
+			return tmax > Math.Max(tmin, 0.0) && ((from < tmin && tmin < to) || (from < tmax && tmax < to));
 		}
 	}
 }

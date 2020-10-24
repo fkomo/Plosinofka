@@ -29,7 +29,6 @@ namespace Ujeby.Plosinofka
 				if (button == InputButton.Left || button == InputButton.Right)
 					Freeze = true;
 
-				// TODO jump while running is not correct
 				else if (button == Settings.Current.PlayerControls.Jump)
 					player.ChangeState(new Jumping(this));
 

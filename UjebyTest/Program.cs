@@ -9,7 +9,7 @@ namespace UjebyTest
 	{
 		public static IntPtr WindowPtr;
 		public static IntPtr RendererPtr;
-		public static Vector2i WindowSize = new Vector2i(1920, 1080);
+		public static Vector2i WindowSize = new Vector2i(1280, 720);
 		public static Random Rng = new Random();
 
 		static void Main(string[] args)

@@ -49,6 +49,9 @@ namespace Ujeby.Plosinofka.Common
 		public static Vector2f operator *(Vector2f a, Vector2f b) => new Vector2f(a.X * b.X, a.Y * b.Y);
 		public static Vector2f operator /(Vector2f a, double k) => new Vector2f(a.X / k, a.Y / k);
 
+		public static Vector2f operator +(Vector2f a, double k) => new Vector2f(a.X + k, a.Y + k);
+		public static Vector2f operator -(Vector2f a, double k) => new Vector2f(a.X - k, a.Y - k);
+
 		public static implicit operator Vector2i(Vector2f v) => new Vector2i((int)v.X, (int)v.Y);
 		public static explicit operator Vector2f(Vector2i v) => new Vector2f(v.X, v.Y);
 
