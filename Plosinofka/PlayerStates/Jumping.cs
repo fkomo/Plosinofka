@@ -21,6 +21,8 @@ namespace Ujeby.Plosinofka
 
 		public Jumping(Moving currentState) : base(currentState)
 		{
+			if (currentState is Running)
+				SpeedMultiplier = 2.0;
 		}
 
 		public override void HandleButton(InputButton button, InputButtonState state, Player player)
@@ -65,16 +67,22 @@ namespace Ujeby.Plosinofka
 
 						player.PushState(new Walking(Direction));
 					}
-					else 
+					else
 					{
 						Direction = new Vector2f(0, Direction.Y);
 						player.PushState(new Standing());
 					}
 				}
+				else if (button == Settings.Current.PlayerControls.Run)
+				{
+					SpeedMultiplier = 1.0;
+					player.PushState(new Walking(this));
+				}
 			}
 		}
 
 		private bool InAir = false;
+		private double SpeedMultiplier = 1.0;
 
 		public override void Update(Player player, IRayCasting environment)
 		{
@@ -92,7 +100,7 @@ namespace Ujeby.Plosinofka
 				{
 					// air control
 					if (!Freeze)
-						player.Velocity.X = Direction.X * Player.AirStep;
+						player.Velocity.X = Direction.X * Player.AirStep * SpeedMultiplier;
 				}
 
 				player.Velocity.Y = Math.Max((player.Velocity + Simulation.Gravity).Y, Simulation.TerminalFallingVelocity);

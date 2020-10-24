@@ -87,7 +87,7 @@ namespace Ujeby.Plosinofka.Graphics
 			Resources.Add(sprite.Id, sprite);
 
 			var elapsed = Game.GetElapsed() - start;
-			Log.Add($"LoadSprite('{ filename }'): { (int)elapsed }ms");
+			Log.Add($"LoadSprite('{ filename }', data:{ copyPixelData }): { (int)elapsed }ms");
 
 			return sprite;
 		}

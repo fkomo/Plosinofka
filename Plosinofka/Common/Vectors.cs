@@ -79,6 +79,7 @@ namespace Ujeby.Plosinofka.Common
 		public static Vector2i Zero = new Vector2i(0);
 
 		public static Vector2i FullHD = new Vector2i(1920, 1080);
+		public static Vector2i UltraHD2K = new Vector2i(2560, 1440);
 		public static Vector2i UltraHD4K = FullHD * 2;
 
 		public Vector2i(Vector2i v) : this(v.X, v.Y)

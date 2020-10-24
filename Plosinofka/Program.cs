@@ -10,7 +10,7 @@ namespace Ujeby.Plosinofka
 		{
 			try
 			{
-				new Game("Plosinofka", Vector2i.FullHD / 2)
+				new Game("Plosinofka", Vector2i.UltraHD2K / 2)
 					.Run();
 			}
 			catch (Exception ex)

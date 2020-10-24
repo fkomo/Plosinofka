@@ -54,7 +54,7 @@ namespace Ujeby.Plosinofka
 				else if (button == Settings.Current.PlayerControls.Crouch)
 					player.ChangeState(new Sneaking(this));
 
-				else if (button == Settings.Current.PlayerControls.Running)
+				else if (button == Settings.Current.PlayerControls.Run)
 					player.ChangeState(new Running(this));
 			}
 			else if (state == InputButtonState.Released)

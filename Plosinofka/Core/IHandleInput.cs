@@ -14,7 +14,9 @@ namespace Ujeby.Plosinofka.Interfaces
 		LT,
 		LB,
 		RT,
-		RB
+		RB,
+		Start,
+		Back
 	}
 
 	public enum InputButtonState

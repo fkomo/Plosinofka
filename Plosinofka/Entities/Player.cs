@@ -5,39 +5,32 @@ using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka.Entities
 {
-	/// <summary>
-	/// LS - moving
-	/// RS - shooting in specified direction (single shot / auto)
-	/// LB - 
-	/// RB - dash (while jumping/walking)
-	/// LT - running ?
-	/// RT -  
-	/// A - jump/double jump (jump + down = dive)
-	/// B - 
-	/// X - melee attack
-	/// Y - super power
-	/// </summary>
+	/// <summary></summary>
 	public class Player : DynamicEntity, IRenderable, IHandleInput
 	{
-		public const double WalkingStep = 8;
+		// TODO directional shooting
+		// TODO melee attack
+		// TODO animations
+
+		public const double WalkingStep = 4;
 		public const double SneakingStep = WalkingStep / 2;
 		public const double RunningStep = WalkingStep * 2;
 		public const double AirStep = WalkingStep;
-		public readonly Vector2f JumpingVelocity = new Vector2f(0, 35);
+		public readonly Vector2f JumpingVelocity = new Vector2f(0, 30);
 
 		public PlayerState CurrentState { get; private set; }
 		private PlayerStateMachine States = new PlayerStateMachine();
 
 		public Guid PlayerSpriteId { get; private set; }
+		public Guid PlayerDataSpriteId { get; private set; }
 
 		public Player(string name)
 		{
 			Name = name;
 
-			var sprite = ResourceCache.LoadSprite(@".\Content\player.png");
-			PlayerSpriteId = sprite.Id;
+			PlayerSpriteId = ResourceCache.LoadSprite(@".\Content\plosinofka-guy.png", true).Id;
 
-			boundingBox = new BoundingBox(Position, Position + sprite.Size);
+			boundingBox = new BoundingBox(Position, Position + ResourceCache.Get<Sprite>(PlayerSpriteId).Size);
 
 			ChangeState(new Falling());
 		}
@@ -69,14 +62,21 @@ namespace Ujeby.Plosinofka.Entities
 
 			// update player according to his state and set new moving vector
 			CurrentState?.Update(this, environment);
+
+			Log.Add($"Player.Position={ Position }");
 		}
 
 		public bool StandingOnGround(BoundingBox bb, IRayCasting environment)
 		{
-			return 
-				environment.Trace(bb.Min, Vector2f.Down, out Vector2f n1) == 0 ||
-				environment.Trace(new Vector2f(bb.Center.X, bb.Bottom), Vector2f.Down, out Vector2f n2) == 0 ||
-				environment.Trace(new Vector2f(bb.Max.X, bb.Bottom), Vector2f.Down, out Vector2f n3) == 0;
+			return
+				//0 == environment.Trace(bb.Min, Vector2f.Down, out Vector2f n1) ||
+				//0 == environment.Trace(new Vector2f(bb.Max.X, bb.Bottom), Vector2f.Down, out Vector2f n2) ||
+				//0 == environment.Trace(new Vector2f(bb.Left + bb.Size.X * 0.33, bb.Bottom), Vector2f.Down, out Vector2f n3) ||
+				//0 == environment.Trace(new Vector2f(bb.Left + bb.Size.X * 0.66, bb.Bottom), Vector2f.Down, out Vector2f n4);
+				environment.Intersect(new Ray(bb.Min, Vector2f.Down, true), to: 1) ||
+				environment.Intersect(new Ray(new Vector2f(bb.Max.X, bb.Bottom), Vector2f.Down, true), to: 1) ||
+				environment.Intersect(new Ray(new Vector2f(bb.Left + bb.Size.X * 0.33, bb.Bottom), Vector2f.Down, true), to: 1) ||
+				environment.Intersect(new Ray(new Vector2f(bb.Left + bb.Size.X * 0.66, bb.Bottom), Vector2f.Down, true), to: 1);
 		}
 
 		/// <summary>
@@ -85,7 +85,7 @@ namespace Ujeby.Plosinofka.Entities
 		/// <param name="newState"></param>
 		public void ChangeState(PlayerState newState, bool pushCurrentState = true)
 		{
-			Log.Add($"Player.State={ newState }");
+			Log.Add($"Player.ChangeState({ newState })");
 			CurrentState = States.Change(CurrentState, newState, pushCurrentState);
 		}
 

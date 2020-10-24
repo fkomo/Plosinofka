@@ -16,12 +16,15 @@ namespace Ujeby.Plosinofka
 		private Vector2i PositionBeforeUpdate;
 		private Vector2i ViewBeforeUpdate;
 
-		public Camera(Vector2i view, Entity target)
+		public Camera(Vector2i view, Vector2i worldBorders, Entity target)
 		{
 			View = ViewBeforeUpdate = view;
 
-			var targetCenter = target.Center;
-			Position = PositionBeforeUpdate = targetCenter - view / 2;
+			var position = PositionBeforeUpdate = target.Center - view / 2;
+			position.X = Math.Min(worldBorders.X - View.X, Math.Max(0, Position.X));
+			position.Y = Math.Min(worldBorders.Y - View.Y, Math.Max(0, Position.Y));
+
+			Position = PositionBeforeUpdate = position;
 		}
 
 		public void Update(Entity target, Vector2i worldBorders)

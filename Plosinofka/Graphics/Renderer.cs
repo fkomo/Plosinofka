@@ -47,6 +47,12 @@ namespace Ujeby.Plosinofka.Graphics
 			} 
 		}
 
+		internal void SettingsChanged(VisualSetting setting)
+		{
+			Log.Add($"Renderer.SettingsChanged({ setting }): { Settings.Current.GetVisual(setting) }");
+			// TODO do what needs to be done when visual setting was changed	
+		}
+
 		private ScreenBuffer ScreenBuffer;
 
 		private Renderer()
@@ -154,7 +160,7 @@ namespace Ujeby.Plosinofka.Graphics
 			SDL.SDL_RenderCopy(RendererPtr, colorLayer.TexturePtr, ref RenderRect, IntPtr.Zero);
 
 			var shadingStart = Game.GetElapsed();
-			if (dataLayer != null)
+			if (dataLayer != null && Settings.Current.GetVisual(VisualSetting.Shading))
 			{
 				// shading from dynamic lights
 				Parallel.For(0, ScreenBuffer.Data.Length / 4, (i, loopState) =>
@@ -166,10 +172,10 @@ namespace Ujeby.Plosinofka.Graphics
 					var worldMapIndex = (cameraPosition.Y + screen.Y) * dataLayer.Size.X + cameraPosition.X + screen.X;
 					var screenIndex = ((camera.View.Y - screen.Y - 1) * camera.View.X + screen.X) * 4;
 
-					if (Level.IsShadowReceiverMask(dataLayer.Data[worldMapIndex]))
+					if (Level.IsShadowReceiver(dataLayer.Data[worldMapIndex]))
 					{
 						var tmpColor = new Color4f(colorLayer.Data[worldMapIndex]);
-						tmpColor *= Shading(screen + cameraPosition, lights, occluders);
+						tmpColor += Shading(screen + cameraPosition, lights, occluders) * 0.2;
 						//tmpColor = tmpColor.GammaCorrection();
 
 						var finalColor = new Color4b(tmpColor);
@@ -271,9 +277,6 @@ namespace Ujeby.Plosinofka.Graphics
 				}
 				if (occluded)
 					continue;
-
-				//if (occluders.Any(o => o.Intersects(ray, to:lightDistance)))
-				//	continue;
 
 				result += light.Color * (light.Intensity / (lightDistance));
 			}

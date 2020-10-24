@@ -17,24 +17,19 @@ namespace Ujeby.Plosinofka
 
 		public World()
 		{
-			CurrentLevel = Level.Load("world2");
+			CurrentLevel = Level.Load("world1");
 
 			Player = new Player("jebko");
-			Player.Position = new Vector2f(64, 128);
+			Player.Position = new Vector2f(64, 32);
 			DynamicEntities.Add(Player);
 
-			var light = new Light(new Color4f(1.0, 1.0, 0.8), 128.0);
-			light.Position = new Vector2f(240, 220);
-			StaticEntities.Add(light);
-			Lights.Add(light);
-
-			light = new Light(new Color4f(1.0, 0.0, 0.0), 32.0);
-			light.Position = new Vector2f(80, 100);
+			var light = new Light(new Color4f(1.0, 1.0, 0.8), 32.0);
+			light.Position = new Vector2f(240, 200);
 			StaticEntities.Add(light);
 			Lights.Add(light);
 
 			// make camera view smaller then window size for more pixelated look!
-			Camera = new Camera(Vector2i.FullHD / 4, Player);
+			Camera = new Camera(Vector2i.FullHD / 4, CurrentLevel.Size, Player);
 		}
 
 		public World(Level level)
@@ -71,8 +66,7 @@ namespace Ujeby.Plosinofka
 			var layerOffset = Camera.InterpolatedPosition(interpolation) / (Vector2f)(CurrentLevel.Size - Camera.View);
 
 			// background layers
-			RenderLayers(CurrentLevel.BackgroundLayers, layerOffset,
-				interpolation);
+			RenderLayers(CurrentLevel.BackgroundLayers, layerOffset, interpolation);
 
 			// main layer
 			var color = ResourceCache.Get<Sprite>(CurrentLevel.Resources[(int)LevelResourceType.BackgroundLayer]);
@@ -84,7 +78,8 @@ namespace Ujeby.Plosinofka
 				var colliders = CurrentLevel.Colliders.ToList();
 				colliders.Add(new BoundingBox(playerPosition, playerPosition + Player.BoundingBox.Size));
 
-				Renderer.Instance.Render(Camera, color, data, interpolation, Lights.ToArray(), colliders.ToArray());
+				Renderer.Instance.Render(Camera, color, data, interpolation, 
+					Lights.ToArray(), colliders.ToArray());
 			}
 
 			// entities
@@ -94,8 +89,7 @@ namespace Ujeby.Plosinofka
 				(entity as IRenderable)?.Render(Camera, interpolation);
 
 			// foreground layers
-			RenderLayers(CurrentLevel.ForegroundLayers, layerOffset,
-				interpolation);
+			RenderLayers(CurrentLevel.ForegroundLayers, layerOffset, interpolation);
 		}
 
 		/// <summary>

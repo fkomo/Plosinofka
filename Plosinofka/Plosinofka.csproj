@@ -10,47 +10,40 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<None Remove="Content\player-color.png" />
+		<None Remove="Content\player-data.png" />
+		<None Remove="Content\plosinofka-guy.png" />
 		<None Remove="Content\Worlds\color-test.png" />
 		<None Remove="Content\Worlds\player.png" />
+		<None Remove="Content\Worlds\world1-bg-0.png" />
+		<None Remove="Content\Worlds\world1-bg-1.png" />
+		<None Remove="Content\Worlds\world1-bg-2.png" />
 		<None Remove="Content\Worlds\world1-collision.bmp" />
 		<None Remove="Content\Worlds\world1-collision.png" />
 		<None Remove="Content\Worlds\world1-color.png" />
+		<None Remove="Content\Worlds\world1-data.png" />
 		<None Remove="Content\Worlds\world1.bmp" />
-		<None Remove="Content\Worlds\world2-bg-0.png" />
-		<None Remove="Content\Worlds\world2-bg-1.png" />
-		<None Remove="Content\Worlds\world2-bg-2.png" />
 		<None Remove="Content\Worlds\world2-collision.png" />
-		<None Remove="Content\Worlds\world2-color.png" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<Content Include="Content\test.png">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<Content Include="Content\plosinofka-guy.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-		<Content Include="Content\player.png">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<Content Include="Content\Worlds\world1-bg-0.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Content\Worlds\world1-bg-1.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Content\Worlds\world1-bg-2.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 		<Content Include="Content\Worlds\world1-color.png">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Content\Worlds\world2-bg-0.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-		<Content Include="Content\Worlds\world2-bg-1.png">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Content\Worlds\world2-bg-2.png">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Content\Worlds\world2-color.png">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-
 		<Content Include="Content\Worlds\world1-data.png">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Content\Worlds\world2-data.png">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 
 	</ItemGroup>

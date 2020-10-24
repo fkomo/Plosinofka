@@ -81,11 +81,11 @@ namespace Ujeby.Plosinofka
 
 			else
 			{
-				player.Velocity.Y = Math.Max((player.Velocity + Simulation.Gravity).Y, Simulation.TerminalFallingVelocity);
-
 				// air control
 				if (!Freeze)
 					player.Velocity.X = Direction.X * Player.AirStep;
+
+				player.Velocity.Y = Math.Max((player.Velocity + Simulation.Gravity).Y, Simulation.TerminalFallingVelocity);
 			}
 		}
 	}

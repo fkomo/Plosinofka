@@ -17,6 +17,11 @@ namespace Ujeby.Plosinofka
 		Count
 	}
 
+	/// <summary>
+	/// level properties
+	/// - minimum block size 8x8
+	/// -
+	/// </summary>
 	public class Level : IRayCasting, IRayMarching
 	{
 		public string Name { get; protected set; }
@@ -165,10 +170,10 @@ namespace Ujeby.Plosinofka
 			return false;
 		}
 
-		public const uint ShadowCasterMask = 0xff0000ff;
-		public const uint ShadowReceiverMask = 0xff00ff00;
+		private const uint ShadowCasterMask = 0xff0000ff;
+		private const uint ShadowReceiverMask = 0xff00ff00;
 
-		public static bool IsShadowReceiverMask(uint pixelValue)
+		public static bool IsShadowReceiver(uint pixelValue)
 		{
 			return (pixelValue & ShadowReceiverMask) == ShadowReceiverMask;
 		}
