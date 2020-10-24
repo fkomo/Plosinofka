@@ -39,24 +39,32 @@ namespace Ujeby.Plosinofka.Common
 
 		public override string ToString() => $"{ Min }-{ Max }";
 
-		public bool IsOverlapping(BoundingBox box) => IsOverlapping(box.Min, box.Max);
-
-		public bool IsOverlapping(Vector2f min, Vector2f max)
+		public bool Overlaps(BoundingBox other)
 		{
 			// above
-			if (min.Y > Top)
+			if (other.Min.Y > Max.Y)
 				return false;
 
 			// bellow
-			if (max.Y < Bottom)
+			if (other.Max.Y < Min.Y)
 				return false;
 
 			// left
-			if (max.X < Left)
+			if (other.Max.X < Min.X)
 				return false;
 
 			// right
-			if (min.X > Right)
+			if (other.Min.X > Max.X)
+				return false;
+
+			return true;
+		}
+
+		public bool Overlaps2(BoundingBox other)
+		{
+			if (Math.Abs(Center.X - other.Center.X) > HalfSize.X + other.HalfSize.X)
+				return false;
+			if (Math.Abs(Center.Y - other.Center.Y) > HalfSize.Y + other.HalfSize.Y)
 				return false;
 
 			return true;

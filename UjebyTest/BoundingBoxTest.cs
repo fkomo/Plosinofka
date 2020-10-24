@@ -12,11 +12,14 @@ namespace UjebyTest
 	class BoundingBoxTest : TestBase
 	{
 		private Vector2i Mouse;
-		private bool DrawLine = false;
-		private Vector2f Point1;
-		private Vector2f Point2;
 
-		private Ujeby.Plosinofka.Level TestLevel;
+		private bool DrawingRay = false;
+		private Ray TmpRay;
+
+		private bool DrawingBox = false;
+		private BoundingBox TmpBox;
+
+		private List<BoundingBox> Boxes = new List<BoundingBox>();
 
 		public BoundingBoxTest() : base()
 		{
@@ -27,37 +30,7 @@ namespace UjebyTest
 			BoundingBoxTest.BoundingBoxTraceTest();
 			BoundingBoxTest.BoundingBoxIntersectTest();
 			BoundingBoxTest.BoundingBoxRayMarchingTest();
-
-			var colliders = new List<BoundingBox>();
-
-			for (var i = 0; i < 10; i++)
-			{
-				var min = new Vector2f(
-					Program.WindowSize.X / 4 * Program.Rng.NextDouble(),
-					Program.WindowSize.Y / 4 * Program.Rng.NextDouble());
-				var size = new Vector2f(
-					Program.WindowSize.X / 4 + Program.Rng.NextDouble() * Program.WindowSize.X / 2,
-					Program.WindowSize.Y / 4 + Program.Rng.NextDouble() * Program.WindowSize.Y / 2);
-
-				colliders.Add(new BoundingBox(min, min + size));
-			}
-
-			colliders.Add(new BoundingBox(new Vector2f(15, 5), new Vector2f(25, 15)));
-			//colliders.Add(new BoundingBox { Position = new Vector2f(500, 500), Size = new Vector2f(100, 200) });
-			//colliders.Add(new BoundingBox { Position = new Vector2f(0, 0), Size = new Vector2f(1920, 16) });
-			//colliders.Add(new BoundingBox { Position = new Vector2f(352, 16), Size = new Vector2f(128, 64) });
-
-			TestLevel = new Ujeby.Plosinofka.Level("test-room", colliders.ToArray());
-
-			//var world = new World(TestLevel);
-			//var entity = new Player("asdf")
-			//{
-			//	BoundingBox = new BoundingBox { Position = new Vector2f(320, 80), Size = new Vector2f(32, 64) },
-			//	Velocity = new Vector2f(-16, 0)
-			//};
-			//var solved = world.Solve(entity, out Vector2f position, out Vector2f velocity);
-
-			var intersection = TestLevel.Intersect(new Ray(new Vector2f(5, 10), new Vector2f(1, 0), true));
+			BoundingBoxTest.BoundingBoxOverlapTest();
 		}
 
 		protected override void Update()
@@ -65,19 +38,33 @@ namespace UjebyTest
 			var mouseState = SDL.SDL_GetMouseState(out Mouse.X, out Mouse.Y);
 			Mouse.Y = Program.WindowSize.Y - Mouse.Y;
 
-			if (!DrawLine && (mouseState & 1) == 1)
-			{
-				Point1 = (Vector2f)Mouse;
-				Point2 = (Vector2f)Mouse;
+			var leftMouse = (mouseState & 1) == 1;
+			var rightMouse = (mouseState & 2) == 2;
 
-				DrawLine = true;
-			}
+			if (!DrawingRay && rightMouse)
+				TmpRay = new Ray((Vector2f)Mouse, Vector2f.Zero, true);
 
-			if (DrawLine)
-				Point2 = (Vector2f)Mouse;
+			DrawingRay = rightMouse;
+			if (DrawingRay)
+				TmpRay = new Ray(TmpRay.Origin, (Vector2f)Mouse - TmpRay.Origin);
 
-			if ((mouseState & 1) != 1)
-				DrawLine = false;
+			if (!DrawingBox && leftMouse)
+				TmpBox = new BoundingBox((Vector2f)Mouse, (Vector2f)Mouse);
+
+			if ()
+
+			if (DrawingBox)
+				TmpBox = new BoundingBox();
+
+
+			Boxes.Add(TmpBox);
+
+			if (!leftMouse)
+				DrawingBox = false;
+
+			if (DrawingRay)
+				TmpRay = new Ray(TmpRay.Origin, (Vector2f)Mouse - TmpRay.Origin);
+
 		}
 
 		protected override void Render()
@@ -250,6 +237,34 @@ namespace UjebyTest
 				level.RayMarch(origins[i], directions[i], out Vector2f normal);
 
 			Log.Add($"BoundingBox.RayMarch({ n }): { (n / (Program.Elapsed() - start) / 1000.0):0.00}M per second");
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="n"></param>
+		public static void BoundingBoxOverlapTest(long n = 1000000)
+		{
+			var space = 10000;
+
+			var bbs1 = new List<BoundingBox>();
+			for (var i = 0; i < n; i++)
+				bbs1.Add(new BoundingBox(new Vector2f(Program.Rng.NextDouble() * space, Program.Rng.NextDouble() * space),
+					new Vector2f(Program.Rng.NextDouble() * space, Program.Rng.NextDouble() * space)));
+			var bbs2 = new List<BoundingBox>();
+			for (var i = 0; i < n; i++)
+				bbs2.Add(new BoundingBox(new Vector2f(Program.Rng.NextDouble() * space, Program.Rng.NextDouble() * space),
+					new Vector2f(Program.Rng.NextDouble() * space, Program.Rng.NextDouble() * space)));
+
+			var start = Program.Elapsed();
+			for (var i = 0; i < n; i++)
+				bbs1[i].Overlaps(bbs2[i]);
+			Log.Add($"BoundingBox.Overlaps({ n }): { (n / (Program.Elapsed() - start) / 1000.0):0.00}M per second");
+
+			start = Program.Elapsed();
+			for (var i = 0; i < n; i++)
+				bbs1[i].Overlaps2(bbs2[i]);
+			Log.Add($"BoundingBox.Overlaps2({ n }): { (n / (Program.Elapsed() - start) / 1000.0):0.00}M per second");
 		}
 	}
 }
