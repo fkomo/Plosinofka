@@ -220,13 +220,13 @@ namespace Ujeby.Plosinofka.Graphics
 			SDL.SDL_RenderFillRect(RendererPtr, ref rect);
 		}
 
-		internal void RenderLine(Camera camera, Vector2f a, Vector2f b, double interpolation)
+		internal void RenderLine(Camera camera, Vector2f a, Vector2f b, Color4b color, double interpolation)
 		{
 			var viewScale = CurrentWindowSize / camera.InterpolatedView(interpolation);
 			a = camera.RelateTo(a, interpolation) * viewScale;
 			b = camera.RelateTo(b, interpolation) * viewScale;
 
-			SDL.SDL_SetRenderDrawColor(RendererPtr, 0xff, 0, 0, 0xff);
+			SDL.SDL_SetRenderDrawColor(RendererPtr, color.R, color.G, color.B, color.A);
 			SDL.SDL_RenderDrawLine(RendererPtr,
 				(int)a.X, (int)(camera.View.Y * viewScale.Y - a.Y),
 				(int)b.X, (int)(camera.View.Y * viewScale.Y - b.Y));

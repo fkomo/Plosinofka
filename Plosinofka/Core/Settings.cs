@@ -1,4 +1,5 @@
-﻿using Ujeby.Plosinofka.Graphics;
+﻿using System;
+using Ujeby.Plosinofka.Graphics;
 using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka.Core
@@ -6,6 +7,13 @@ namespace Ujeby.Plosinofka.Core
 	public enum VisualSetting
 	{
 		Shading,
+
+		Count,
+	}
+
+	public enum DebugSetting
+	{
+		MovementHistory,
 
 		Count,
 	}
@@ -56,6 +64,7 @@ namespace Ujeby.Plosinofka.Core
 		public Controls PlayerControls { get; private set; } = new Controls();
 
 		public bool[] VisualToggles { get; private set; } = new bool[(int)VisualSetting.Count];
+		public bool[] DebugToggles { get; private set; } = new bool[(int)DebugSetting.Count];
 
 		public void ToggleVisual(VisualSetting toggle)
 		{
@@ -63,9 +72,19 @@ namespace Ujeby.Plosinofka.Core
 			Renderer.Instance.SettingsChanged(toggle);
 		}
 
+		public void ToggleDebug(DebugSetting toggle)
+		{
+			DebugToggles[(int)toggle] = !DebugToggles[(int)toggle];
+		}
+
 		internal bool GetVisual(VisualSetting setting)
 		{
 			return VisualToggles[(int)setting];
+		}
+
+		internal bool GetDebug(DebugSetting setting)
+		{
+			return DebugToggles[(int)setting];
 		}
 	}
 }

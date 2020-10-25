@@ -16,7 +16,7 @@ namespace Ujeby.Plosinofka.Entities
 		public const double SneakingStep = WalkingStep / 2;
 		public const double RunningStep = WalkingStep * 2;
 		public const double AirStep = WalkingStep;
-		public readonly Vector2f JumpingVelocity = new Vector2f(0, 20);
+		public const double Jump = 16;
 
 		public PlayerState CurrentState { get; private set; }
 		private PlayerStateMachine States = new PlayerStateMachine();
@@ -46,7 +46,7 @@ namespace Ujeby.Plosinofka.Entities
 
 			Renderer.Instance.RenderLine(camera,
 				interpolatedPosition + Size / 2, interpolatedPosition + Size / 2 + Velocity,
-				interpolation);
+				Color4b.Red, interpolation);
 		}
 
 		public void HandleButton(InputButton button, InputButtonState state)

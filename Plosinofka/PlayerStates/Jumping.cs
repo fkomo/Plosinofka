@@ -107,14 +107,14 @@ namespace Ujeby.Plosinofka
 			{
 				if (!InAir)
 				{
-					player.Velocity.Y = player.JumpingVelocity.Y;
+					player.Velocity.Y = Player.Jump;
 					InAir = true;
 				}
 				else
 				{
 					if (DoubleJump)
 					{
-						player.Velocity.Y = player.JumpingVelocity.Y;
+						player.Velocity.Y = Player.Jump;
 						DoubleJump = false;
 					}
 

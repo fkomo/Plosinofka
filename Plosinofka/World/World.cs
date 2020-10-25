@@ -23,6 +23,8 @@ namespace Ujeby.Plosinofka
 			Player.Position = new Vector2f(64, 32);
 			DynamicEntities.Add(Player);
 
+			EntityHistory.Add(Player.Name, new List<Vector2f>());
+
 			var light = new Light(new Color4f(1.0, 1.0, 0.8), 32.0);
 			light.Position = new Vector2f(300, 250);
 			StaticEntities.Add(light);
@@ -53,6 +55,9 @@ namespace Ujeby.Plosinofka
 				Solve(dynamicEntity, out Vector2f position, out Vector2f velocity);
 				dynamicEntity.Position = position;
 				dynamicEntity.Velocity = velocity;
+
+				if (EntityHistory.ContainsKey(dynamicEntity.Name))
+					EntityHistory[dynamicEntity.Name].Add(dynamicEntity.Position);
 			}
 
 			// update camera with respect to world/level borders
@@ -90,6 +95,24 @@ namespace Ujeby.Plosinofka
 
 			// foreground layers
 			RenderLayers(CurrentLevel.ForegroundLayers, layerOffset, interpolation);
+
+			// debug
+			if (Settings.Current.GetDebug(DebugSetting.MovementHistory))
+				RenderEntityHistory(interpolation);
+		}
+
+		private void RenderEntityHistory(double interpolation)
+		{
+			foreach (var entityHistory in EntityHistory)
+			{
+				if (entityHistory.Value.Count < 2)
+					continue;
+
+				var color = new Color4b((uint)entityHistory.Key.GetHashCode());
+				color.A = 0xff;
+				for (var i = 1; i < entityHistory.Value.Count; i++)
+					Renderer.Instance.RenderLine(Camera, entityHistory.Value[i - 1], entityHistory.Value[i], color, interpolation);
+			}
 		}
 
 		/// <summary>

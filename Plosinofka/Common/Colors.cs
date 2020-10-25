@@ -1,6 +1,4 @@
-﻿
-using System;
-using System.Reflection.Metadata.Ecma335;
+﻿using System;
 
 namespace Ujeby.Plosinofka.Common
 {
@@ -11,8 +9,10 @@ namespace Ujeby.Plosinofka.Common
 		public byte B;
 		public byte A;
 
-		public static Color4b White = new Color4b(1, 1, 1, 1);
-		public static Color4b Black = new Color4b(0, 0, 0, 1);
+		public static Color4b Black = new Color4b(0, 0, 0, 0xff);
+		public static Color4b White = new Color4b(0xff, 0xff, 0xff, 0xff);
+		public static Color4b Red = new Color4b(0xff, 0, 0, 0xff);
+
 
 		public Color4b(byte r, byte g, byte b, byte a)
 		{

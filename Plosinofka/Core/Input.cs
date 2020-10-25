@@ -105,6 +105,9 @@ namespace Ujeby.Plosinofka.Core
 
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_F1))
 						Settings.Current.ToggleVisual(VisualSetting.Shading);
+
+					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_F5))
+						Settings.Current.ToggleDebug(DebugSetting.MovementHistory);
 				}
 			}
 	
