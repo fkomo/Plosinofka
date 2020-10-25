@@ -10,8 +10,6 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerStateEnum AsEnum { get { return PlayerStateEnum.Jumping; } }
 
-		// TODO jump higher if key is pressed longer
-
 		public Jumping() : this(new Vector2f())
 		{
 
@@ -78,6 +76,11 @@ namespace Ujeby.Plosinofka
 						Direction = new Vector2f(0, Direction.Y);
 						player.PushState(new Standing());
 					}
+				}
+				else if (button == Settings.Current.PlayerControls.Jump)
+				{
+					if (InAir && player.Velocity.Y > 0)
+						player.Velocity.Y = 0.0;
 				}
 				else if (button == Settings.Current.PlayerControls.Run)
 				{
