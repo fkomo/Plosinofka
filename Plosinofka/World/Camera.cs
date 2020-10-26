@@ -20,11 +20,9 @@ namespace Ujeby.Plosinofka
 		{
 			View = ViewBeforeUpdate = view;
 
-			var position = PositionBeforeUpdate = target.Center - view / 2;
-			position.X = Math.Min(worldBorders.X - View.X, Math.Max(0, Position.X));
-			position.Y = Math.Min(worldBorders.Y - View.Y, Math.Max(0, Position.Y));
+			Update(target, worldBorders);
 
-			Position = PositionBeforeUpdate = position;
+			PositionBeforeUpdate = Position;
 		}
 
 		public void Update(Entity target, Vector2i worldBorders)

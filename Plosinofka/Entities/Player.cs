@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Ujeby.Plosinofka.Common;
 using Ujeby.Plosinofka.Graphics;
 using Ujeby.Plosinofka.Interfaces;
@@ -16,7 +17,7 @@ namespace Ujeby.Plosinofka.Entities
 		public const double SneakingStep = WalkingStep / 2;
 		public const double RunningStep = WalkingStep * 2;
 		public const double AirStep = WalkingStep;
-		public const double Jump = 16;
+		public const double Jump = 18;
 
 		public PlayerState CurrentState { get; private set; }
 		private PlayerStateMachine States = new PlayerStateMachine();
@@ -28,25 +29,27 @@ namespace Ujeby.Plosinofka.Entities
 		{
 			Name = name;
 
-			PlayerSpriteId = ResourceCache.LoadSprite(@".\Content\plosinofka-guy.png", true).Id;
+			PlayerSpriteId = ResourceCache.LoadSprite(@".\Content\plosinofka-guy-color.png", true).Id;
 
-			boundingBox = new AABB(Position, Position + ResourceCache.Get<Sprite>(PlayerSpriteId).Size);
+			var dataSprite = ResourceCache.LoadSprite(@".\Content\plosinofka-guy-data.png", true);
+			PlayerDataSpriteId = dataSprite.Id;
+
+			BoundingBox = AABB.FromMap(dataSprite, Level.ShadowCasterMask).First();
 
 			ChangeState(new Falling());
 		}
 
 		public void Render(Camera camera, double interpolation)
 		{
-			var interpolatedPosition = PreviousPosition + (Position - PreviousPosition) * interpolation;
+			var interpolatedPosition = InterpolatedPosition(interpolation);
 
 			Renderer.Instance.RenderSprite(camera,
 				ResourceCache.Get<Sprite>(PlayerSpriteId),
 				interpolatedPosition,
 				interpolation);
 
-			Renderer.Instance.RenderLine(camera,
-				interpolatedPosition + Size / 2, interpolatedPosition + Size / 2 + Velocity,
-				Color4b.Red, interpolation);
+			var center = interpolatedPosition + BoundingBox.Min + Size / 2;
+			Renderer.Instance.RenderLine(camera, center, center + Velocity, Color4b.Red, interpolation);
 		}
 
 		public void HandleButton(InputButton button, InputButtonState state)
@@ -62,12 +65,12 @@ namespace Ujeby.Plosinofka.Entities
 
 			// update player according to his state and set new moving vector
 			CurrentState?.Update(this, environment);
-
-			Log.Add($"Player.Position={ Position }");
 		}
 
-		public bool StandingOnGround(AABB bb, IRayCasting environment)
+		public bool StandingOnGround(IRayCasting environment)
 		{
+			var bb = BoundingBox + Position;
+
 			return
 				0 == environment.Trace(bb.Min, Vector2f.Down, out Vector2f n1) ||
 				0 == environment.Trace(new Vector2f(bb.Max.X, bb.Bottom), Vector2f.Down, out Vector2f n2) ||

@@ -17,7 +17,7 @@ namespace Ujeby.Plosinofka.Core
 
 		public List<DynamicEntity> DynamicEntities { get; protected set; } = new List<DynamicEntity>();
 		public List<Entity> StaticEntities { get; protected set; } = new List<Entity>();
-		public Dictionary<string, List<Vector2f>> EntityHistory { get; protected set; } = new Dictionary<string, List<Vector2f>>();
+		public Dictionary<string, FixedQueue<Vector2f>> EntityHistory { get; protected set; } = new Dictionary<string, FixedQueue<Vector2f>>();
 
 		public Player Player { get; protected set; }
 		public Camera Camera { get; protected set; }

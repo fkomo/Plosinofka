@@ -61,7 +61,7 @@ namespace Ujeby.Plosinofka
 
 			var data = ResourceCache.LoadSprite($".\\Content\\Worlds\\{ name }-data.png", true);
 			level.Resources[(int)LevelResourceType.Data] = data.Id;
-			level.Colliders = ProcessCollisionMap(data);
+			level.Colliders = AABB.FromMap(data, ShadowCasterMask);
 
 			// load background layers
 			level.BackgroundLayers = Directory.EnumerateFiles($".\\Content\\Worlds\\", $"{ name }-bg-*")
@@ -92,87 +92,8 @@ namespace Ujeby.Plosinofka
 			return level;
 		}
 
-		/// <summary>
-		/// create bounding boxes from collision map for faster testing
-		/// collision object is colored as 0xff0000ff
-		/// resulting bounding boxes are not overlaping
-		/// </summary>
-		/// <param name="map"></param>
-		private static AABB[] ProcessCollisionMap(Sprite map)
-		{
-			var start = Game.GetElapsed();
-
-			var colliders = new List<AABB>();
-			for (var y = 0; y < map.Size.Y; y++)
-			{
-				for (var x = 0; x < map.Size.X; x++)
-				{
-					var p = y * map.Size.X + x;
-
-					// skip if point is already in another collider
-					if (FindCollider(colliders, x, y, out AABB oldCollider))
-						x += (int)oldCollider.Size.X;
-
-					else if (IsShadowCaster(map.Data[p]))
-					{
-						var width = 1;
-						var height = 1;
-
-						// find width
-						while (x + width < map.Size.X &&
-							IsShadowCaster(map.Data[p + width]) &&
-							!colliders.Any(c => c.IsIn(x + width, y)))
-							width++;
-
-						// find height
-						var cleanRow = true;
-						while (y + height < map.Size.Y && cleanRow)
-						{
-							var offset = p + height * map.Size.X;
-							for (var i = 0; i < width; i++)
-								if (!IsShadowCaster(map.Data[offset + i]) ||
-									colliders.Any(c => c.IsIn(x + i, y + height)))
-								{
-									cleanRow = false;
-									break;
-								}
-
-							if (cleanRow)
-								height++;
-						}
-
-						// new colider
-						var min = new Vector2f(x, y);
-						colliders.Add(new AABB(min, min + new Vector2f(width, height)));
-
-						// advance just after collider
-						x += width;
-					}
-				}
-			}
-
-			var elapsed = Game.GetElapsed() - start;
-			Log.Add($"Level.ProcessCollisionMap('{ map.Filename }'): { colliders.Count } colliders, { (int)elapsed }ms");
-
-			return colliders.ToArray();
-		}
-
-		private static bool FindCollider(IEnumerable<AABB> colliders, int x, int y, out AABB oldCollider)
-		{
-			oldCollider = default;
-
-			foreach (var collider in colliders)
-				if (collider.IsIn(x, y))
-				{
-					oldCollider = collider;
-					return true;
-				}
-
-			return false;
-		}
-
-		private const uint ShadowCasterMask = 0xff0000ff;
-		private const uint ShadowReceiverMask = 0xff00ff00;
+		public const uint ShadowCasterMask = 0xff0000ff;
+		public const uint ShadowReceiverMask = 0xff00ff00;
 
 		public static bool IsShadowReceiver(uint pixelValue)
 		{

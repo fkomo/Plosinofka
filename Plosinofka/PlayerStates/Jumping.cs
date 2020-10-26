@@ -100,7 +100,7 @@ namespace Ujeby.Plosinofka
 
 		public override void Update(Player player, IRayCasting environment)
 		{
-			if (InAir && player.StandingOnGround(player.BoundingBox, environment))
+			if (InAir && player.StandingOnGround(environment))
 				player.ChangeToPreviousState();
 
 			else

@@ -32,7 +32,7 @@ namespace Ujeby.Plosinofka
 			// just standing
 			player.Velocity.X = 0;
 
-			if (!player.StandingOnGround(player.BoundingBox, environment))
+			if (!player.StandingOnGround(environment))
 				player.ChangeState(new Falling());
 		}
 	}

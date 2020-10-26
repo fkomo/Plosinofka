@@ -1,5 +1,9 @@
 ﻿
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using Ujeby.Plosinofka.Core;
+using Ujeby.Plosinofka.Graphics;
 using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka.Common
@@ -14,8 +18,12 @@ namespace Ujeby.Plosinofka.Common
 
 		private Vector2f HalfSize;
 		public Vector2f Center { get; private set; }
-
 		public Vector2f Size => Max - Min;
+
+		public double Top => Max.Y;
+		public double Bottom => Min.Y;
+		public double Left => Min.X;
+		public double Right => Max.X;
 
 		public AABB(Vector2f min, Vector2f max)
 		{
@@ -25,16 +33,8 @@ namespace Ujeby.Plosinofka.Common
 			HalfSize = (max - min) * 0.5;
 		}
 
-		public double Top => Max.Y;
-		public double Bottom => Min.Y;
-		public double Left => Min.X;
+		public static AABB operator +(AABB bb, Vector2f v) => new AABB(bb.Min + v, bb.Max + v);
 
-		public static void RayMarchingTest()
-		{
-			throw new NotImplementedException();
-		}
-
-		public double Right => Max.X;
 
 		public bool IsIn(Vector2f p) => IsIn(p.X, p.Y);
 		public bool IsIn(int x, int y) => IsIn((double)x, (double)y);
@@ -264,6 +264,78 @@ namespace Ujeby.Plosinofka.Common
 			tmax = Math.Min(tmax, Math.Max(t1, t2));
 
 			return tmax > Math.Max(tmin, 0.0) && ((from < tmin && tmin < to) || (from < tmax && tmax < to));
+		}
+
+		/// <summary>
+		/// find nonoverlapping aabboxes in sprite
+		/// </summary>
+		/// <param name="map"></param>
+		public static AABB[] FromMap(Sprite map, uint mask)
+		{
+			var colliders = new List<AABB>();
+			for (var y = 0; y < map.Size.Y; y++)
+			{
+				for (var x = 0; x < map.Size.X; x++)
+				{
+					var p = y * map.Size.X + x;
+
+					// skip if point is already in another collider
+					if (FindCollider(colliders, x, y, out AABB oldCollider))
+						x += (int)oldCollider.Size.X;
+
+					else if ((map.Data[p] & mask) == mask)
+					{
+						var width = 1;
+						var height = 1;
+
+						// find width
+						while (x + width < map.Size.X &&
+							((map.Data[p + width] & mask) == mask) &&
+							!colliders.Any(c => c.IsIn(x + width, y)))
+							width++;
+
+						// find height
+						var cleanRow = true;
+						while (y + height < map.Size.Y && cleanRow)
+						{
+							var offset = p + height * map.Size.X;
+							for (var i = 0; i < width; i++)
+								if (((map.Data[offset + i] & mask) != mask) ||
+									colliders.Any(c => c.IsIn(x + i, y + height)))
+								{
+									cleanRow = false;
+									break;
+								}
+
+							if (cleanRow)
+								height++;
+						}
+
+						// new colider
+						var min = new Vector2f(x, y);
+						colliders.Add(new AABB(min, min + new Vector2f(width, height)));
+
+						// advance just after collider
+						x += width;
+					}
+				}
+			}
+
+			return colliders.ToArray();
+		}
+
+		private static bool FindCollider(List<AABB> colliders, int x, int y, out AABB oldCollider)
+		{
+			oldCollider = default;
+
+			foreach (var collider in colliders)
+				if (collider.IsIn(x, y))
+				{
+					oldCollider = collider;
+					return true;
+				}
+
+			return false;
 		}
 	}
 }

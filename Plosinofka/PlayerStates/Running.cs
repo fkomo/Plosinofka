@@ -54,7 +54,7 @@ namespace Ujeby.Plosinofka
 
 		public override void Update(Player player, IRayCasting environment)
 		{
-			if (!player.StandingOnGround(player.BoundingBox, environment))
+			if (!player.StandingOnGround(environment))
 				player.ChangeState(new Falling(this));
 
 			else if (!Freeze)

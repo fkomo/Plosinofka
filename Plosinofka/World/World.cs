@@ -15,6 +15,11 @@ namespace Ujeby.Plosinofka
 
 		private List<Light> Lights = new List<Light>();
 
+		/// <summary>
+		/// number of past records of entity properties (position, ...)
+		/// </summary>
+		public const int MaxEntityHistory = 1024;
+
 		public World()
 		{
 			CurrentLevel = Level.Load("world1");
@@ -23,7 +28,7 @@ namespace Ujeby.Plosinofka
 			Player.Position = new Vector2f(64, 32);
 			DynamicEntities.Add(Player);
 
-			EntityHistory.Add(Player.Name, new List<Vector2f>());
+			EntityHistory.Add(Player.Name, new FixedQueue<Vector2f>(MaxEntityHistory));
 
 			var light = new Light(new Color4f(1.0, 1.0, 0.8), 32.0);
 			light.Position = new Vector2f(300, 250);
@@ -53,11 +58,12 @@ namespace Ujeby.Plosinofka
 			foreach (var dynamicEntity in DynamicEntities)
 			{
 				Solve(dynamicEntity, out Vector2f position, out Vector2f velocity);
+
+				if (EntityHistory.ContainsKey(dynamicEntity.Name) && dynamicEntity.Position != position)
+					EntityHistory[dynamicEntity.Name].Add(position);
+
 				dynamicEntity.Position = position;
 				dynamicEntity.Velocity = velocity;
-
-				if (EntityHistory.ContainsKey(dynamicEntity.Name))
-					EntityHistory[dynamicEntity.Name].Add(dynamicEntity.Position);
 			}
 
 			// update camera with respect to world/level borders
@@ -81,7 +87,7 @@ namespace Ujeby.Plosinofka
 				var playerPosition = Player.InterpolatedPosition(interpolation);
 
 				var colliders = CurrentLevel.Colliders.ToList();
-				colliders.Add(new AABB(playerPosition, playerPosition + Player.BoundingBox.Size));
+				colliders.Add(Player.BoundingBox + playerPosition);
 
 				Renderer.Instance.Render(Camera, color, data, interpolation, 
 					Lights.ToArray(), colliders.ToArray());
@@ -105,13 +111,15 @@ namespace Ujeby.Plosinofka
 		{
 			foreach (var entityHistory in EntityHistory)
 			{
-				if (entityHistory.Value.Count < 2)
+				if (entityHistory.Value.Queue.Count < 2)
 					continue;
 
 				var color = new Color4b((uint)entityHistory.Key.GetHashCode());
 				color.A = 0xff;
-				for (var i = 1; i < entityHistory.Value.Count; i++)
-					Renderer.Instance.RenderLine(Camera, entityHistory.Value[i - 1], entityHistory.Value[i], color, interpolation);
+
+				var values = entityHistory.Value.Queue.ToArray();
+				for (var i = 1; i < values.Length; i++)
+					Renderer.Instance.RenderLine(Camera, values[i - 1], values[i], color, interpolation);
 			}
 		}
 
@@ -129,12 +137,15 @@ namespace Ujeby.Plosinofka
 		{
 			position = entity.Position;
 			velocity = entity.Velocity;
-			var entityBox = entity.BoundingBox;
-			var remainingVelocity = velocity;
 
 			// no velocity ? no collision!
 			if (velocity == Vector2f.Zero)
 				return false;
+
+			var remainingVelocity = velocity;
+
+			// move collision position to sprite aabb offset
+			//position += entity.BoundingBox.Min;
 
 			var collisionFound = false;
 			while (true)
@@ -142,6 +153,7 @@ namespace Ujeby.Plosinofka
 				var distance = velocity.Length();
 				var direction = velocity.Normalize();
 
+				var entityBox = entity.BoundingBox + position;
 				var t = CurrentLevel.Trace(entityBox, direction, out Vector2f normal);
 				if (t <= distance)
 				{
@@ -155,12 +167,12 @@ namespace Ujeby.Plosinofka
 						- hitPosition;
 					position = hitPosition;
 
-					entityBox = new AABB(position, position + entityBox.Size);
-
 					if (normal.X == 0)
 						remainingVelocity.Y = 0;
 					else 
 						remainingVelocity.X = 0;
+
+					Log.Add($"World.Trace({ entity }, bb={ entityBox }): t={ t } position={ position }; velocity={ velocity }; remainingVelocity={ remainingVelocity }");
 
 					if (velocity == Vector2f.Zero) // or better just close to zero ?
 						break; // solved - nowhere to move
@@ -169,10 +181,13 @@ namespace Ujeby.Plosinofka
 					break; // solved - nothing else stands in the way
 			}
 
+			// move position back with sprite aabb offset
+			//position -= entity.BoundingBox.Min;
+
 			position += velocity;
 			velocity = remainingVelocity;
 
-			//Log.Add($"Solved({ entity }; position={ entity.Position }; velocity={ entity.Velocity }): position={ position }; velocity={ velocity }");
+			Log.Add($"World.Solved({ entity }; position={ entity.Position }; velocity={ entity.Velocity }): position={ position }; velocity={ velocity }");
 
 			return collisionFound;
 		}

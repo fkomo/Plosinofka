@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Ujeby.Plosinofka;
 using Ujeby.Plosinofka.Common;
+using Ujeby.Plosinofka.Entities;
 
 namespace UjebyTest
 {
@@ -33,7 +34,14 @@ namespace UjebyTest
 			//AABBTest.RayMarchingTest();
 			AABBTest.OverlapTest();
 
+			//Boxes.Add(new AABB(new Vector2f(0, 0), new Vector2f(1920, 15)));
+
 			TestLevel = new Level("test", Boxes.ToArray());
+
+			//var t = TestLevel.Trace(
+			//	new AABB(new Vector2f(309 + 8, 15), new Vector2f(309 + 8 + 16, 15 + 31)),
+			//	new Vector2f(4, -2).Normalize(),
+			//	out Vector2f normal);
 		}
 
 		protected override void Update()

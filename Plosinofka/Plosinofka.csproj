@@ -12,7 +12,8 @@
 	<ItemGroup>
 		<None Remove="Content\player-color.png" />
 		<None Remove="Content\player-data.png" />
-		<None Remove="Content\plosinofka-guy.png" />
+		<None Remove="Content\plosinofka-guy-color.png" />
+		<None Remove="Content\plosinofka-guy-data.png" />
 		<None Remove="Content\Worlds\color-test.png" />
 		<None Remove="Content\Worlds\player.png" />
 		<None Remove="Content\Worlds\world1-bg-0.png" />
@@ -27,7 +28,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Content Include="Content\plosinofka-guy.png">
+		<Content Include="Content\plosinofka-guy-color.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Content\plosinofka-guy-data.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 		<Content Include="Content\Worlds\world1-bg-0.png">
