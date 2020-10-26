@@ -5,21 +5,13 @@ using Ujeby.Plosinofka.Common;
 
 namespace Ujeby.Plosinofka
 {
-	class Running : Moving
+	class Running : PlayerMovementState
 	{
-		public Running(Vector2f direction) : base(direction)
+		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Running;
+
+		public Running(PlayerMovementState currentState) : base(currentState)
 		{
 		}
-
-		public Running(InputButton button) : base(button)
-		{
-		}
-
-		public Running(Moving currentState) : base(currentState)
-		{
-		}
-
-		public override PlayerStateEnum AsEnum { get { return PlayerStateEnum.Running; } }
 
 		public override void HandleButton(InputButton button, InputButtonState state, Player player)
 		{
@@ -30,10 +22,10 @@ namespace Ujeby.Plosinofka
 					Freeze = true;
 
 				else if (button == Settings.Current.PlayerControls.Jump)
-					player.ChangeState(new Jumping(this));
+					player.ChangeMovementState(new Jumping(this));
 
 				else if (button == Settings.Current.PlayerControls.Crouch)
-					player.ChangeState(new Sneaking(this));
+					player.ChangeMovementState(new Sneaking(this));
 			}
 			else if (state == InputButtonState.Released)
 			{
@@ -45,17 +37,17 @@ namespace Ujeby.Plosinofka
 						Freeze = false;
 					}
 					else
-						player.ChangeState(new Standing());
+						player.ChangeMovementState(new Idle());
 				}
 				else if (button == Settings.Current.PlayerControls.Run)
-					player.ChangeState(new Walking(this));
+					player.ChangeMovementState(new Walking(this));
 			}
 		}
 
 		public override void Update(Player player, IRayCasting environment)
 		{
 			if (!player.StandingOnGround(environment))
-				player.ChangeState(new Falling(this));
+				player.ChangeMovementState(new Falling(this));
 
 			else if (!Freeze)
 				player.Velocity.X = Direction.X * Player.RunningStep;

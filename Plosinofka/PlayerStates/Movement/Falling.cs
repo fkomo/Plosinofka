@@ -6,26 +6,17 @@ using Ujeby.Plosinofka.Common;
 
 namespace Ujeby.Plosinofka
 {
-	class Falling : Moving
+	class Falling : PlayerMovementState
 	{
-		public override PlayerStateEnum AsEnum { get { return PlayerStateEnum.Falling; } }
+		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Falling;
 
-		// TODO coyote time (allow jump even after player is past the edge)
+		// TODO coyote time (allow jump/move? even after player is past the edge)
 
-		public Falling() : this(new Vector2f())
-		{
-
-		}
-
-		public Falling(Vector2f direction) : base(direction)
+		public Falling() : base()
 		{
 		}
 
-		public Falling(InputButton button) : base(button)
-		{
-		}
-
-		public Falling(Moving currentState) : base(currentState)
+		public Falling(PlayerMovementState currentState) : base(currentState)
 		{
 		}
 
@@ -41,13 +32,13 @@ namespace Ujeby.Plosinofka
 						(button == InputButton.Right && Direction.X < 0))
 					{
 						Freeze = true;
-						player.PushState(new Walking(this));
+						player.PushMovementState(new Walking(this));
 					}
 					else
 					{
 						// set new direction
 						Direction = new Vector2f(button == InputButton.Right ? 1 : -1, Direction.Y);
-						player.PushState(new Walking(Direction));
+						player.PushMovementState(new Walking(this));
 					}
 				}
 				else if (button == Settings.Current.PlayerControls.Crouch)
@@ -65,12 +56,12 @@ namespace Ujeby.Plosinofka
 						Direction = new Vector2f(button == InputButton.Right ? -1 : 1, Direction.Y);
 						Freeze = false;
 
-						player.PushState(new Walking(Direction));
+						player.PushMovementState(new Walking(this));
 					}
 					else
 					{
 						Direction = new Vector2f(0, Direction.Y);
-						player.PushState(new Standing());
+						player.PushMovementState(new Idle());
 					}
 				}
 			}
@@ -79,7 +70,7 @@ namespace Ujeby.Plosinofka
 		public override void Update(Player player, IRayCasting environment)
 		{
 			if (player.Velocity.Y == 0 && player.StandingOnGround(environment))
-				player.ChangeToPreviousState();
+				player.ChangeToPreviousMovementState();
 
 			else
 			{

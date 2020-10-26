@@ -1,14 +1,22 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Ujeby.Plosinofka.Common
 {
-	public abstract class State
+	public abstract class State<T> where T : struct, IConvertible
 	{
-		
+		public override string ToString()
+		{
+			return AsEnum.ToString();
+		}
+
+		public abstract T AsEnum { get; }
 	}
 
-	public class StateMachine<T> where T : State
+	public class StateMachine<T>
 	{
+		public T Current { get; set; }
+
 		public Stack<T> States = new Stack<T>();
 
 		public T Push(T state)
@@ -22,15 +30,18 @@ namespace Ujeby.Plosinofka.Common
 			if (States.TryPop(out T lastState))
 				return lastState;
 
-			return null;
+			return default;
 		}
 
-		public T Change(T from, T to)
+		public T Change(T previous, T next, bool pushPreviousState = true)
 		{
-			if (from != null)
-				Push(from);
+			if (previous != null && pushPreviousState)
+				Push(previous);
 
-			return to;
+			Log.Add($"State.Change({ next })");
+
+			Current = next;
+			return Current;
 		}
 
 		public void Clear()

@@ -6,20 +6,15 @@ using Ujeby.Plosinofka.Common;
 
 namespace Ujeby.Plosinofka
 {
-	class Jumping : Moving
+	class Jumping : PlayerMovementState
 	{
-		public override PlayerStateEnum AsEnum { get { return PlayerStateEnum.Jumping; } }
+		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Jumping;
 
-		public Jumping() : this(new Vector2f())
-		{
-
-		}
-
-		public Jumping(Vector2f direction) : base(direction)
+		public Jumping() : base(Vector2f.Zero)
 		{
 		}
 
-		public Jumping(Moving currentState) : base(currentState)
+		public Jumping(PlayerMovementState currentState) : base(currentState)
 		{
 			if (currentState is Running)
 				SpeedMultiplier = 2.0;
@@ -37,13 +32,13 @@ namespace Ujeby.Plosinofka
 						(button == InputButton.Right && Direction.X < 0))
 					{
 						Freeze = true;
-						player.PushState(new Walking(this));
+						player.PushMovementState(new Walking(this));
 					}
 					else
 					{
 						// set new direction
 						Direction = new Vector2f(button == InputButton.Right ? 1 : -1, Direction.Y);
-						player.PushState(new Walking(Direction));
+						player.PushMovementState(new Walking(Direction));
 					}
 				}
 				else if (button == Settings.Current.PlayerControls.Crouch)
@@ -69,12 +64,12 @@ namespace Ujeby.Plosinofka
 						Direction = new Vector2f(button == InputButton.Right ? -1 : 1, Direction.Y);
 						Freeze = false;
 
-						player.PushState(new Walking(Direction));
+						player.PushMovementState(new Walking(Direction));
 					}
 					else
 					{
 						Direction = new Vector2f(0, Direction.Y);
-						player.PushState(new Standing());
+						player.PushMovementState(new Idle());
 					}
 				}
 				else if (button == Settings.Current.PlayerControls.Jump)
@@ -85,7 +80,7 @@ namespace Ujeby.Plosinofka
 				else if (button == Settings.Current.PlayerControls.Run)
 				{
 					SpeedMultiplier = 1.0;
-					player.PushState(new Walking(this));
+					player.PushMovementState(new Walking(this));
 				}
 			}
 		}
@@ -101,7 +96,7 @@ namespace Ujeby.Plosinofka
 		public override void Update(Player player, IRayCasting environment)
 		{
 			if (InAir && player.StandingOnGround(environment))
-				player.ChangeToPreviousState();
+				player.ChangeToPreviousMovementState();
 
 			else
 			{

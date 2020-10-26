@@ -4,21 +4,21 @@ using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka
 {
-	class Crouching : Standing
+	class Crouching : Idle
 	{
-		public override PlayerStateEnum AsEnum { get { return PlayerStateEnum.Crouching; } }
+		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Crouching;
 
 		public override void HandleButton(InputButton button, InputButtonState state, Player player)
 		{
 			if (state == InputButtonState.Released)
 			{
 				if (button == Settings.Current.PlayerControls.Crouch)
-					player.ChangeState(new Standing());
+					player.ChangeMovementState(new Idle());
 			}
 			else if (state == InputButtonState.Pressed)
 			{
 				if (button == InputButton.Left || button == InputButton.Right)
-					player.ChangeState(new Sneaking(button));
+					player.ChangeMovementState(new Sneaking(button));
 			}
 		}
 

@@ -6,8 +6,8 @@ namespace Ujeby.Plosinofka.Entities
 	{
 		public Vector2f Velocity;
 
-		protected Vector2f PreviousVelocity;
-		protected Vector2f PreviousPosition;
+		public Vector2f PreviousVelocity { get; protected set; }
+		public Vector2f PreviousPosition { get; protected set; }
 
 		public Vector2f InterpolatedPosition(double interpolation) 
 			=> PreviousPosition + (Position - PreviousPosition) * interpolation;

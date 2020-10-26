@@ -58,12 +58,12 @@ namespace Ujeby.Plosinofka
 			foreach (var dynamicEntity in DynamicEntities)
 			{
 				Solve(dynamicEntity, out Vector2f position, out Vector2f velocity);
-
-				if (EntityHistory.ContainsKey(dynamicEntity.Name) && dynamicEntity.Position != position)
-					EntityHistory[dynamicEntity.Name].Add(position);
-
 				dynamicEntity.Position = position;
 				dynamicEntity.Velocity = velocity;
+
+				if (EntityHistory.ContainsKey(dynamicEntity.Name) && 
+					dynamicEntity.PreviousPosition != dynamicEntity.Position)
+					EntityHistory[dynamicEntity.Name].Add(dynamicEntity.Center);
 			}
 
 			// update camera with respect to world/level borders

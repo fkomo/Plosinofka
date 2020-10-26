@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Linq;
 using Ujeby.Plosinofka.Common;
 using Ujeby.Plosinofka.Graphics;
 using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka.Entities
 {
-	/// <summary></summary>
 	public class Player : DynamicEntity, IRenderable, IHandleInput
 	{
 		// TODO animations
@@ -19,8 +17,8 @@ namespace Ujeby.Plosinofka.Entities
 		public const double AirStep = WalkingStep;
 		public const double Jump = 18;
 
-		public PlayerState CurrentState { get; private set; }
-		private PlayerStateMachine States = new PlayerStateMachine();
+		private PlayerAction Action = new PlayerAction();
+		private PlayerMovement Movement = new PlayerMovement();
 
 		public Guid PlayerSpriteId { get; private set; }
 		public Guid PlayerDataSpriteId { get; private set; }
@@ -34,9 +32,9 @@ namespace Ujeby.Plosinofka.Entities
 			var dataSprite = ResourceCache.LoadSprite(@".\Content\plosinofka-guy-data.png", true);
 			PlayerDataSpriteId = dataSprite.Id;
 
-			BoundingBox = AABB.FromMap(dataSprite, Level.ShadowCasterMask).First();
+			BoundingBox = AABB.Union(AABB.FromMap(dataSprite, Level.ShadowCasterMask));
 
-			ChangeState(new Falling());
+			ChangeMovementState(new Idle());
 		}
 
 		public void Render(Camera camera, double interpolation)
@@ -54,7 +52,7 @@ namespace Ujeby.Plosinofka.Entities
 
 		public void HandleButton(InputButton button, InputButtonState state)
 		{
-			CurrentState?.HandleButton(button, state, this);
+			Movement.Current?.HandleButton(button, state, this);
 		}
 
 		public override void Update(IRayCasting environment)
@@ -64,7 +62,7 @@ namespace Ujeby.Plosinofka.Entities
 			PreviousVelocity = Velocity;
 
 			// update player according to his state and set new moving vector
-			CurrentState?.Update(this, environment);
+			Movement.Current?.Update(this, environment);
 		}
 
 		public bool StandingOnGround(IRayCasting environment)
@@ -83,30 +81,29 @@ namespace Ujeby.Plosinofka.Entities
 		}
 
 		/// <summary>
-		/// change current state (effective on next update)
+		/// change current movement state (effective on next update)
 		/// </summary>
 		/// <param name="newState"></param>
-		public void ChangeState(PlayerState newState, bool pushCurrentState = true)
+		public void ChangeMovementState(PlayerMovementState newState, bool pushCurrentState = true)
 		{
-			Log.Add($"Player.ChangeState({ newState })");
-			CurrentState = States.Change(CurrentState, newState, pushCurrentState);
+			Movement.Change(Movement.Current, newState, pushCurrentState);
 		}
 
 		/// <summary>
-		/// add new state to stack (effective if no next state is defined)
+		/// add new movement state to stack (effective if no next state is defined)
 		/// </summary>
 		/// <param name="nextState"></param>
-		public void PushState(PlayerState nextState)
+		public void PushMovementState(PlayerMovementState nextState)
 		{
-			States.Push(nextState);
+			Movement.Push(nextState);
 		}
 
 		/// <summary>
-		/// change to previous state (first on stack)
+		/// change to previous movement state (first on stack)
 		/// </summary>
-		internal void ChangeToPreviousState()
+		internal void ChangeToPreviousMovementState()
 		{
-			ChangeState(States.Pop(), false);
+			ChangeMovementState(Movement.Pop(), false);
 		}
 	}
 }

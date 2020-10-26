@@ -4,26 +4,22 @@ using Ujeby.Plosinofka.Core;
 
 namespace Ujeby.Plosinofka
 {
-	class Standing : PlayerState
+	class Idle : PlayerMovementState
 	{
-		public override PlayerStateEnum AsEnum { get { return PlayerStateEnum.Standing; } }
-
-		public Standing()
-		{
-		}
+		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Idle;
 
 		public override void HandleButton(InputButton button, InputButtonState state, Player player)
 		{
 			if (state == InputButtonState.Pressed)
 			{
 				if (button == InputButton.Left || button == InputButton.Right)
-					player.ChangeState(new Walking(button));
+					player.ChangeMovementState(new Walking(button));
 
 				else if (button == Settings.Current.PlayerControls.Jump)
-					player.ChangeState(new Jumping());
+					player.ChangeMovementState(new Jumping());
 
 				else if (button == Settings.Current.PlayerControls.Crouch)
-					player.ChangeState(new Crouching());
+					player.ChangeMovementState(new Crouching());
 			}
 		}
 
@@ -33,7 +29,7 @@ namespace Ujeby.Plosinofka
 			player.Velocity.X = 0;
 
 			if (!player.StandingOnGround(environment))
-				player.ChangeState(new Falling());
+				player.ChangeMovementState(new Falling());
 		}
 	}
 }

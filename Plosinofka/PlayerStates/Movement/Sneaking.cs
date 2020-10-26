@@ -5,21 +5,17 @@ using Ujeby.Plosinofka.Common;
 
 namespace Ujeby.Plosinofka
 {
-	class Sneaking : Moving
+	class Sneaking : PlayerMovementState
 	{
-		public Sneaking(Vector2f direction) : base(direction)
-		{
-		}
+		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Sneaking;
 
 		public Sneaking(InputButton button) : base(button)
 		{
 		}
 
-		public Sneaking(Moving currentState) : base(currentState)
+		public Sneaking(PlayerMovementState currentState) : base(currentState)
 		{
 		}
-
-		public override PlayerStateEnum AsEnum { get { return PlayerStateEnum.Sneaking; } }
 
 		public override void HandleButton(InputButton button, InputButtonState state, Player player)
 		{
@@ -39,17 +35,17 @@ namespace Ujeby.Plosinofka
 						Freeze = false;
 					}
 					else
-						player.ChangeState(new Crouching());
+						player.ChangeMovementState(new Crouching());
 				}
 				else if (button == Settings.Current.PlayerControls.Crouch)
-					player.ChangeState(new Walking(this));
+					player.ChangeMovementState(new Walking(this));
 			}
 		}
 
 		public override void Update(Player player, IRayCasting environment)
 		{
 			if (!player.StandingOnGround(environment))
-				player.ChangeState(new Falling(this));
+				player.ChangeMovementState(new Falling(this));
 
 			else if (!Freeze)
 				player.Velocity.X = Direction.X * Player.SneakingStep;

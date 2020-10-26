@@ -40,6 +40,13 @@ namespace Ujeby.Plosinofka.Common
 		public bool IsIn(int x, int y) => IsIn((double)x, (double)y);
 		public bool IsIn(double x, double y) => !(x < Left || y < Bottom || x >= Right || y >= Top);
 
+		internal static AABB Union(AABB[] aABBs)
+		{
+			return new AABB(
+				new Vector2f(aABBs.Min(bb => bb.Min.X), aABBs.Min(bb => bb.Min.Y)),
+				new Vector2f(aABBs.Max(bb => bb.Max.X), aABBs.Max(bb => bb.Max.Y)));
+		}
+
 		public bool IsOutOrOnSurface(Vector2f p) => IsOutOrOnSurface(p.X, p.Y);
 		public bool IsOutOrOnSurface(double x, double y) => (x <= Left || y <= Bottom || x >= Right || y >= Top);
 
