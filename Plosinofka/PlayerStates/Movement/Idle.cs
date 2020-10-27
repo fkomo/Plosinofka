@@ -25,7 +25,7 @@ namespace Ujeby.Plosinofka
 
 		public override void Update(Player player, IRayCasting environment)
 		{
-			// just standing
+			// nothing to do
 			player.Velocity.X = 0;
 
 			if (!player.StandingOnGround(environment))

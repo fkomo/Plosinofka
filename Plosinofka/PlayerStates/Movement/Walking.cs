@@ -37,6 +37,9 @@ namespace Ujeby.Plosinofka
 
 				else if (button == Settings.Current.PlayerControls.Run)
 					player.ChangeMovementState(new Running(this));
+
+				else if (button == Settings.Current.PlayerControls.Dash && !Freeze)
+					player.ChangeMovementState(new Dashing(this));
 			}
 			else if (state == InputButtonState.Released)
 			{
@@ -58,8 +61,8 @@ namespace Ujeby.Plosinofka
 			if (!player.StandingOnGround(environment))
 				player.ChangeMovementState(new Falling(this));
 
-			else if (!Freeze)
-				player.Velocity.X = Direction.X * Player.WalkingStep;
+			else
+				player.Velocity.X = Freeze ? 0 : Direction.X * Player.WalkingStep;
 		}
 	}
 }

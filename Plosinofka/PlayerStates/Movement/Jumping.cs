@@ -53,6 +53,11 @@ namespace Ujeby.Plosinofka
 						DoubleJump = true;
 					}
 				}
+				else if (button == Settings.Current.PlayerControls.Dash)
+				{
+					if (!Freeze && Math.Abs(Direction.X) > 0)
+						player.ChangeMovementState(new Dashing(this), false);
+				}
 			}
 			else if (state == InputButtonState.Released)
 			{
@@ -114,8 +119,7 @@ namespace Ujeby.Plosinofka
 					}
 
 					// air control
-					if (!Freeze)
-						player.Velocity.X = Direction.X * Player.AirStep * SpeedMultiplier;
+					player.Velocity.X = Freeze ? 0 : Direction.X * Player.AirStep * SpeedMultiplier;
 				}
 
 				player.Velocity.Y = Math.Max((player.Velocity + Simulation.Gravity).Y, Simulation.TerminalFallingVelocity);

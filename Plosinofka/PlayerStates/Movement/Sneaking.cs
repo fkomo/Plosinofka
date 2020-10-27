@@ -47,8 +47,8 @@ namespace Ujeby.Plosinofka
 			if (!player.StandingOnGround(environment))
 				player.ChangeMovementState(new Falling(this));
 
-			else if (!Freeze)
-				player.Velocity.X = Direction.X * Player.SneakingStep;
+			else
+				player.Velocity.X = Freeze ? 0 : Direction.X * Player.SneakingStep;
 		}
 	}
 }

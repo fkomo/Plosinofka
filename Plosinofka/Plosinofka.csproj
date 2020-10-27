@@ -12,48 +12,41 @@
 	<ItemGroup>
 		<None Remove="Content\player-color.png" />
 		<None Remove="Content\player-data.png" />
-		<None Remove="Content\plosinofka-guy-color.png" />
-		<None Remove="Content\plosinofka-guy-data.png" />
 		<None Remove="Content\Worlds\color-test.png" />
 		<None Remove="Content\Worlds\player.png" />
-		<None Remove="Content\Worlds\world1-bg-0.png" />
-		<None Remove="Content\Worlds\world1-bg-1.png" />
 		<None Remove="Content\Worlds\world1-collision.bmp" />
 		<None Remove="Content\Worlds\world1-collision.png" />
-		<None Remove="Content\Worlds\world1-color.png" />
-		<None Remove="Content\Worlds\world1-data.png" />
 		<None Remove="Content\Worlds\world1.bmp" />
 		<None Remove="Content\Worlds\world2-collision.png" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Content Include="Content\plosinofka-guy-color.png">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Content\plosinofka-guy-data.png">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Content\Worlds\world1-bg-0.png">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Content\Worlds\world1-bg-1.png">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Content\Worlds\world1-color.png">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Content\Worlds\world1-data.png">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-
 	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="SDL2-CS.NetCore" Version="2.0.8" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <None Update="Content\plosinofka-guy-color.png">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Content\plosinofka-guy-data.png">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Content\Worlds\world1-bg-0.png">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Content\Worlds\world1-bg-1.png">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Content\Worlds\world1-color.png">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Content\Worlds\world1-data.png">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-		<Exec Command="copy $(SolutionDir)3rd\SDL2\*.dll $(OutDir)" />
+		<Exec Command="copy $(SolutionDir)3rd\SDL2\*.dll $(OutDir)&#xD;&#xA;xcopy /S /Y $(ProjectDir)Content\*.png $(OutDir)Content\" />
 	</Target>
 
 </Project>

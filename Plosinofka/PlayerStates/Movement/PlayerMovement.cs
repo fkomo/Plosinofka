@@ -13,6 +13,7 @@ namespace Ujeby.Plosinofka
 		Sneaking,
 		Jumping,
 		Falling,
+		Dashing
 	}
 
 	public abstract class PlayerMovementState : State<PlayerMovementStateEnum>

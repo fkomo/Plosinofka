@@ -33,6 +33,7 @@ namespace Ujeby.Plosinofka.Core
 
 					// TODO handle LS/RS as direction vector + stick type
 
+					// LS
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_UP))
 						player.HandleButton(InputButton.Up, InputButtonState.Pressed);
 					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_UP))
@@ -53,59 +54,71 @@ namespace Ujeby.Plosinofka.Core
 					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_RIGHT))
 						player.HandleButton(InputButton.Right, InputButtonState.Released);
 
-					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_W))
-						player.HandleButton(InputButton.Y, InputButtonState.Pressed);
-					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_W))
-						player.HandleButton(InputButton.Y, InputButtonState.Released);
-
+					// X
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_A))
 						player.HandleButton(InputButton.X, InputButtonState.Pressed);
 					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_A))
 						player.HandleButton(InputButton.X, InputButtonState.Released);
 
+					// Y
+					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_W))
+						player.HandleButton(InputButton.Y, InputButtonState.Pressed);
+					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_W))
+						player.HandleButton(InputButton.Y, InputButtonState.Released);
+
+					// A
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_S))
 						player.HandleButton(InputButton.A, InputButtonState.Pressed);
 					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_S))
 						player.HandleButton(InputButton.A, InputButtonState.Released);
 
+					// B
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_D))
 						player.HandleButton(InputButton.B, InputButtonState.Pressed);
 					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_D))
 						player.HandleButton(InputButton.B, InputButtonState.Released);
 
+					// LB
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_Q))
 						player.HandleButton(InputButton.LB, InputButtonState.Pressed);
 					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_Q))
 						player.HandleButton(InputButton.LB, InputButtonState.Released);
-
-					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_E))
-						player.HandleButton(InputButton.RB, InputButtonState.Pressed);
-					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_E))
-						player.HandleButton(InputButton.RB, InputButtonState.Released);
-
+					
+					// LT
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_LSHIFT))
 						player.HandleButton(InputButton.LT, InputButtonState.Pressed);
 					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_LSHIFT))
 						player.HandleButton(InputButton.LT, InputButtonState.Released);
 
+					// RB
+					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_E))
+						player.HandleButton(InputButton.RB, InputButtonState.Pressed);
+					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_E))
+						player.HandleButton(InputButton.RB, InputButtonState.Released);
+
+					// RT
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_RSHIFT))
 						player.HandleButton(InputButton.RT, InputButtonState.Pressed);
 					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_RSHIFT))
 						player.HandleButton(InputButton.RT, InputButtonState.Released);
 
+					// Back
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_B))
 						player.HandleButton(InputButton.Back, InputButtonState.Pressed);
 					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_B))
 						player.HandleButton(InputButton.Back, InputButtonState.Released);
 
+					// Start
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_M))
 						player.HandleButton(InputButton.Start, InputButtonState.Pressed);
 					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_M))
 						player.HandleButton(InputButton.Start, InputButtonState.Released);
 
+					// visual settings
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_F1))
 						Settings.Current.ToggleVisual(VisualSetting.Shading);
 
+					// debug settings
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_F5))
 						Settings.Current.ToggleDebug(DebugSetting.MovementHistory);
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_F6))
