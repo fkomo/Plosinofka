@@ -172,7 +172,7 @@ namespace Ujeby.Plosinofka.Graphics
 					var worldMapIndex = (cameraPosition.Y + screen.Y) * dataLayer.Size.X + cameraPosition.X + screen.X;
 					var screenIndex = ((camera.View.Y - screen.Y - 1) * camera.View.X + screen.X) * 4;
 
- 					if (Level.IsShadowReceiver(dataLayer.Data[worldMapIndex]))
+ 					if ((dataLayer.Data[worldMapIndex] & Level.ShadowReceiverMask) == Level.ShadowReceiverMask)
 					{
 						var tmpColor = new Color4f(colorLayer.Data[worldMapIndex]);
 						if (tmpColor.A > 0)

@@ -9,6 +9,8 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Walking;
 
+		private const double WalkingStep = BaseStep;
+
 		public Walking(Vector2f direction) : base(direction)
 		{
 		}
@@ -30,16 +32,16 @@ namespace Ujeby.Plosinofka
 					Freeze = true;
 
 				else if (button == Settings.Current.PlayerControls.Jump)
-					player.ChangeMovementState(new Jumping(this));
+					player.ChangeMovement(new Jumping(this));
 
 				else if (button == Settings.Current.PlayerControls.Crouch)
-					player.ChangeMovementState(new Sneaking(this));
+					player.ChangeMovement(new Sneaking(this));
 
 				else if (button == Settings.Current.PlayerControls.Run)
-					player.ChangeMovementState(new Running(this));
+					player.ChangeMovement(new Running(this));
 
 				else if (button == Settings.Current.PlayerControls.Dash && !Freeze)
-					player.ChangeMovementState(new Dashing(this));
+					player.ChangeMovement(new Dashing(this));
 			}
 			else if (state == InputButtonState.Released)
 			{
@@ -51,7 +53,7 @@ namespace Ujeby.Plosinofka
 						Freeze = false;
 					}
 					else
-						player.ChangeMovementState(new Idle());
+						player.ChangeMovement(new Idle());
 				}
 			}
 		}
@@ -59,10 +61,10 @@ namespace Ujeby.Plosinofka
 		public override void Update(Player player, IRayCasting environment)
 		{
 			if (!player.StandingOnGround(environment))
-				player.ChangeMovementState(new Falling(this));
+				player.ChangeMovement(new Falling(this));
 
 			else
-				player.Velocity.X = Freeze ? 0 : Direction.X * Player.WalkingStep;
+				player.Velocity.X = Freeze ? 0 : Direction.X * WalkingStep;
 		}
 	}
 }

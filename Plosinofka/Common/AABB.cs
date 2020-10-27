@@ -35,10 +35,9 @@ namespace Ujeby.Plosinofka.Common
 
 		public static AABB operator +(AABB bb, Vector2f v) => new AABB(bb.Min + v, bb.Max + v);
 
-
-		public bool IsIn(Vector2f p) => IsIn(p.X, p.Y);
-		public bool IsIn(int x, int y) => IsIn((double)x, (double)y);
-		public bool IsIn(double x, double y) => !(x < Left || y < Bottom || x >= Right || y >= Top);
+		public bool Inside(Vector2f p) => Inside(p.X, p.Y);
+		public bool Inside(int x, int y) => Inside((double)x, (double)y);
+		public bool Inside(double x, double y) => !(x < Left || y < Bottom || x >= Right || y >= Top);
 
 		internal static AABB Union(AABB[] aABBs)
 		{
@@ -47,8 +46,8 @@ namespace Ujeby.Plosinofka.Common
 				new Vector2f(aABBs.Max(bb => bb.Max.X), aABBs.Max(bb => bb.Max.Y)));
 		}
 
-		public bool IsOutOrOnSurface(Vector2f p) => IsOutOrOnSurface(p.X, p.Y);
-		public bool IsOutOrOnSurface(double x, double y) => (x <= Left || y <= Bottom || x >= Right || y >= Top);
+		public bool OutsideOrSurface(Vector2f p) => OutsideOrSurface(p.X, p.Y);
+		public bool OutsideOrSurface(double x, double y) => (x <= Left || y <= Bottom || x >= Right || y >= Top);
 
 		public override string ToString() => $"{ Min }-{ Max }";
 
@@ -87,7 +86,7 @@ namespace Ujeby.Plosinofka.Common
 			var tMin = double.PositiveInfinity;
 
 			// if ray is coming from outside or from surface
-			if (IsOutOrOnSurface(origin))
+			if (OutsideOrSurface(origin))
 			{
 				if (origin.X <= Min.X && direction.X > 0)
 				{
@@ -300,7 +299,7 @@ namespace Ujeby.Plosinofka.Common
 						// find width
 						while (x + width < map.Size.X &&
 							((map.Data[p + width] & mask) == mask) &&
-							!colliders.Any(c => c.IsIn(x + width, y)))
+							!colliders.Any(c => c.Inside(x + width, y)))
 							width++;
 
 						// find height
@@ -310,7 +309,7 @@ namespace Ujeby.Plosinofka.Common
 							var offset = p + height * map.Size.X;
 							for (var i = 0; i < width; i++)
 								if (((map.Data[offset + i] & mask) != mask) ||
-									colliders.Any(c => c.IsIn(x + i, y + height)))
+									colliders.Any(c => c.Inside(x + i, y + height)))
 								{
 									cleanRow = false;
 									break;
@@ -339,7 +338,7 @@ namespace Ujeby.Plosinofka.Common
 			oldCollider = default;
 
 			foreach (var collider in colliders)
-				if (collider.IsIn(x, y))
+				if (collider.Inside(x, y))
 				{
 					oldCollider = collider;
 					return true;

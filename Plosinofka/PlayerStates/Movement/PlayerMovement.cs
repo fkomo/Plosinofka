@@ -18,6 +18,9 @@ namespace Ujeby.Plosinofka
 
 	public abstract class PlayerMovementState : State<PlayerMovementStateEnum>
 	{
+		protected const double BaseStep = 4;
+
+
 		public Vector2f Direction { get; protected set; }
 		public bool Freeze { get; protected set; } = false;
 

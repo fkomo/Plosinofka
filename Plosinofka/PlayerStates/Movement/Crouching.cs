@@ -13,12 +13,12 @@ namespace Ujeby.Plosinofka
 			if (state == InputButtonState.Released)
 			{
 				if (button == Settings.Current.PlayerControls.Crouch)
-					player.ChangeMovementState(new Idle());
+					player.ChangeMovement(new Idle());
 			}
 			else if (state == InputButtonState.Pressed)
 			{
 				if (button == InputButton.Left || button == InputButton.Right)
-					player.ChangeMovementState(new Sneaking(button));
+					player.ChangeMovement(new Sneaking(button));
 			}
 		}
 

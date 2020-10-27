@@ -10,6 +10,8 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Falling;
 
+		private const double FallStep = BaseStep * 0.5;
+
 		// TODO coyote time (allow jump/move? even after player is past the edge)
 
 		public Falling() : base()
@@ -32,13 +34,13 @@ namespace Ujeby.Plosinofka
 						(button == InputButton.Right && Direction.X < 0))
 					{
 						Freeze = true;
-						player.PushMovementState(new Walking(this));
+						player.AddMovement(new Walking(this));
 					}
 					else
 					{
 						// set new direction
 						Direction = new Vector2f(button == InputButton.Right ? 1 : -1, Direction.Y);
-						player.PushMovementState(new Walking(this));
+						player.AddMovement(new Walking(this));
 					}
 				}
 				else if (button == Settings.Current.PlayerControls.Crouch)
@@ -56,12 +58,12 @@ namespace Ujeby.Plosinofka
 						Direction = new Vector2f(button == InputButton.Right ? -1 : 1, Direction.Y);
 						Freeze = false;
 
-						player.PushMovementState(new Walking(this));
+						player.AddMovement(new Walking(this));
 					}
 					else
 					{
 						Direction = new Vector2f(0, Direction.Y);
-						player.PushMovementState(new Idle());
+						player.AddMovement(new Idle());
 					}
 				}
 			}
@@ -70,12 +72,12 @@ namespace Ujeby.Plosinofka
 		public override void Update(Player player, IRayCasting environment)
 		{
 			if (player.Velocity.Y == 0 && player.StandingOnGround(environment))
-				player.ChangeToPreviousMovementState();
+				player.ChangeToPreviousMovement();
 
 			else
 			{
 				// air control
-				player.Velocity.X = Freeze ? 0 : Direction.X * Player.AirStep;
+				player.Velocity.X = Freeze ? 0 : Direction.X * FallStep;
 
 				player.Velocity.Y = Math.Max((player.Velocity + Simulation.Gravity).Y, Simulation.TerminalFallingVelocity);
 			}

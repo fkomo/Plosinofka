@@ -9,6 +9,8 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Sneaking;
 
+		private const double SneakingStep = BaseStep * 0.5;
+
 		public Sneaking(InputButton button) : base(button)
 		{
 		}
@@ -35,20 +37,20 @@ namespace Ujeby.Plosinofka
 						Freeze = false;
 					}
 					else
-						player.ChangeMovementState(new Crouching());
+						player.ChangeMovement(new Crouching());
 				}
 				else if (button == Settings.Current.PlayerControls.Crouch)
-					player.ChangeMovementState(new Walking(this));
+					player.ChangeMovement(new Walking(this));
 			}
 		}
 
 		public override void Update(Player player, IRayCasting environment)
 		{
 			if (!player.StandingOnGround(environment))
-				player.ChangeMovementState(new Falling(this));
+				player.ChangeMovement(new Falling(this));
 
 			else
-				player.Velocity.X = Freeze ? 0 : Direction.X * Player.SneakingStep;
+				player.Velocity.X = Freeze ? 0 : Direction.X * SneakingStep;
 		}
 	}
 }

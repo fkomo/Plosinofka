@@ -95,16 +95,6 @@ namespace Ujeby.Plosinofka
 		public const uint ShadowCasterMask = 0xff0000ff;
 		public const uint ShadowReceiverMask = 0xff00ff00;
 
-		public static bool IsShadowReceiver(uint pixelValue)
-		{
-			return (pixelValue & ShadowReceiverMask) == ShadowReceiverMask;
-		}
-
-		public static bool IsShadowCaster(uint pixelValue)
-		{
-			return (pixelValue & ShadowCasterMask) == ShadowCasterMask;
-		}
-
 		public double Trace(AABB box, Vector2f direction, out Vector2f normal)
 		{
 			normal = Vector2f.Zero;

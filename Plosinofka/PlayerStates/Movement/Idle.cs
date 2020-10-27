@@ -13,13 +13,13 @@ namespace Ujeby.Plosinofka
 			if (state == InputButtonState.Pressed)
 			{
 				if (button == InputButton.Left || button == InputButton.Right)
-					player.ChangeMovementState(new Walking(button));
+					player.ChangeMovement(new Walking(button));
 
 				else if (button == Settings.Current.PlayerControls.Jump)
-					player.ChangeMovementState(new Jumping());
+					player.ChangeMovement(new Jumping());
 
 				else if (button == Settings.Current.PlayerControls.Crouch)
-					player.ChangeMovementState(new Crouching());
+					player.ChangeMovement(new Crouching());
 			}
 		}
 
@@ -29,7 +29,7 @@ namespace Ujeby.Plosinofka
 			player.Velocity.X = 0;
 
 			if (!player.StandingOnGround(environment))
-				player.ChangeMovementState(new Falling());
+				player.ChangeMovement(new Falling());
 		}
 	}
 }

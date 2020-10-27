@@ -9,14 +9,15 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Dashing;
 
+		private const double DashStep = BaseStep * 4;
+		private const double DashEndThreshold = 1;
+
 		public Dashing(PlayerMovementState currentState) : base(currentState)
 		{
 			CurrentDashVelocity = Direction * DashStep;
 		}
 
 		private Vector2f CurrentDashVelocity;
-		private const double DashStep = 32;
-		private const double DashEndThreshold = 1;
 
 		public override void HandleButton(InputButton button, InputButtonState state, Player player)
 		{
@@ -24,10 +25,10 @@ namespace Ujeby.Plosinofka
 			if (state == InputButtonState.Released)
 			{
 				if ((button == InputButton.Right && Direction.X > 0) || (button == InputButton.Left && Direction.X < 0))
-					player.PushMovementState(new Idle());
+					player.AddMovement(new Idle());
 
 				else if (button == Settings.Current.PlayerControls.Run)
-					player.PushMovementState(new Walking(Direction.Normalize()));
+					player.AddMovement(new Walking(Direction.Normalize()));
 			}
 		}
 
@@ -37,7 +38,7 @@ namespace Ujeby.Plosinofka
 
 			CurrentDashVelocity *= 0.5;
 			if (player.Velocity.X < DashEndThreshold)
-				player.ChangeToPreviousMovementState();
+				player.ChangeToPreviousMovement();
 		}
 	}
 }

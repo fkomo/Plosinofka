@@ -11,14 +11,10 @@ namespace Ujeby.Plosinofka.Entities
 		// TODO melee attack
 		// TODO directional shooting
 
-		public const double WalkingStep = 4;
-		public const double SneakingStep = WalkingStep / 2;
-		public const double RunningStep = WalkingStep * 2;
-		public const double AirStep = WalkingStep;
-		public const double Jump = 18;
-
 		private PlayerAction Action = new PlayerAction();
 		private PlayerMovement Movement = new PlayerMovement();
+
+		private const string SpriteName = "plosinofka-guy";
 
 		public Guid PlayerSpriteId { get; private set; }
 		public Guid PlayerDataSpriteId { get; private set; }
@@ -27,14 +23,14 @@ namespace Ujeby.Plosinofka.Entities
 		{
 			Name = name;
 
-			PlayerSpriteId = ResourceCache.LoadSprite(@".\Content\plosinofka-guy-color.png", true).Id;
+			PlayerSpriteId = ResourceCache.LoadSprite($".\\Content\\{ SpriteName }-color.png", true).Id;
 
-			var dataSprite = ResourceCache.LoadSprite(@".\Content\plosinofka-guy-data.png", true);
+			var dataSprite = ResourceCache.LoadSprite($".\\Content\\{ SpriteName }-data.png", true);
 			PlayerDataSpriteId = dataSprite.Id;
 
 			BoundingBox = AABB.Union(AABB.FromMap(dataSprite, Level.ShadowCasterMask));
 
-			ChangeMovementState(new Idle());
+			ChangeMovement(new Idle());
 		}
 
 		public void Render(Camera camera, double interpolation)
@@ -81,7 +77,7 @@ namespace Ujeby.Plosinofka.Entities
 		/// change current movement state (effective on next update)
 		/// </summary>
 		/// <param name="newState"></param>
-		public void ChangeMovementState(PlayerMovementState newState, bool pushCurrentState = true)
+		public void ChangeMovement(PlayerMovementState newState, bool pushCurrentState = true)
 		{
 			Movement.Change(Movement.Current, newState, pushCurrentState);
 		}
@@ -90,7 +86,7 @@ namespace Ujeby.Plosinofka.Entities
 		/// add new movement state to stack (effective if no next state is defined)
 		/// </summary>
 		/// <param name="nextState"></param>
-		public void PushMovementState(PlayerMovementState nextState)
+		public void AddMovement(PlayerMovementState nextState)
 		{
 			Movement.Push(nextState);
 		}
@@ -98,9 +94,9 @@ namespace Ujeby.Plosinofka.Entities
 		/// <summary>
 		/// change to previous movement state (first on stack)
 		/// </summary>
-		internal void ChangeToPreviousMovementState()
+		internal void ChangeToPreviousMovement()
 		{
-			ChangeMovementState(Movement.Pop(), false);
+			ChangeMovement(Movement.Pop(), false);
 		}
 	}
 }

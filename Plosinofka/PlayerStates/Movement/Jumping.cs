@@ -10,14 +10,25 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Jumping;
 
+		private const double JumpImpulse = 18;
+		private const double DoubleJumpMultiplier = 1.2;
+		private const double AirStep = BaseStep;
+
+		private Vector2f Jump = new Vector2f(0, JumpImpulse);
+
+		/// <summary>number of extra jumps left (double/triple/... jump from air)</summary>
+		private int ExtraJump = 1;
+		private double RunMultiplier = 1.0;
+
 		public Jumping() : base(Vector2f.Zero)
 		{
 		}
 
 		public Jumping(PlayerMovementState currentState) : base(currentState)
 		{
+			// if jumping while running
 			if (currentState is Running)
-				SpeedMultiplier = 2.0;
+				RunMultiplier = 2.0;
 		}
 
 		public override void HandleButton(InputButton button, InputButtonState state, Player player)
@@ -32,13 +43,13 @@ namespace Ujeby.Plosinofka
 						(button == InputButton.Right && Direction.X < 0))
 					{
 						Freeze = true;
-						player.PushMovementState(new Walking(this));
+						player.AddMovement(new Walking(this));
 					}
 					else
 					{
 						// set new direction
 						Direction = new Vector2f(button == InputButton.Right ? 1 : -1, Direction.Y);
-						player.PushMovementState(new Walking(Direction));
+						player.AddMovement(new Walking(Direction));
 					}
 				}
 				else if (button == Settings.Current.PlayerControls.Crouch)
@@ -50,13 +61,13 @@ namespace Ujeby.Plosinofka
 					if (ExtraJump > 0)
 					{
 						ExtraJump--;
-						DoubleJump = true;
+						Jump = new Vector2f(0, JumpImpulse * DoubleJumpMultiplier);
 					}
 				}
 				else if (button == Settings.Current.PlayerControls.Dash)
 				{
 					if (!Freeze && Math.Abs(Direction.X) > 0)
-						player.ChangeMovementState(new Dashing(this), false);
+						player.ChangeMovement(new Dashing(this), false);
 				}
 			}
 			else if (state == InputButtonState.Released)
@@ -69,58 +80,41 @@ namespace Ujeby.Plosinofka
 						Direction = new Vector2f(button == InputButton.Right ? -1 : 1, Direction.Y);
 						Freeze = false;
 
-						player.PushMovementState(new Walking(Direction));
+						player.AddMovement(new Walking(Direction));
 					}
 					else
 					{
 						Direction = new Vector2f(0, Direction.Y);
-						player.PushMovementState(new Idle());
+						player.AddMovement(new Idle());
 					}
 				}
 				else if (button == Settings.Current.PlayerControls.Jump)
 				{
-					if (InAir && player.Velocity.Y > 0)
+					if (player.Velocity.Y > 0)
 						player.Velocity.Y = 0.0;
 				}
 				else if (button == Settings.Current.PlayerControls.Run)
 				{
-					SpeedMultiplier = 1.0;
-					player.PushMovementState(new Walking(this));
+					RunMultiplier = 1.0;
+					player.AddMovement(new Walking(this));
 				}
 			}
 		}
 
-		private bool InAir = false;
-
-		/// <summary>number of extra jumps left (double/triple/... jump from air)</summary>
-		private int ExtraJump = 1;
-		private bool DoubleJump = false;
-
-		private double SpeedMultiplier = 1.0;
-
 		public override void Update(Player player, IRayCasting environment)
 		{
-			if (InAir && player.StandingOnGround(environment))
-				player.ChangeToPreviousMovementState();
+			if (Jump.Y == 0 && player.StandingOnGround(environment))
+				player.ChangeToPreviousMovement();
 
 			else
 			{
-				if (!InAir)
-				{
-					player.Velocity.Y = Player.Jump;
-					InAir = true;
-				}
-				else
-				{
-					if (DoubleJump)
-					{
-						player.Velocity.Y = Player.Jump;
-						DoubleJump = false;
-					}
+				// NOTE possible problem, if double jump is pressed at high fall velocity, it makes no real difference
+				// best double jump is from highest point (when velocity is 0)
+				player.Velocity += Jump;
+				Jump = Vector2f.Zero;
 
-					// air control
-					player.Velocity.X = Freeze ? 0 : Direction.X * Player.AirStep * SpeedMultiplier;
-				}
+				// air control
+				player.Velocity.X = Freeze ? 0 : Direction.X * AirStep * RunMultiplier;
 
 				player.Velocity.Y = Math.Max((player.Velocity + Simulation.Gravity).Y, Simulation.TerminalFallingVelocity);
 			}
