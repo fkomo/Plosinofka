@@ -9,10 +9,11 @@ namespace Ujeby.Plosinofka.Common
 		public byte B;
 		public byte A;
 
-		public static Color4b Black = new Color4b(0, 0, 0, 0xff);
+		public static Color4b Black = new Color4b(0x0, 0x0, 0x0, 0xff);
 		public static Color4b White = new Color4b(0xff, 0xff, 0xff, 0xff);
-		public static Color4b Red = new Color4b(0xff, 0, 0, 0xff);
-
+		public static Color4b Red = new Color4b(0xff, 0x0, 0x0, 0xff);
+		public static Color4b Green = new Color4b(0x0, 0xff, 0x0, 0xff);
+		public static Color4b Blue = new Color4b(0x0, 0x0, 0xff, 0xff);
 
 		public Color4b(byte r, byte g, byte b, byte a)
 		{
@@ -65,8 +66,9 @@ namespace Ujeby.Plosinofka.Common
 		public double B;
 		public double A;
 
-		public static Color4f White = new Color4f(1.0, 1.0, 1.0, 1.0);
 		public static Color4f Black = new Color4f(0.0, 0.0, 0.0, 1.0);
+		public static Color4f White = new Color4f(1.0, 1.0, 1.0, 1.0);
+		public static Color4f Red = new Color4f(1.0, 0.0, 0.0, 1.0);
 
 		public Color4f(Color4f v) : this(v.R, v.G, v.B, v.A)
 		{

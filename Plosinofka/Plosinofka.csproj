@@ -18,7 +18,6 @@
 		<None Remove="Content\Worlds\player.png" />
 		<None Remove="Content\Worlds\world1-bg-0.png" />
 		<None Remove="Content\Worlds\world1-bg-1.png" />
-		<None Remove="Content\Worlds\world1-bg-2.png" />
 		<None Remove="Content\Worlds\world1-collision.bmp" />
 		<None Remove="Content\Worlds\world1-collision.png" />
 		<None Remove="Content\Worlds\world1-color.png" />
@@ -38,9 +37,6 @@
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 		<Content Include="Content\Worlds\world1-bg-1.png">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Content\Worlds\world1-bg-2.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 		<Content Include="Content\Worlds\world1-color.png">

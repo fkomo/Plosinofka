@@ -14,6 +14,8 @@ namespace Ujeby.Plosinofka.Core
 	public enum DebugSetting
 	{
 		MovementHistory,
+		DrawAABB,
+		DrawVectors,
 
 		Count,
 	}

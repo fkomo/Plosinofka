@@ -45,9 +45,6 @@ namespace Ujeby.Plosinofka.Entities
 				ResourceCache.Get<Sprite>(PlayerSpriteId),
 				interpolatedPosition,
 				interpolation);
-
-			var center = interpolatedPosition + BoundingBox.Min + Size / 2;
-			Renderer.Instance.RenderLine(camera, center, center + Velocity, Color4b.Red, interpolation);
 		}
 
 		public void HandleButton(InputButton button, InputButtonState state)

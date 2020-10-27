@@ -86,6 +86,8 @@ namespace Ujeby.Plosinofka.Graphics
 			RendererPtr = SDL.SDL_CreateRenderer(WindowPtr, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED);
 			if (RendererPtr == null)
 				throw new Exception($"Failed to create renderer. SDL2Error({ SDL.SDL_GetError() })");
+
+			SDL.SDL_SetRenderDrawBlendMode(RendererPtr, SDL.SDL_BlendMode.SDL_BLENDMODE_ADD);
 		}
 
 		internal static void Destroy()
@@ -103,7 +105,7 @@ namespace Ujeby.Plosinofka.Graphics
 			var start = Game.GetElapsed();
 
 			// clear backbuffer
-			SDL.SDL_SetRenderDrawColor(RendererPtr, 0, 0, 0, 255);
+			SDL.SDL_SetRenderDrawColor(RendererPtr, 0x0, 0x0, 0x0, 0xff);
 			SDL.SDL_RenderClear(RendererPtr);
 
 			simulation.Render(interpolation);
@@ -173,8 +175,11 @@ namespace Ujeby.Plosinofka.Graphics
  					if (Level.IsShadowReceiver(dataLayer.Data[worldMapIndex]))
 					{
 						var tmpColor = new Color4f(colorLayer.Data[worldMapIndex]);
-						tmpColor += Shading(screen + cameraPosition, lights, occluders) * 0.5;
-						//tmpColor = tmpColor.GammaCorrection();
+						if (tmpColor.A > 0)
+						{
+							tmpColor += Shading(screen + cameraPosition, lights, occluders) * 0.5;
+							//tmpColor = tmpColor.GammaCorrection();
+						}
 
 						var finalColor = new Color4b(tmpColor);
 						ScreenBuffer.Data[screenIndex + 0] = finalColor.A;
@@ -202,7 +207,7 @@ namespace Ujeby.Plosinofka.Graphics
 			LastShadingDuration = Game.GetElapsed() - shadingStart;
 		}
 
-		internal void RenderRectangle(Camera camera, AABB rectangle, Color4f color, double interpolation)
+		internal void RenderRectangle(Camera camera, AABB rectangle, Color4b color, double interpolation)
 		{
 			var viewScale = CurrentWindowSize / camera.InterpolatedView(interpolation);
 			var relativeToCamera = camera.RelateTo(rectangle.Min, interpolation) * viewScale;
@@ -215,8 +220,7 @@ namespace Ujeby.Plosinofka.Graphics
 				h = (int)(rectangle.Size.Y * viewScale.Y),
 			};
 
-			var _color = new Color4b(color);
-			SDL.SDL_SetRenderDrawColor(RendererPtr, _color.R, _color.G, _color.B, _color.A);
+			SDL.SDL_SetRenderDrawColor(RendererPtr, color.R, color.G, color.B, color.A);
 			SDL.SDL_RenderFillRect(RendererPtr, ref rect);
 		}
 

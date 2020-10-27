@@ -105,6 +105,29 @@ namespace Ujeby.Plosinofka
 			// debug
 			if (Settings.Current.GetDebug(DebugSetting.MovementHistory))
 				RenderEntityHistory(interpolation);
+			if (Settings.Current.GetDebug(DebugSetting.DrawAABB))
+				DrawAABBs(interpolation);
+			if (Settings.Current.GetDebug(DebugSetting.DrawVectors))
+				DrawVelocities(interpolation);
+		}
+
+		private void DrawVelocities(double interpolation)
+		{
+			foreach (var entity in DynamicEntities)
+			{
+				var center = entity.InterpolatedPosition(interpolation) + entity.BoundingBox.Min + entity.BoundingBox.Size / 2;
+				Renderer.Instance.RenderLine(Camera, center, center + entity.Velocity, Color4b.Green, interpolation);
+			}
+		}
+
+		private void DrawAABBs(double interpolation)
+		{
+			var aabbs = CurrentLevel.Colliders.ToList();
+			aabbs.Add(Player.BoundingBox + Player.InterpolatedPosition(interpolation));
+
+			var color = new Color4b(0xff, 0x00, 0x00, 0xaf);
+			foreach (var aabb in aabbs)
+				Renderer.Instance.RenderRectangle(Camera, aabb, color, interpolation);
 		}
 
 		private void RenderEntityHistory(double interpolation)
@@ -114,8 +137,7 @@ namespace Ujeby.Plosinofka
 				if (entityHistory.Value.Queue.Count < 2)
 					continue;
 
-				var color = new Color4b((uint)entityHistory.Key.GetHashCode());
-				color.A = 0xff;
+				var color = new Color4b((uint)entityHistory.Key.GetHashCode()) { A = 0xff };
 
 				var values = entityHistory.Value.Queue.ToArray();
 				for (var i = 1; i < values.Length; i++)
@@ -143,9 +165,6 @@ namespace Ujeby.Plosinofka
 				return false;
 
 			var remainingVelocity = velocity;
-
-			// move collision position to sprite aabb offset
-			//position += entity.BoundingBox.Min;
 
 			var collisionFound = false;
 			while (true)
@@ -180,9 +199,6 @@ namespace Ujeby.Plosinofka
 				else
 					break; // solved - nothing else stands in the way
 			}
-
-			// move position back with sprite aabb offset
-			//position -= entity.BoundingBox.Min;
 
 			position += velocity;
 			velocity = remainingVelocity;

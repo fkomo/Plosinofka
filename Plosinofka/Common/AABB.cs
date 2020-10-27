@@ -279,6 +279,8 @@ namespace Ujeby.Plosinofka.Common
 		/// <param name="map"></param>
 		public static AABB[] FromMap(Sprite map, uint mask)
 		{
+			var start = Game.GetElapsed();
+
 			var colliders = new List<AABB>();
 			for (var y = 0; y < map.Size.Y; y++)
 			{
@@ -288,7 +290,7 @@ namespace Ujeby.Plosinofka.Common
 
 					// skip if point is already in another collider
 					if (FindCollider(colliders, x, y, out AABB oldCollider))
-						x += (int)oldCollider.Size.X;
+						x += (int)oldCollider.Size.X - 1;
 
 					else if ((map.Data[p] & mask) == mask)
 					{
@@ -323,11 +325,12 @@ namespace Ujeby.Plosinofka.Common
 						colliders.Add(new AABB(min, min + new Vector2f(width, height)));
 
 						// advance just after collider
-						x += width;
+						x += width - 1;
 					}
 				}
 			}
 
+			Log.Add($"AABB.FromMap('{ map.Filename }', mask:0x{ mask:x}): { colliders.Count } in { (int)(Game.GetElapsed() - start) }ms");
 			return colliders.ToArray();
 		}
 
