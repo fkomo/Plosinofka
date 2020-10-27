@@ -24,7 +24,7 @@ namespace Ujeby.Plosinofka
 		{
 			CurrentLevel = Level.Load("world1");
 
-			Player = new Player("jebko");
+			Player = new Player("plosinofka-guy");
 			Player.Position = new Vector2f(64, 32);
 			DynamicEntities.Add(Player);
 

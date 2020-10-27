@@ -9,6 +9,10 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Walking;
 
+		public override PlayerAnimations AnimationIndex 
+			=> Direction.X > 0 ? PlayerAnimations.WalkingRight : 
+			(Direction.X < 0 ? PlayerAnimations.WalkingLeft : PlayerAnimations.Idle);
+
 		private const double WalkingStep = BaseStep;
 
 		public Walking(Vector2f direction) : base(direction)
@@ -60,6 +64,8 @@ namespace Ujeby.Plosinofka
 
 		public override void Update(Player player, IRayCasting environment)
 		{
+			base.Update(player, environment);
+			
 			if (!player.StandingOnGround(environment))
 				player.ChangeMovement(new Falling(this));
 

@@ -1,6 +1,7 @@
 ﻿using SDL2;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Ujeby.Plosinofka.Common;
@@ -34,6 +35,18 @@ namespace Ujeby.Plosinofka.Graphics
 		public IntPtr TexturePtr = IntPtr.Zero;
 	}
 
+	/// <summary>
+	/// horizontal collection of animation frames in single sprite
+	/// </summary>
+	public class AnimationSprite : Sprite
+	{
+		/// <summary>frame count</summary>
+		public int Frames => Size.X / FrameSize.X;
+
+		/// <summary></summary>
+		public Vector2i FrameSize;
+	}
+
 	class ResourceCache
 	{
 		private static Dictionary<Guid, Resource> Resources = new Dictionary<Guid, Resource>();
@@ -41,6 +54,44 @@ namespace Ujeby.Plosinofka.Graphics
 		public static Sprite LoadSprite(string filename, bool copyPixelData = false)
 		{
 			var start = Game.GetElapsed();
+
+			var sprite = CreateSprite(filename, copyPixelData);
+			Resources.Add(sprite.Id, sprite);
+
+			Log.Add($"LoadSprite('{ filename }', data:{ copyPixelData }): { (int)(Game.GetElapsed() - start) }ms");
+			return sprite;
+		}
+
+		public static Sprite LoadAnimationSprite(string filename, bool copyPixelData = false)
+		{
+			var start = Game.GetElapsed();
+
+			var sprite = CreateSprite(filename, copyPixelData);
+			if (sprite == null)
+				return null;
+
+			var animationSprite = new AnimationSprite
+			{
+				Id = sprite.Id,
+				TexturePtr = sprite.TexturePtr,
+				Size = sprite.Size,
+				Filename = sprite.Filename,
+				FrameSize = new	Vector2i(sprite.Size.Y, sprite.Size.Y)
+			};
+
+			Resources.Add(animationSprite.Id, animationSprite);
+
+			Log.Add($"LoadAnimationSprite('{ filename }', data:{ copyPixelData }): { animationSprite.Frames } frames; { (int)(Game.GetElapsed() - start) }ms");
+			return animationSprite;
+		}
+
+		private static Sprite CreateSprite(string filename, bool copyPixelData)
+		{
+			if (!File.Exists(filename))
+			{
+				Log.Add($"CreateSprite('{ filename }'): file not found!");
+				return null;
+			}
 
 			var imagePtr = SDL_image.IMG_Load(filename);
 			var surface = Marshal.PtrToStructure<SDL.SDL_Surface>(imagePtr);
@@ -84,11 +135,9 @@ namespace Ujeby.Plosinofka.Graphics
 
 			SDL.SDL_FreeSurface(imagePtr);
 
-			Resources.Add(sprite.Id, sprite);
-
-			Log.Add($"LoadSprite('{ filename }', data:{ copyPixelData }): { (int)(Game.GetElapsed() - start) }ms");
 			return sprite;
 		}
+
 
 		public static void Destroy()
 		{
@@ -101,6 +150,9 @@ namespace Ujeby.Plosinofka.Graphics
 
 		internal static T Get<T>(Guid resourceId) where T : Resource
 		{
+			if (resourceId == Guid.Empty)
+				return default;
+
 			if (!Resources.TryGetValue(resourceId, out Resource resource))
 				Log.Add($"WARNING | Resource({ resourceId }) not found");
 

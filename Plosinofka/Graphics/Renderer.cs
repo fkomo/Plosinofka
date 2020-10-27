@@ -122,8 +122,6 @@ namespace Ujeby.Plosinofka.Graphics
 			SDL.SDL_SetWindowTitle(WindowPtr, title);
 		}
 
-		private SDL.SDL_Rect RenderRect = new SDL.SDL_Rect();
-
 		/// <summary>
 		/// renders sprite layer on whole screen (camera view) with specified offset
 		/// </summary>
@@ -133,11 +131,14 @@ namespace Ujeby.Plosinofka.Graphics
 		/// <param name="interpolation"></param>
 		internal void RenderLayer(Camera camera, Sprite layer, Vector2f layerOffset)
 		{
-			RenderRect.x = (int)((layer.Size.X - camera.View.X) * layerOffset.X);
-			RenderRect.y = (int)(layer.Size.Y - camera.View.Y - ((layer.Size.Y - camera.View.Y) * layerOffset.Y));
-			RenderRect.w = camera.View.X;
-			RenderRect.h = camera.View.Y;
-			SDL.SDL_RenderCopy(RendererPtr, layer.TexturePtr, ref RenderRect, IntPtr.Zero);
+			var sourceRect = new SDL.SDL_Rect
+			{
+				x = (int)((layer.Size.X - camera.View.X) * layerOffset.X),
+				y = (int)(layer.Size.Y - camera.View.Y - ((layer.Size.Y - camera.View.Y) * layerOffset.Y)),
+				w = camera.View.X,
+				h = camera.View.Y
+			};
+			SDL.SDL_RenderCopy(RendererPtr, layer.TexturePtr, ref sourceRect, IntPtr.Zero);
 		}
 
 		/// <summary>
@@ -155,11 +156,14 @@ namespace Ujeby.Plosinofka.Graphics
 			var cameraPosition = camera.InterpolatedPosition(interpolation);
 
 			// draw color layer
-			RenderRect.x = cameraPosition.X;
-			RenderRect.y = colorLayer.Size.Y - camera.View.Y - cameraPosition.Y; // because sdl surface starts at topleft
-			RenderRect.w = camera.View.X;
-			RenderRect.h = camera.View.Y;
-			SDL.SDL_RenderCopy(RendererPtr, colorLayer.TexturePtr, ref RenderRect, IntPtr.Zero);
+			var sourceRect = new SDL.SDL_Rect
+			{
+				x = cameraPosition.X,
+				y = colorLayer.Size.Y - camera.View.Y - cameraPosition.Y, // because sdl surface starts at topleft
+				w = camera.View.X,
+				h = camera.View.Y
+			};
+			SDL.SDL_RenderCopy(RendererPtr, colorLayer.TexturePtr, ref sourceRect, IntPtr.Zero);
 
 			var shadingStart = Game.GetElapsed();
 			if (dataLayer != null && Settings.Current.GetVisual(VisualSetting.Shading))
@@ -219,7 +223,6 @@ namespace Ujeby.Plosinofka.Graphics
 				w = (int)(rectangle.Size.X * viewScale.X),
 				h = (int)(rectangle.Size.Y * viewScale.Y),
 			};
-
 			SDL.SDL_SetRenderDrawColor(RendererPtr, color.R, color.G, color.B, color.A);
 			SDL.SDL_RenderFillRect(RendererPtr, ref rect);
 		}
@@ -243,16 +246,51 @@ namespace Ujeby.Plosinofka.Graphics
 		/// <param name="spritePosition">sprite position in world (bottomLeft)</param>
 		/// <param name="sprite"></param>
 		/// <param name="interpolation"></param>
-		internal void RenderSprite(Camera camera, Sprite sprite, Vector2f spritePosition, double interpolation)
+		internal void RenderSprite(Camera camera, double interpolation, 
+			Sprite sprite, Vector2f spritePosition)
 		{
 			var viewScale = CurrentWindowSize / camera.InterpolatedView(interpolation);
 			var screenPosition = camera.RelateTo(spritePosition, interpolation) * viewScale;
 
-			RenderRect.x = (int)screenPosition.X;
-			RenderRect.y = (int)((camera.View.Y - sprite.Size.Y) * viewScale.Y - screenPosition.Y);
-			RenderRect.w = (int)(sprite.Size.X * viewScale.X);
-			RenderRect.h = (int)(sprite.Size.Y * viewScale.Y);
-			SDL.SDL_RenderCopy(RendererPtr, sprite.TexturePtr, IntPtr.Zero, ref RenderRect);
+			var destinationRect = new SDL.SDL_Rect
+			{
+				x = (int)screenPosition.X,
+				y = (int)((camera.View.Y - sprite.Size.Y) * viewScale.Y - screenPosition.Y),
+				w = (int)(sprite.Size.X * viewScale.X),
+				h = (int)(sprite.Size.Y * viewScale.Y)
+			};
+			SDL.SDL_RenderCopy(RendererPtr, sprite.TexturePtr, IntPtr.Zero, ref destinationRect);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="camera"></param>
+		/// <param name="sprite"></param>
+		/// <param name="frame"></param>
+		/// <param name="spritePosition"></param>
+		/// <param name="interpolation"></param>
+		internal void RenderSpriteFrame(Camera camera, double interpolation, 
+			AnimationSprite sprite, int frame, Vector2f spritePosition)
+		{
+			var viewScale = CurrentWindowSize / camera.InterpolatedView(interpolation);
+			var screenPosition = camera.RelateTo(spritePosition, interpolation) * viewScale;
+
+			var sourceRect = new SDL.SDL_Rect
+			{
+				x = sprite.FrameSize.X * frame,
+				y = 0,
+				w = sprite.FrameSize.X,
+				h = sprite.FrameSize.Y
+			};
+			var destinationRect = new SDL.SDL_Rect
+			{
+				x = (int)screenPosition.X,
+				y = (int)((camera.View.Y - sprite.FrameSize.Y) * viewScale.Y - screenPosition.Y),
+				w = (int)(sprite.FrameSize.X * viewScale.X),
+				h = (int)(sprite.FrameSize.Y * viewScale.Y)
+			};
+			SDL.SDL_RenderCopy(RendererPtr, sprite.TexturePtr, ref sourceRect, ref destinationRect);
 		}
 
 		private Color4f Shading(Vector2i pixel, Light[] lights, AABB[] occluders)

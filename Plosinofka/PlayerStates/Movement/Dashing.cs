@@ -9,6 +9,10 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Dashing;
 
+		public override PlayerAnimations AnimationIndex
+			=> Direction.X > 0 ? PlayerAnimations.DashingRight :
+			(Direction.X < 0 ? PlayerAnimations.DashingLeft : PlayerAnimations.Idle);
+
 		private const double DashStep = BaseStep * 4;
 		private const double DashEndThreshold = 1;
 
@@ -34,6 +38,8 @@ namespace Ujeby.Plosinofka
 
 		public override void Update(Player player, IRayCasting environment)
 		{
+			base.Update(player, environment);
+
 			player.Velocity = CurrentDashVelocity;
 
 			CurrentDashVelocity *= 0.5;

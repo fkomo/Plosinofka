@@ -10,6 +10,8 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Diving;
 
+		public override PlayerAnimations AnimationIndex => PlayerAnimations.Diving;
+
 		private const double DiveStep = BaseStep * 0.5;
 
 		public Diving(PlayerMovementState currentState) : base(currentState)
@@ -45,6 +47,8 @@ namespace Ujeby.Plosinofka
 
 		public override void Update(Player player, IRayCasting environment)
 		{
+			base.Update(player, environment);
+			
 			if (player.Velocity.Y == 0 && player.StandingOnGround(environment))
 				player.ChangeToPreviousMovement();
 

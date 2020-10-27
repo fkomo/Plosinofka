@@ -10,6 +10,10 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Falling;
 
+		public override PlayerAnimations AnimationIndex
+			=> Direction.X > 0 ? PlayerAnimations.FallingRight :
+			(Direction.X < 0 ? PlayerAnimations.FallingLeft : PlayerAnimations.Falling);
+
 		private const double FallStep = BaseStep * 0.5;
 
 		// TODO coyote time (allow jump/move? even after player is past the edge)
@@ -71,6 +75,8 @@ namespace Ujeby.Plosinofka
 
 		public override void Update(Player player, IRayCasting environment)
 		{
+			base.Update(player, environment);
+			
 			if (player.Velocity.Y == 0 && player.StandingOnGround(environment))
 				player.ChangeToPreviousMovement();
 

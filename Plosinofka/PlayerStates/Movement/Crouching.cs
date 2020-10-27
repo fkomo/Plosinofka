@@ -4,9 +4,11 @@ using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka
 {
-	class Crouching : Idle
+	class Crouching : PlayerMovementState
 	{
 		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Crouching;
+
+		public override PlayerAnimations AnimationIndex => PlayerAnimations.Crouching;
 
 		public override void HandleButton(InputButton button, InputButtonState state, Player player)
 		{

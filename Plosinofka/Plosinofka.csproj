@@ -25,7 +25,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="Content\plosinofka-guy-color.png">
+	  <None Update="Content\plosinofka-guy.png">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </None>
 	  <None Update="Content\plosinofka-guy-data.png">

@@ -10,6 +10,10 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Jumping;
 
+		public override PlayerAnimations AnimationIndex
+			=> Direction.X > 0 ? PlayerAnimations.JumpingRight :
+			(Direction.X < 0 ? PlayerAnimations.JumpingLeft : PlayerAnimations.JumpingUp);
+
 		private const double JumpImpulse = 18;
 		private const double DoubleJumpMultiplier = 1.2;
 		private const double AirStep = BaseStep;
@@ -103,6 +107,8 @@ namespace Ujeby.Plosinofka
 
 		public override void Update(Player player, IRayCasting environment)
 		{
+			base.Update(player, environment);
+			
 			if (Jump.Y == 0 && player.StandingOnGround(environment))
 				player.ChangeToPreviousMovement();
 

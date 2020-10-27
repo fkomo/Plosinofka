@@ -1,6 +1,7 @@
 ﻿using Ujeby.Plosinofka.Interfaces;
 using Ujeby.Plosinofka.Entities;
 using Ujeby.Plosinofka.Common;
+using Ujeby.Plosinofka.Core;
 
 namespace Ujeby.Plosinofka
 {
@@ -21,6 +22,13 @@ namespace Ujeby.Plosinofka
 	{
 		protected const double BaseStep = 4;
 
+		/// <summary>current animation frame</summary>
+		public int Frame { get; protected set; } = 0;
+		protected double LastFrameChange;
+		/// <summary>desired delay betwen animation frames [ms]</summary>
+		protected const double AnimationFrameDelay = 100;
+
+		public abstract PlayerAnimations AnimationIndex { get; }
 
 		public Vector2f Direction { get; protected set; }
 		public bool Freeze { get; protected set; } = false;
@@ -46,7 +54,21 @@ namespace Ujeby.Plosinofka
 
 		public abstract void HandleButton(InputButton button, InputButtonState state, Player player);
 
-		public abstract void Update(Player player, IRayCasting environment);
+		/// <summary>
+		/// base update, should be called from all inherited classes
+		/// </summary>
+		/// <param name="player"></param>
+		/// <param name="environment"></param>
+		public virtual void Update(Player player, IRayCasting environment)
+		{
+			// update animation frame
+			var current = Game.GetElapsed();
+			if (current - LastFrameChange > AnimationFrameDelay)
+			{
+				Frame++;
+				LastFrameChange = current;
+			}
+		}
 	}
 
 	public class PlayerMovement : StateMachine<PlayerMovementState>

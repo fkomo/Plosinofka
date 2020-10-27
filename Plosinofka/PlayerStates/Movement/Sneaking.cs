@@ -9,6 +9,10 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Sneaking;
 
+		public override PlayerAnimations AnimationIndex 
+			=> Direction.X > 0 ? PlayerAnimations.SneakingRight : 
+			(Direction.X < 0 ? PlayerAnimations.SneakingLeft : PlayerAnimations.Crouching);
+
 		private const double SneakingStep = BaseStep * 0.5;
 
 		public Sneaking(InputButton button) : base(button)
@@ -46,6 +50,8 @@ namespace Ujeby.Plosinofka
 
 		public override void Update(Player player, IRayCasting environment)
 		{
+			base.Update(player, environment);
+			
 			if (!player.StandingOnGround(environment))
 				player.ChangeMovement(new Falling(this));
 

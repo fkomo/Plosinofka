@@ -8,6 +8,8 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Idle;
 
+		public override PlayerAnimations AnimationIndex => PlayerAnimations.Idle;
+
 		public override void HandleButton(InputButton button, InputButtonState state, Player player)
 		{
 			if (state == InputButtonState.Pressed)
@@ -25,6 +27,8 @@ namespace Ujeby.Plosinofka
 
 		public override void Update(Player player, IRayCasting environment)
 		{
+			base.Update(player, environment);
+
 			// nothing to do
 			player.Velocity.X = 0;
 

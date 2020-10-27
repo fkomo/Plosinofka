@@ -7,40 +7,63 @@ namespace Ujeby.Plosinofka.Entities
 {
 	public class Player : DynamicEntity, IRenderable, IHandleInput
 	{
-		// TODO animations
 		// TODO melee attack
 		// TODO directional shooting
 
 		private PlayerAction Action = new PlayerAction();
 		private PlayerMovement Movement = new PlayerMovement();
 
-		private const string SpriteName = "plosinofka-guy";
-
-		public Guid PlayerSpriteId { get; private set; }
-		public Guid PlayerDataSpriteId { get; private set; }
+		private Guid[] Animations = new Guid[(int)PlayerAnimations.Count];
 
 		public Player(string name)
 		{
 			Name = name;
 
-			PlayerSpriteId = ResourceCache.LoadSprite($".\\Content\\{ SpriteName }-color.png", true).Id;
-
-			var dataSprite = ResourceCache.LoadSprite($".\\Content\\{ SpriteName }-data.png", true);
-			PlayerDataSpriteId = dataSprite.Id;
-
-			BoundingBox = AABB.Union(AABB.FromMap(dataSprite, Level.ShadowCasterMask));
+			LoadSprites();
 
 			ChangeMovement(new Idle());
+		}
+
+		/// <summary>
+		/// load all player sprites
+		/// </summary>
+		private void LoadSprites()
+		{
+			var defaultSprite = ResourceCache.LoadAnimationSprite($".\\Content\\{ Name }.png");
+			Animations[0] = defaultSprite.Id;
+
+			var dataSprite = ResourceCache.LoadSprite($".\\Content\\{ Name }-data.png", true);
+			if (dataSprite != null)
+				BoundingBox = AABB.Union(AABB.FromMap(dataSprite, Level.ShadowCasterMask));
+			else
+				BoundingBox = new AABB(Vector2f.Zero, (Vector2f)defaultSprite.Size);
+
+			for (var i = 1; i < (int)PlayerAnimations.Count; i++)
+			{
+				var type = (PlayerAnimations)i;
+				var animationSprite = 
+					ResourceCache.LoadAnimationSprite($".\\Content\\{ Name }-{ type.ToString().ToLower() }.png");
+				
+				if (animationSprite != null)
+					Animations[i] = animationSprite.Id;
+			}
 		}
 
 		public void Render(Camera camera, double interpolation)
 		{
 			var interpolatedPosition = InterpolatedPosition(interpolation);
 
-			Renderer.Instance.RenderSprite(camera,
-				ResourceCache.Get<Sprite>(PlayerSpriteId),
-				interpolatedPosition,
-				interpolation);
+			var animationSprite = 
+				ResourceCache.Get<AnimationSprite>(Animations[(int)Movement.Current.AnimationIndex]);
+
+			if (animationSprite != null)
+				Renderer.Instance.RenderSpriteFrame(camera, interpolation,
+					animationSprite, Movement.Current.Frame % animationSprite.Frames, interpolatedPosition);
+
+			else
+				Renderer.Instance.RenderSpriteFrame(camera, interpolation,
+					ResourceCache.Get<AnimationSprite>(Animations[(int)PlayerAnimations.Default]),
+					0, interpolatedPosition);
 		}
 
 		public void HandleButton(InputButton button, InputButtonState state)
@@ -67,10 +90,6 @@ namespace Ujeby.Plosinofka.Entities
 				0 == environment.Trace(new Vector2f(bb.Max.X, bb.Bottom), Vector2f.Down, out Vector2f n2) ||
 				0 == environment.Trace(new Vector2f(bb.Left + bb.Size.X * 0.33, bb.Bottom), Vector2f.Down, out Vector2f n3) ||
 				0 == environment.Trace(new Vector2f(bb.Left + bb.Size.X * 0.66, bb.Bottom), Vector2f.Down, out Vector2f n4);
-				//environment.Intersect(new Ray(bb.Min, Vector2f.Down, true), to: 1) ||
-				//environment.Intersect(new Ray(new Vector2f(bb.Max.X, bb.Bottom), Vector2f.Down, true), to: 1) ||
-				//environment.Intersect(new Ray(new Vector2f(bb.Left + bb.Size.X * 0.33, bb.Bottom), Vector2f.Down, true), to: 1) ||
-				//environment.Intersect(new Ray(new Vector2f(bb.Left + bb.Size.X * 0.66, bb.Bottom), Vector2f.Down, true), to: 1);
 		}
 
 		/// <summary>
