@@ -191,7 +191,7 @@ namespace Ujeby.Plosinofka
 					else 
 						remainingVelocity.X = 0;
 
-					Log.Add($"World.Trace({ entity }, bb={ entityBox }): t={ t } position={ position }; velocity={ velocity }; remainingVelocity={ remainingVelocity }");
+					Log.Add($"World.CollisionSolved({ entity }, bb={ entityBox }): t={ t }; position={ position }; velocity={ velocity }; remainingVelocity={ remainingVelocity }");
 
 					if (velocity == Vector2f.Zero) // or better just close to zero ?
 						break; // solved - nowhere to move
@@ -203,7 +203,7 @@ namespace Ujeby.Plosinofka
 			position += velocity;
 			velocity = remainingVelocity;
 
-			Log.Add($"World.Solved({ entity }; position={ entity.Position }; velocity={ entity.Velocity }): position={ position }; velocity={ velocity }");
+			//Log.Add($"World.Solved({ entity }; position={ entity.Position }; velocity={ entity.Velocity }): position={ position }; velocity={ velocity }");
 
 			return collisionFound;
 		}

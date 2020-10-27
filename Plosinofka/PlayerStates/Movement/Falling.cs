@@ -45,7 +45,7 @@ namespace Ujeby.Plosinofka
 				}
 				else if (button == Settings.Current.PlayerControls.Crouch)
 				{
-					// TODO dive
+					player.ChangeMovement(new Diving(this), false);
 				}
 			}
 			else if (state == InputButtonState.Released)

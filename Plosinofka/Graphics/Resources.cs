@@ -96,8 +96,6 @@ namespace Ujeby.Plosinofka.Graphics
 			foreach (Sprite texture in Resources.Values.Where(r => (r as Sprite)?.TexturePtr != IntPtr.Zero))
 				SDL.SDL_DestroyTexture(texture.TexturePtr);
 
-			// TODO free other resources
-
 			Resources.Clear();
 		}
 
