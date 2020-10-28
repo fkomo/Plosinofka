@@ -13,7 +13,7 @@ namespace Ujeby.Plosinofka
 			=> Direction.X > 0 ? PlayerAnimations.DashingRight :
 			(Direction.X < 0 ? PlayerAnimations.DashingLeft : PlayerAnimations.Idle);
 
-		private const double DashStep = BaseStep * 4;
+		private const double DashStep = BaseStep * 8;
 		private const double DashEndThreshold = 1;
 
 		public Dashing(PlayerMovementState currentState) : base(currentState)

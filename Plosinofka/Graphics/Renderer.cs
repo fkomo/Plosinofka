@@ -17,6 +17,8 @@ namespace Ujeby.Plosinofka.Graphics
 
 	internal class Renderer
 	{
+		// TODO simple font + RenderText
+
 		public IntPtr WindowPtr { get; private set; }
 		public IntPtr RendererPtr { get; private set; }
 
