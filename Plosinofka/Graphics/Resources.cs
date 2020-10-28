@@ -14,7 +14,7 @@ namespace Ujeby.Plosinofka.Graphics
 		/// <summary>
 		/// internal resource id
 		/// </summary>
-		public Guid Id;
+		public Guid Id = Guid.NewGuid();
 	}
 
 	public class Sprite : Resource
@@ -51,93 +51,107 @@ namespace Ujeby.Plosinofka.Graphics
 	{
 		private static Dictionary<Guid, Resource> Resources = new Dictionary<Guid, Resource>();
 
-		public static Sprite LoadSprite(string filename, bool copyPixelData = false)
+		public static Sprite LoadSprite(string filename)
 		{
 			var start = Game.GetElapsed();
 
-			var sprite = CreateSprite(filename, copyPixelData);
+			var sprite = new Sprite
+			{
+				Filename = filename
+			};
+			if (!LoadImage(filename, out sprite.TexturePtr, out sprite.Size, out sprite.Data))
+				return null;
+
 			Resources.Add(sprite.Id, sprite);
 
-			Log.Add($"LoadSprite('{ filename }', data:{ copyPixelData }): { (int)(Game.GetElapsed() - start) }ms");
+			Log.Add($"LoadSprite('{ filename }'): { (int)(Game.GetElapsed() - start) }ms");
 			return sprite;
 		}
 
-		public static Sprite LoadAnimationSprite(string filename, bool copyPixelData = false)
+		public static AnimationSprite LoadFontSprite(string filename, Vector2i charSize)
 		{
 			var start = Game.GetElapsed();
 
-			var sprite = CreateSprite(filename, copyPixelData);
-			if (sprite == null)
+			var fontSprite = new AnimationSprite
+			{
+				Filename = filename,
+				FrameSize = charSize
+			};
+			if (!LoadImage(filename, out fontSprite.TexturePtr, out fontSprite.Size, out fontSprite.Data))
 				return null;
 
-			var animationSprite = new AnimationSprite
-			{
-				Id = sprite.Id,
-				TexturePtr = sprite.TexturePtr,
-				Size = sprite.Size,
-				Filename = sprite.Filename,
-				FrameSize = new	Vector2i(sprite.Size.Y, sprite.Size.Y)
-			};
+			Resources.Add(fontSprite.Id, fontSprite);
 
-			Resources.Add(animationSprite.Id, animationSprite);
-
-			Log.Add($"LoadAnimationSprite('{ filename }', data:{ copyPixelData }): { animationSprite.Frames } frames; { (int)(Game.GetElapsed() - start) }ms");
-			return animationSprite;
+			Log.Add($"LoadFontSprite('{ filename }'): { fontSprite.Frames } characters; { (int)(Game.GetElapsed() - start) }ms");
+			return fontSprite;
 		}
 
-		private static Sprite CreateSprite(string filename, bool copyPixelData)
+		public static Sprite LoadAnimationSprite(string filename)
 		{
+			var start = Game.GetElapsed();
+
+			var sprite = new AnimationSprite
+			{
+				Filename = filename,
+			};
+			if (!LoadImage(filename, out sprite.TexturePtr, out sprite.Size, out sprite.Data))
+				return null;
+
+			sprite.FrameSize = new Vector2i(sprite.Size.Y, sprite.Size.Y);
+
+			Resources.Add(sprite.Id, sprite);
+
+			Log.Add($"LoadAnimationSprite('{ filename }'): { sprite.Frames } frames; { (int)(Game.GetElapsed() - start) }ms");
+			return sprite;
+		}
+
+		private static bool LoadImage(string filename, out IntPtr texturePtr, out Vector2i size, out uint[] data)
+		{
+			texturePtr = IntPtr.Zero;
+			size = Vector2i.Zero;
+			data = null;
+
 			if (!File.Exists(filename))
 			{
-				Log.Add($"CreateSprite('{ filename }'): file not found!");
-				return null;
+				Log.Add($"LoadImage('{ filename }'): file not found!");
+				return false;
 			}
 
 			var imagePtr = SDL_image.IMG_Load(filename);
 			var surface = Marshal.PtrToStructure<SDL.SDL_Surface>(imagePtr);
-			var texturePtr = SDL.SDL_CreateTextureFromSurface(Renderer.Instance.RendererPtr, imagePtr);
+			texturePtr = SDL.SDL_CreateTextureFromSurface(Renderer.Instance.RendererPtr, imagePtr);
 
-			var sprite = new Sprite
-			{
-				Id = Guid.NewGuid(),
-				TexturePtr = texturePtr,
-				Size = new Vector2i(surface.w, surface.h),
-				Filename = filename,
-			};
+			size = new Vector2i(surface.w, surface.h);
 
-			if (copyPixelData)
-			{
-				//var bitmap = new Bitmap(fileName);
-				//var data = bitmap.LockBits(
-				//	new Rectangle(Point.Empty, bitmap.Size), 
-				//	System.Drawing.Imaging.ImageLockMode.ReadWrite,
-				//	bitmap.PixelFormat);
+			//var bitmap = new Bitmap(fileName);
+			//var data = bitmap.LockBits(
+			//	new Rectangle(Point.Empty, bitmap.Size), 
+			//	System.Drawing.Imaging.ImageLockMode.ReadWrite,
+			//	bitmap.PixelFormat);
 
-				//sprite.Data = new byte[data.Height * data.Stride];
-				//Marshal.Copy(data.Scan0, sprite.Data, 0, sprite.Data.Length);
+			//sprite.Data = new byte[data.Height * data.Stride];
+			//Marshal.Copy(data.Scan0, sprite.Data, 0, sprite.Data.Length);
 
-				var tmpData = new byte[surface.w * surface.h * 4];
-				Marshal.Copy(surface.pixels, tmpData, 0, tmpData.Length);
+			var tmpData = new byte[surface.w * surface.h * 4];
+			Marshal.Copy(surface.pixels, tmpData, 0, tmpData.Length);
 
-				var i2 = 0;
-				sprite.Data = new uint[surface.w * surface.h];
-				for (var y = surface.h - 1; y >= 0; y--)
-					for (var x = 0; x < surface.w; x++, i2++)
-					{
-						var i = y * surface.w + x;
-						sprite.Data[i2] =
-							((uint)tmpData[i * 4 + 0]) +
-							((uint)tmpData[i * 4 + 1] << 8) +
-							((uint)tmpData[i * 4 + 2] << 16) +
-							((uint)tmpData[i * 4 + 3] << 24);
-					}
-			}
+			var i2 = 0;
+			data = new uint[surface.w * surface.h];
+			for (var y = surface.h - 1; y >= 0; y--)
+				for (var x = 0; x < surface.w; x++, i2++)
+				{
+					var i = y * surface.w + x;
+					data[i2] =
+						((uint)tmpData[i * 4 + 0]) +
+						((uint)tmpData[i * 4 + 1] << 8) +
+						((uint)tmpData[i * 4 + 2] << 16) +
+						((uint)tmpData[i * 4 + 3] << 24);
+				}
 
 			SDL.SDL_FreeSurface(imagePtr);
 
-			return sprite;
+			return true;
 		}
-
 
 		public static void Destroy()
 		{

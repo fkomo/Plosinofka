@@ -55,11 +55,11 @@ namespace Ujeby.Plosinofka
 
 			var level = new Level(name);
 
-			var color = ResourceCache.LoadSprite($".\\Content\\Worlds\\{ name }-color.png", true);
+			var color = ResourceCache.LoadSprite($".\\Content\\Worlds\\{ name }-color.png");
 			level.Size = color.Size;
 			level.Resources[(int)LevelResourceType.BackgroundLayer] = color.Id;
 
-			var data = ResourceCache.LoadSprite($".\\Content\\Worlds\\{ name }-data.png", true);
+			var data = ResourceCache.LoadSprite($".\\Content\\Worlds\\{ name }-data.png");
 			level.Resources[(int)LevelResourceType.Data] = data.Id;
 			level.Colliders = AABB.FromMap(data, ShadowCasterMask);
 

@@ -32,7 +32,7 @@ namespace Ujeby.Plosinofka.Entities
 			var defaultSprite = ResourceCache.LoadAnimationSprite($".\\Content\\{ Name }.png");
 			Animations[0] = defaultSprite.Id;
 
-			var dataSprite = ResourceCache.LoadSprite($".\\Content\\{ Name }-data.png", true);
+			var dataSprite = ResourceCache.LoadSprite($".\\Content\\{ Name }-data.png");
 			if (dataSprite != null)
 				BoundingBox = AABB.Union(AABB.FromMap(dataSprite, Level.ShadowCasterMask));
 			else

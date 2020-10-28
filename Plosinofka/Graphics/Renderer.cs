@@ -1,5 +1,6 @@
 ﻿using SDL2;
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Ujeby.Plosinofka.Common;
@@ -17,8 +18,6 @@ namespace Ujeby.Plosinofka.Graphics
 
 	internal class Renderer
 	{
-		// TODO simple font + RenderText
-
 		public IntPtr WindowPtr { get; private set; }
 		public IntPtr RendererPtr { get; private set; }
 
@@ -47,6 +46,15 @@ namespace Ujeby.Plosinofka.Graphics
 
 				return instance; 
 			} 
+		}
+
+		private List<Text> TextBuffer = new List<Text>();
+		private Guid FontSpriteId;
+
+		private void LoadFont(string fontName)
+		{
+			// TODO better font sprite (3x5 for character is not enough for lowercase)
+			FontSpriteId = ResourceCache.LoadFontSprite(fontName, new Vector2i(3, 5)).Id;
 		}
 
 		internal void SettingsChanged(VisualSetting setting)
@@ -90,6 +98,8 @@ namespace Ujeby.Plosinofka.Graphics
 				throw new Exception($"Failed to create renderer. SDL2Error({ SDL.SDL_GetError() })");
 
 			SDL.SDL_SetRenderDrawBlendMode(RendererPtr, SDL.SDL_BlendMode.SDL_BLENDMODE_ADD);
+
+			LoadFont($".\\Content\\font-small.png");
 		}
 
 		internal static void Destroy()
@@ -210,6 +220,10 @@ namespace Ujeby.Plosinofka.Graphics
 				SDL.SDL_RenderCopy(RendererPtr, texturePtr, IntPtr.Zero, IntPtr.Zero);
 				SDL.SDL_DestroyTexture(texturePtr);
 			}
+
+			// draw osd text
+			RenderText(camera, interpolation, new Vector2i(10, 10), "Sample Text ...");
+
 			LastShadingDuration = Game.GetElapsed() - shadingStart;
 		}
 
@@ -293,6 +307,41 @@ namespace Ujeby.Plosinofka.Graphics
 				h = (int)(sprite.FrameSize.Y * viewScale.Y)
 			};
 			SDL.SDL_RenderCopy(RendererPtr, sprite.TexturePtr, ref sourceRect, ref destinationRect);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="camera"></param>
+		/// <param name="interpolation"></param>
+		/// <param name="screenPosition">top-down</param>
+		/// <param name="text"></param>
+		public void RenderText(Camera camera, double interpolation, Vector2i screenPosition, string text)
+		{
+			// TODO render font with variable character width
+
+			var viewScale = CurrentWindowSize / camera.InterpolatedView(interpolation);
+			var fontSprite = ResourceCache.Get<AnimationSprite>(FontSpriteId);
+
+			var sourceRect = new SDL.SDL_Rect();
+			var destinationRect = new SDL.SDL_Rect();
+
+			for (var i = 0; i < text.Length; i++)
+			{
+				var charIndex = (int)text[i] - 32;
+
+				sourceRect.x = fontSprite.FrameSize.X * charIndex;
+				sourceRect.y = 0;
+				sourceRect.w = fontSprite.FrameSize.X;
+				sourceRect.h = fontSprite.FrameSize.Y;
+
+				destinationRect.x = (int)(screenPosition.X + i * (fontSprite.FrameSize.X + 1) * viewScale.X);
+				destinationRect.y = screenPosition.Y;
+				destinationRect.w = (int)(fontSprite.FrameSize.X * viewScale.X);
+				destinationRect.h = (int)(fontSprite.FrameSize.Y * viewScale.Y);
+
+				SDL.SDL_RenderCopy(RendererPtr, fontSprite.TexturePtr, ref sourceRect, ref destinationRect);
+			}
 		}
 
 		private Color4f Shading(Vector2i pixel, Light[] lights, AABB[] occluders)
