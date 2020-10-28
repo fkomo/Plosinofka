@@ -13,7 +13,7 @@ namespace Ujeby.Plosinofka
 			=> Direction.X > 0 ? PlayerAnimations.WalkingRight : 
 			(Direction.X < 0 ? PlayerAnimations.WalkingLeft : PlayerAnimations.Idle);
 
-		private const double WalkingStep = BaseStep;
+		private const double WalkingStep = BaseStep * 0.8;
 
 		public Walking(Vector2f direction) : base(direction)
 		{

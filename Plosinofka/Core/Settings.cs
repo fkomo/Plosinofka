@@ -1,4 +1,5 @@
 ﻿using System;
+using Ujeby.Plosinofka.Common;
 using Ujeby.Plosinofka.Graphics;
 using Ujeby.Plosinofka.Interfaces;
 
@@ -36,7 +37,7 @@ namespace Ujeby.Plosinofka.Core
 
 		private Settings()
 		{
-			// TODO read saved settings from file
+			Load();
 		}
 
 		/// <summary>
@@ -71,12 +72,17 @@ namespace Ujeby.Plosinofka.Core
 		public void ToggleVisual(VisualSetting toggle)
 		{
 			VisualToggles[(int)toggle] = !VisualToggles[(int)toggle];
-			Renderer.Instance.SettingsChanged(toggle);
+
+			Log.Add($"Renderer.SettingsChanged({ toggle }): { GetVisual(toggle) }");
+			SettingsChanged();
 		}
 
 		public void ToggleDebug(DebugSetting toggle)
 		{
 			DebugToggles[(int)toggle] = !DebugToggles[(int)toggle];
+
+			Log.Add($"Renderer.SettingsChanged({ toggle }): { GetDebug(toggle) }");
+			SettingsChanged();
 		}
 
 		internal bool GetVisual(VisualSetting setting)
@@ -87,6 +93,21 @@ namespace Ujeby.Plosinofka.Core
 		internal bool GetDebug(DebugSetting setting)
 		{
 			return DebugToggles[(int)setting];
+		}
+
+		private void Load()
+		{
+			// TODO read settings from file
+		}
+
+		private void Save()
+		{
+			// TODO save settings to file
+		}
+
+		private void SettingsChanged()
+		{
+			Save();
 		}
 	}
 }

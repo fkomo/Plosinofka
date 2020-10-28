@@ -57,12 +57,6 @@ namespace Ujeby.Plosinofka.Graphics
 			FontSpriteId = ResourceCache.LoadFontSprite(fontName, new Vector2i(3, 5)).Id;
 		}
 
-		internal void SettingsChanged(VisualSetting setting)
-		{
-			Log.Add($"Renderer.SettingsChanged({ setting }): { Settings.Current.GetVisual(setting) }");
-			// TODO do what needs to be done when visual setting was changed	
-		}
-
 		private ScreenBuffer ScreenBuffer;
 
 		private Renderer()
@@ -162,7 +156,7 @@ namespace Ujeby.Plosinofka.Graphics
 		/// <param name="interpolation"></param>
 		/// <param name="lights"></param>
 		/// <param name="occluders"></param>
-		internal void Render(Camera camera, Sprite colorLayer, Sprite dataLayer, double interpolation, 
+		internal void Render(Camera camera, Sprite colorLayer, Sprite dataLayer, double interpolation,
 			Light[] lights, AABB[] occluders)
 		{
 			var cameraPosition = camera.InterpolatedPosition(interpolation);
@@ -188,7 +182,7 @@ namespace Ujeby.Plosinofka.Graphics
 					var worldMapIndex = (cameraPosition.Y + screen.Y) * dataLayer.Size.X + cameraPosition.X + screen.X;
 					var screenIndex = ((camera.View.Y - screen.Y - 1) * camera.View.X + screen.X) * 4;
 
- 					if ((dataLayer.Data[worldMapIndex] & Level.ShadowReceiverMask) == Level.ShadowReceiverMask)
+					if ((dataLayer.Data[worldMapIndex] & Level.ShadowReceiverMask) == Level.ShadowReceiverMask)
 					{
 						var tmpColor = new Color4f(colorLayer.Data[worldMapIndex]);
 						if (tmpColor.A > 0)
@@ -221,8 +215,8 @@ namespace Ujeby.Plosinofka.Graphics
 				SDL.SDL_DestroyTexture(texturePtr);
 			}
 
-			// draw osd text
-			RenderText(camera, interpolation, new Vector2i(10, 10), "Sample Text ...");
+			// osd text
+			RenderText(camera, interpolation, new Vector2i(10, 10), "01234567890 ABCDEFGHIJKLMONOPRSTUVWXYZ abcdefghijklmnopqrstuvwxyz +-*= []{}<>\\/'\".:,;?|_");
 
 			LastShadingDuration = Game.GetElapsed() - shadingStart;
 		}
