@@ -10,9 +10,22 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Falling;
 
-		public override PlayerAnimations AnimationIndex
-			=> Direction.X > 0 ? PlayerAnimations.FallingRight :
-			(Direction.X < 0 ? PlayerAnimations.FallingLeft : PlayerAnimations.Falling);
+		public override PlayerAnimations Animation
+		{
+			get
+			{
+				if (!Freeze)
+				{
+					if (Direction.X > 0)
+						return PlayerAnimations.FallingRight;
+				
+					if (Direction.X < 0)
+						return PlayerAnimations.FallingLeft;
+				}
+
+				return PlayerAnimations.Falling;
+			}
+		}
 
 		private const double FallStep = BaseStep * 0.5;
 

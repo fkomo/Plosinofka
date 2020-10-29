@@ -9,9 +9,20 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Dashing;
 
-		public override PlayerAnimations AnimationIndex
-			=> Direction.X > 0 ? PlayerAnimations.DashingRight :
-			(Direction.X < 0 ? PlayerAnimations.DashingLeft : PlayerAnimations.Idle);
+		public override PlayerAnimations Animation
+		{
+			get
+			{
+				if (Direction.X > 0)
+					return PlayerAnimations.DashingRight;
+
+				if (Direction.X < 0)
+					return PlayerAnimations.DashingLeft;
+
+				// this should not happen
+				return PlayerAnimations.Idle;
+			}
+		}
 
 		private const double DashStep = BaseStep * 8;
 		private const double DashEndThreshold = 1;

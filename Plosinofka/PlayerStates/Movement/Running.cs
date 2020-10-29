@@ -9,9 +9,22 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Running;
 
-		public override PlayerAnimations AnimationIndex
-			=> Direction.X > 0 ? PlayerAnimations.RunningRight :
-			(Direction.X < 0 ? PlayerAnimations.RunningLeft : PlayerAnimations.Idle);
+		public override PlayerAnimations Animation
+		{
+			get
+			{
+				if (!Freeze)
+				{
+					if (Direction.X > 0)
+						return PlayerAnimations.RunningRight;
+
+					if (Direction.X < 0)
+						return PlayerAnimations.RunningLeft;
+				}
+
+				return PlayerAnimations.Idle;
+			}
+		}
 
 		private const double RunningStep = BaseStep * 2;
 

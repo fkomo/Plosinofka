@@ -5,17 +5,17 @@ using Ujeby.Plosinofka.Core;
 
 namespace Ujeby.Plosinofka
 {
-	public enum PlayerMovementStateEnum
+	public enum PlayerMovementStateEnum : int
 	{
-		Idle,
-		Crouching,
-		Walking,
-		Running,
-		Sneaking,
-		Jumping,
-		Falling,
-		Dashing,
-		Diving,
+		Idle = 1,
+		Crouching = 2,
+		Walking = 4,
+		Running = 8,
+		Sneaking = 16,
+		Jumping = 32,
+		Falling = 64,
+		Dashing = 128,
+		Diving = 256,
 	}
 
 	public abstract class PlayerMovementState : State<PlayerMovementStateEnum>
@@ -23,12 +23,12 @@ namespace Ujeby.Plosinofka
 		protected const double BaseStep = 4;
 
 		/// <summary>current animation frame</summary>
-		public int Frame { get; protected set; } = 0;
+		public int AnimationFrame { get; protected set; } = 0;
 		protected double LastFrameChange;
 		/// <summary>desired delay betwen animation frames [ms]</summary>
 		protected const double AnimationFrameDelay = 100;
 
-		public abstract PlayerAnimations AnimationIndex { get; }
+		public abstract PlayerAnimations Animation { get; }
 
 		public Vector2f Direction { get; protected set; }
 		public bool Freeze { get; protected set; } = false;
@@ -65,7 +65,7 @@ namespace Ujeby.Plosinofka
 			var current = Game.GetElapsed();
 			if (current - LastFrameChange > AnimationFrameDelay)
 			{
-				Frame++;
+				AnimationFrame++;
 				LastFrameChange = current;
 			}
 		}

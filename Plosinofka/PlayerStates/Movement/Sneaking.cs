@@ -9,9 +9,22 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Sneaking;
 
-		public override PlayerAnimations AnimationIndex 
-			=> Direction.X > 0 ? PlayerAnimations.SneakingRight : 
-			(Direction.X < 0 ? PlayerAnimations.SneakingLeft : PlayerAnimations.Crouching);
+		public override PlayerAnimations Animation
+		{
+			get
+			{
+				if (!Freeze)
+				{
+					if (Direction.X > 0)
+						return PlayerAnimations.SneakingRight;
+
+					if (Direction.X < 0)
+						return PlayerAnimations.SneakingLeft;
+				}
+
+				return PlayerAnimations.Crouching;
+			}
+		}
 
 		private const double SneakingStep = BaseStep * 0.5;
 

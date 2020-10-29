@@ -15,6 +15,17 @@ namespace Ujeby.Plosinofka.Entities
 
 		private Guid[] Animations = new Guid[(int)PlayerAnimations.Count];
 
+		public PlayerMovementStateEnum AllowedMovements =
+			PlayerMovementStateEnum.Walking |
+			PlayerMovementStateEnum.Jumping |
+			PlayerMovementStateEnum.Running |
+			PlayerMovementStateEnum.Crouching |
+			PlayerMovementStateEnum.Sneaking |
+			PlayerMovementStateEnum.Dashing |
+			PlayerMovementStateEnum.Diving |
+			PlayerMovementStateEnum.Falling |
+			PlayerMovementStateEnum.Idle;
+
 		public Player(string name)
 		{
 			Name = name;
@@ -54,11 +65,12 @@ namespace Ujeby.Plosinofka.Entities
 			var interpolatedPosition = InterpolatedPosition(interpolation);
 
 			var animationSprite = 
-				ResourceCache.Get<AnimationSprite>(Animations[(int)Movement.Current.AnimationIndex]);
+				ResourceCache.Get<AnimationSprite>(Animations[(int)Movement.Current.Animation]);
 
 			if (animationSprite != null)
+				// animation not found
 				Renderer.Instance.RenderSpriteFrame(camera, interpolation,
-					animationSprite, Movement.Current.Frame % animationSprite.Frames, interpolatedPosition);
+					animationSprite, Movement.Current.AnimationFrame % animationSprite.Frames, interpolatedPosition);
 
 			else
 				Renderer.Instance.RenderSpriteFrame(camera, interpolation,
@@ -98,7 +110,8 @@ namespace Ujeby.Plosinofka.Entities
 		/// <param name="newState"></param>
 		public void ChangeMovement(PlayerMovementState newState, bool pushCurrentState = true)
 		{
-			Movement.Change(Movement.Current, newState, pushCurrentState);
+			if (AllowedMovements.HasFlag(newState.AsEnum))
+				Movement.Change(Movement.Current, newState, pushCurrentState);
 		}
 
 		/// <summary>

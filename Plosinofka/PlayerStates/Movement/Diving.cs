@@ -10,7 +10,7 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Diving;
 
-		public override PlayerAnimations AnimationIndex => PlayerAnimations.Diving;
+		public override PlayerAnimations Animation => PlayerAnimations.Diving;
 
 		private const double DiveStep = BaseStep * 0.5;
 

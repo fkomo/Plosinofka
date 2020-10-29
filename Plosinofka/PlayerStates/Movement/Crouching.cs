@@ -8,7 +8,7 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Crouching;
 
-		public override PlayerAnimations AnimationIndex => PlayerAnimations.Crouching;
+		public override PlayerAnimations Animation => PlayerAnimations.Crouching;
 
 		public override void HandleButton(InputButton button, InputButtonState state, Player player)
 		{

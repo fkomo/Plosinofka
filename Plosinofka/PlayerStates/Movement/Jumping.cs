@@ -10,13 +10,29 @@ namespace Ujeby.Plosinofka
 	{
 		public override PlayerMovementStateEnum AsEnum => PlayerMovementStateEnum.Jumping;
 
-		public override PlayerAnimations AnimationIndex
-			=> Direction.X > 0 ? PlayerAnimations.JumpingRight :
-			(Direction.X < 0 ? PlayerAnimations.JumpingLeft : PlayerAnimations.JumpingUp);
+		public override PlayerAnimations Animation
+		{
+			get
+			{
+				if (!Freeze)
+				{
+					if (Direction.X > 0)
+						return PlayerAnimations.JumpingRight;
 
-		private const double JumpImpulse = 18;
-		private const double DoubleJumpMultiplier = 1.2;
-		private const double AirStep = BaseStep;
+					if (Direction.X < 0)
+						return PlayerAnimations.JumpingLeft;
+
+					if (Direction.Y > 0)
+						return PlayerAnimations.JumpingUp;
+				}
+
+				return PlayerAnimations.Falling;
+			}
+		}
+
+		private const double JumpImpulse = 10;
+		private const double DoubleJumpMultiplier = 1.25;
+		private const double AirStep = BaseStep * 0.8;
 
 		private Vector2f Jump = new Vector2f(0, JumpImpulse);
 
