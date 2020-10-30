@@ -97,6 +97,8 @@ namespace Ujeby.Plosinofka
 
 		public double Trace(AABB box, Vector2f direction, out Vector2f normal)
 		{
+			// TODO not working very well in world1/room1
+
 			normal = Vector2f.Zero;
 			var tMin = double.PositiveInfinity;
 

@@ -5,15 +5,13 @@ using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka.Entities
 {
-	public class Player : DynamicEntity, IRenderable, IHandleInput
+	public class Player : DynamicEntity, IRenderable, IHandleInput, ITrackable
 	{
 		// TODO melee attack
 		// TODO directional shooting
 
 		private PlayerAction Action = new PlayerAction();
 		private PlayerMovement Movement = new PlayerMovement();
-
-		private Guid[] Animations = new Guid[(int)PlayerAnimations.Count];
 
 		public PlayerMovementStateEnum AllowedMovements =
 			PlayerMovementStateEnum.Walking |
@@ -26,11 +24,24 @@ namespace Ujeby.Plosinofka.Entities
 			PlayerMovementStateEnum.Falling |
 			PlayerMovementStateEnum.Idle;
 
+		private static Guid DefaultSprite;
+		private static Guid DefaultDataSprite;
+		private static Guid[] Animations = new Guid[(int)PlayerAnimations.Count];
+
+		static Player()
+		{
+			LoadSprites();
+		}
+
 		public Player(string name)
 		{
 			Name = name;
 
-			LoadSprites();
+			var dataSprite = ResourceCache.Get<Sprite>(DefaultDataSprite);
+			if (dataSprite != null)
+				BoundingBox = AABB.Union(AABB.FromMap(dataSprite, Level.ShadowCasterMask));
+			else
+				BoundingBox = new AABB(Vector2f.Zero, (Vector2f)ResourceCache.Get<Sprite>(DefaultSprite).Size);
 
 			ChangeMovement(new Idle());
 		}
@@ -38,44 +49,33 @@ namespace Ujeby.Plosinofka.Entities
 		/// <summary>
 		/// load all player sprites
 		/// </summary>
-		private void LoadSprites()
+		private static void LoadSprites()
 		{
-			var defaultSprite = ResourceCache.LoadAnimationSprite($".\\Content\\{ Name }.png");
-			Animations[0] = defaultSprite.Id;
-
-			var dataSprite = ResourceCache.LoadSprite($".\\Content\\{ Name }-data.png");
-			if (dataSprite != null)
-				BoundingBox = AABB.Union(AABB.FromMap(dataSprite, Level.ShadowCasterMask));
-			else
-				BoundingBox = new AABB(Vector2f.Zero, (Vector2f)defaultSprite.Size);
+			DefaultSprite = ResourceCache.LoadAnimationSprite($".\\Content\\Player\\player1.png").Id;
+			DefaultDataSprite = ResourceCache.LoadSprite($".\\Content\\Player\\player1-data.png").Id;
 
 			for (var i = 1; i < (int)PlayerAnimations.Count; i++)
 			{
-				var type = (PlayerAnimations)i;
-				var animationSprite = 
-					ResourceCache.LoadAnimationSprite($".\\Content\\{ Name }-{ type.ToString().ToLower() }.png");
-				
-				if (animationSprite != null)
-					Animations[i] = animationSprite.Id;
+				var id = ((PlayerAnimations)i).ToString().ToLower();
+				var sprite = ResourceCache.LoadAnimationSprite($".\\Content\\Player\\player1-{ id }.png");
+				if (sprite != null)
+					Animations[i] = sprite.Id;
 			}
 		}
 
 		public void Render(Camera camera, double interpolation)
 		{
-			var interpolatedPosition = InterpolatedPosition(interpolation);
+			var position = InterpolatedPosition(interpolation);
 
-			var animationSprite = 
-				ResourceCache.Get<AnimationSprite>(Animations[(int)Movement.Current.Animation]);
-
-			if (animationSprite != null)
-				// animation not found
+			var animation = ResourceCache.Get<AnimationSprite>(Animations[(int)Movement.Current.Animation]);
+			if (animation != null)
 				Renderer.Instance.RenderSpriteFrame(camera, interpolation,
-					animationSprite, Movement.Current.AnimationFrame % animationSprite.Frames, interpolatedPosition);
+					animation, Movement.Current.AnimationFrame % animation.Frames, position);
 
 			else
+				// animation not found, use default sprite
 				Renderer.Instance.RenderSpriteFrame(camera, interpolation,
-					ResourceCache.Get<AnimationSprite>(Animations[(int)PlayerAnimations.Default]),
-					0, interpolatedPosition);
+					ResourceCache.Get<AnimationSprite>(DefaultSprite), 0, position);
 		}
 
 		public void HandleButton(InputButton button, InputButtonState state)
@@ -83,25 +83,30 @@ namespace Ujeby.Plosinofka.Entities
 			Movement.Current?.HandleButton(button, state, this);
 		}
 
-		public override void Update(IRayCasting environment)
+		public override void Update(IRayCasting env)
 		{
+			// add dust particles effect when motion direction is changed
+			if (StandingOnGround(env) && PreviousVelocity.X > 0 && !(Velocity.X > 0))
+				World.Instance.AddEntity(new Decal(
+						Decals.Library[DecalsEnum.DustParticlesRight], 
+						new Vector2f(Position.X + BoundingBox.Right, Position.Y)));
+
 			// save state before update
 			PreviousPosition = Position;
 			PreviousVelocity = Velocity;
 
 			// update player according to his state and set new moving vector
-			Movement.Current?.Update(this, environment);
+			Movement.Current?.Update(this, env);
 		}
 
-		public bool StandingOnGround(IRayCasting environment)
+		public bool StandingOnGround(IRayCasting env)
 		{
 			var bb = BoundingBox + Position;
-
-			return
-				0 == environment.Trace(bb.Min, Vector2f.Down, out Vector2f n1) ||
-				0 == environment.Trace(new Vector2f(bb.Max.X, bb.Bottom), Vector2f.Down, out Vector2f n2) ||
-				0 == environment.Trace(new Vector2f(bb.Left + bb.Size.X * 0.33, bb.Bottom), Vector2f.Down, out Vector2f n3) ||
-				0 == environment.Trace(new Vector2f(bb.Left + bb.Size.X * 0.66, bb.Bottom), Vector2f.Down, out Vector2f n4);
+			return 
+				0 == env.Trace(bb.Min, Vector2f.Down, out Vector2f n1) ||
+				0 == env.Trace(new Vector2f(bb.Max.X, bb.Bottom), Vector2f.Down, out Vector2f n2) ||
+				0 == env.Trace(new Vector2f(bb.Left + bb.Size.X * 0.33, bb.Bottom), Vector2f.Down, out Vector2f n3) ||
+				0 == env.Trace(new Vector2f(bb.Left + bb.Size.X * 0.66, bb.Bottom), Vector2f.Down, out Vector2f n4);
 		}
 
 		/// <summary>
@@ -129,6 +134,17 @@ namespace Ujeby.Plosinofka.Entities
 		internal void ChangeToPreviousMovement()
 		{
 			ChangeMovement(Movement.Pop(), false);
+		}
+
+		public string TrackId() => Name;
+
+		public TrackedData Track()
+		{
+			return new TrackedData
+			{
+				Position = Center,
+				Velocity = Velocity
+			};
 		}
 	}
 }

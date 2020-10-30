@@ -15,9 +15,13 @@ namespace Ujeby.Plosinofka.Core
 
 		public double LastUpdateDuration { get; protected set; }
 
-		public List<DynamicEntity> DynamicEntities { get; protected set; } = new List<DynamicEntity>();
-		public List<Entity> StaticEntities { get; protected set; } = new List<Entity>();
-		public Dictionary<string, FixedQueue<Vector2f>> EntityHistory { get; protected set; } = new Dictionary<string, FixedQueue<Vector2f>>();
+		protected List<Entity> Entities = new List<Entity>();
+
+		/// <summary>
+		/// Entity.Name vs its TrackedData
+		/// </summary>
+		protected Dictionary<string, FixedQueue<TrackedData>> TrackedEntities = 
+			new Dictionary<string, FixedQueue<TrackedData>>();
 
 		public Player Player { get; protected set; }
 		public Camera Camera { get; protected set; }
@@ -25,7 +29,5 @@ namespace Ujeby.Plosinofka.Core
 		public abstract void Update();
 
 		public abstract void Render(double interpolation);
-
-		public abstract void Destroy();
 	}
 }

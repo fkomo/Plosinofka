@@ -11,59 +11,74 @@ namespace Ujeby.Plosinofka
 {
 	public class World : Simulation, ICollisionSolver
 	{
-		private Level CurrentLevel;
+		public static World instance = null;
+		public static World Instance
+		{
+			get
+			{
+				if (instance == null)
+					instance = new World();
 
-		private List<Light> Lights = new List<Light>();
+				return instance;
+			}
+		}
+
+		private Level CurrentLevel;
 
 		/// <summary>
 		/// number of past records of entity properties (position, ...)
 		/// </summary>
-		public const int MaxEntityHistory = 1024;
+		public const int EntityTraceLength = 256;
 
-		public World()
+		private World()
 		{
-			CurrentLevel = Level.Load("world1");
+		}
 
-			Player = new Player("jebko");
+		public void Load(string name)
+		{
+			CurrentLevel = Level.Load(name);
+
+			Player = new Player("player1");
 			Player.Position = new Vector2f(64, 32);
-			DynamicEntities.Add(Player);
-
-			EntityHistory.Add(Player.Name, new FixedQueue<Vector2f>(MaxEntityHistory));
+			AddEntity(Player);
 
 			var light = new Light(new Color4f(1.0, 1.0, 0.8), 32.0);
 			light.Position = new Vector2f(300, 250);
-			StaticEntities.Add(light);
-			Lights.Add(light);
+			AddEntity(light);
 
 			// make camera view smaller then window size for more pixelated look!
 			Camera = new Camera(Vector2i.FullHD / 4, CurrentLevel.Size, Player);
-		}
-
-		public World(Level level)
-		{
-			CurrentLevel = level;
 		}
 
 		public override void Update()
 		{
 			var start = Game.GetElapsed();
 
+			// remove obsolete entities
+			for (var i = Entities.Count - 1; i >= 0; i--)
+				if ((Entities[i] as IDestroyable)?.Obsolete() == true)
+				{
+					if (Entities[i] is ITrackable trackedEntity)
+						TrackedEntities.Remove(trackedEntity.TrackId());
+
+					Entities.RemoveAt(i);
+				}
+
 			// update all entities
-			foreach (var entity in StaticEntities)
-				entity.Update(CurrentLevel);
-			foreach (var entity in DynamicEntities)
-				entity.Update(CurrentLevel);
+			for (var i = Entities.Count - 1; i >= 0; i--)
+				Entities[i].Update(CurrentLevel);
 
 			// solve collisions of dynamic entities
-			foreach (var dynamicEntity in DynamicEntities)
+			foreach (var entity in Entities)
 			{
-				Solve(dynamicEntity, out Vector2f position, out Vector2f velocity);
-				dynamicEntity.Position = position;
-				dynamicEntity.Velocity = velocity;
+				if (entity is DynamicEntity dynamicEntity)
+				{
+					Solve(dynamicEntity, out Vector2f position, out Vector2f velocity);
+					dynamicEntity.Position = position;
+					dynamicEntity.Velocity = velocity;
 
-				if (EntityHistory.ContainsKey(dynamicEntity.Name) && 
-					dynamicEntity.PreviousPosition != dynamicEntity.Position)
-					EntityHistory[dynamicEntity.Name].Add(dynamicEntity.Center);
+					Track(entity as ITrackable);
+				}
 			}
 
 			// update camera with respect to world/level borders
@@ -72,12 +87,21 @@ namespace Ujeby.Plosinofka
 			LastUpdateDuration = Game.GetElapsed() - start;
 		}
 
+		private void Track(ITrackable entity)
+		{
+			if (entity == null)
+				return;	
+
+			if (TrackedEntities.ContainsKey(entity.TrackId()))
+				TrackedEntities[entity.TrackId()].Add(entity.Track());
+		}
+
 		public override void Render(double interpolation)
 		{
 			var layerOffset = Camera.InterpolatedPosition(interpolation) / (Vector2f)(CurrentLevel.Size - Camera.View);
 
 			// background layers
-			RenderLayers(CurrentLevel.BackgroundLayers, layerOffset, interpolation);
+			RenderLayers(CurrentLevel.BackgroundLayers, layerOffset);
 
 			// main layer
 			var color = ResourceCache.Get<Sprite>(CurrentLevel.Resources[(int)LevelResourceType.BackgroundLayer]);
@@ -89,34 +113,46 @@ namespace Ujeby.Plosinofka
 				var colliders = CurrentLevel.Colliders.ToList();
 				colliders.Add(Player.BoundingBox + playerPosition);
 
-				Renderer.Instance.Render(Camera, color, data, interpolation, 
-					Lights.ToArray(), colliders.ToArray());
+				var lights = Entities.Where(e => e is Light).Select(e => e as Light).ToArray();
+
+				Renderer.Instance.Render(Camera, color, data, interpolation, lights, colliders.ToArray());
 			}
 
 			// entities
-			foreach (var entity in StaticEntities)
-				(entity as IRenderable)?.Render(Camera, interpolation);
-			foreach (var entity in DynamicEntities)
+			foreach (var entity in Entities)
 				(entity as IRenderable)?.Render(Camera, interpolation);
 
 			// foreground layers
-			RenderLayers(CurrentLevel.ForegroundLayers, layerOffset, interpolation);
+			RenderLayers(CurrentLevel.ForegroundLayers, layerOffset);
 
 			// debug
 			if (Settings.Current.GetDebug(DebugSetting.MovementHistory))
-				RenderEntityHistory(interpolation);
+				RenderTrackedData(interpolation);
 			if (Settings.Current.GetDebug(DebugSetting.DrawAABB))
 				DrawAABBs(interpolation);
 			if (Settings.Current.GetDebug(DebugSetting.DrawVectors))
 				DrawVelocities(interpolation);
 		}
 
+		internal void AddEntity(Entity entity)
+		{
+			Entities.Add(entity);
+			if (entity is ITrackable trackableEntity)
+				TrackedEntities.Add(trackableEntity.TrackId(), new FixedQueue<TrackedData>(EntityTraceLength));
+		}
+
 		private void DrawVelocities(double interpolation)
 		{
-			foreach (var entity in DynamicEntities)
+			foreach (var entity in Entities)
 			{
-				var center = entity.InterpolatedPosition(interpolation) + entity.BoundingBox.Min + entity.BoundingBox.Size / 2;
-				Renderer.Instance.RenderLine(Camera, center, center + entity.Velocity, Color4b.Green, interpolation);
+				if (entity is DynamicEntity dynamicEntity)
+				{
+					var center = dynamicEntity.InterpolatedPosition(interpolation) + 
+						entity.BoundingBox.Min + entity.BoundingBox.Size * 0.5;
+					
+					Renderer.Instance.RenderLine(Camera, center, center + dynamicEntity.Velocity, 
+						Color4b.Green, interpolation);
+				}
 			}
 		}
 
@@ -130,18 +166,22 @@ namespace Ujeby.Plosinofka
 				Renderer.Instance.RenderRectangle(Camera, aabb, color, interpolation);
 		}
 
-		private void RenderEntityHistory(double interpolation)
+		private void RenderTrackedData(double interpolation)
 		{
-			foreach (var entityHistory in EntityHistory)
+			foreach (var trackedEntity in TrackedEntities)
 			{
-				if (entityHistory.Value.Queue.Count < 2)
+				if (trackedEntity.Value.Queue.Count < 2)
 					continue;
 
-				var color = new Color4b((uint)entityHistory.Key.GetHashCode()) { A = 0xff };
+				var color = new Color4b((uint)trackedEntity.Key.GetHashCode()) { A = 0xff };
 
-				var values = entityHistory.Value.Queue.ToArray();
+				// positions
+				var values = trackedEntity.Value.Queue.ToArray();
 				for (var i = 1; i < values.Length; i++)
-					Renderer.Instance.RenderLine(Camera, values[i - 1], values[i], color, interpolation);
+					Renderer.Instance.RenderLine(Camera, values[i - 1].Position, values[i].Position, 
+						color, interpolation);
+
+				// TODO tracked velocities
 			}
 		}
 
@@ -149,7 +189,7 @@ namespace Ujeby.Plosinofka
 		/// render multiple layers with paralax scrolling
 		/// </summary>
 		/// <param name="interpolation"></param>
-		private void RenderLayers(IEnumerable<Guid> layers, Vector2f layerOffset, double interpolation)
+		private void RenderLayers(Guid[] layers, Vector2f layerOffset)
 		{
 			foreach (var layerId in layers)
 				Renderer.Instance.RenderLayer(Camera, ResourceCache.Get<Sprite>(layerId), layerOffset);
@@ -208,9 +248,9 @@ namespace Ujeby.Plosinofka
 			return collisionFound;
 		}
 
-		public override void Destroy()
+		public static void Destroy()
 		{
-			
+			instance = null;
 		}
 	}
 }

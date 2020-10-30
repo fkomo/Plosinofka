@@ -25,10 +25,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="Content\jebko.png">
+	  <None Update="Content\Player\player1.png">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </None>
-	  <None Update="Content\jebko-data.png">
+	  <None Update="Content\Player\player1-data.png">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </None>
 	  <None Update="Content\Worlds\world1-bg-0.png">

@@ -61,6 +61,7 @@ namespace Ujeby.Plosinofka.Graphics
 
 		private Renderer()
 		{
+			// TODO screenBuffer have to be the size of Camera.View
 			var bufferSize = Vector2i.FullHD / 4;
 
 			ScreenBuffer = new ScreenBuffer

@@ -22,7 +22,7 @@ namespace Ujeby.Plosinofka.Core
 
 		public void Run()
 		{
-			var simulation = new World();
+			World.Instance.Load("world1");
 
 			var skipTicks = 1000 / Simulation.GameSpeed;
 
@@ -38,19 +38,19 @@ namespace Ujeby.Plosinofka.Core
 			var loopStart = GetElapsed();
 			while (running)
 			{
-				running = Input.Handle(simulation);
+				running = Input.Handle(World.Instance);
 				//simulation.Update();
 				//Renderer.Instance.Render(simulation, 1.0);
 
 				var loops = 0;
 				while (GetElapsed() > nextGameTick && loops < Renderer.MaxFrameSkip)
 				{
-					simulation.Update();
+					World.Instance.Update();
 					nextGameTick += skipTicks;
 					loops++;
 				}
 				var interpolation = (GetElapsed() + skipTicks - nextGameTick) / skipTicks;
-				Renderer.Instance.Render(simulation, interpolation);
+				Renderer.Instance.Render(World.Instance, interpolation);
 
 				Fps = (int)(1000.0 / (GetElapsed() - lastFrameTime));
 
@@ -63,7 +63,7 @@ namespace Ujeby.Plosinofka.Core
 
 				if (lastFrameTime - lastTitleUpdate > 500)
 				{
-					var upd = $"{ simulation.LastUpdateDuration:0.00}";
+					var upd = $"{ World.Instance.LastUpdateDuration:0.00}";
 					var render = $"{ Renderer.Instance.LastFrameDuration:0.00}";
 					var shading = $"{ (int)(Renderer.Instance.LastShadingDuration / Renderer.Instance.LastFrameDuration * 100) }";
 
@@ -78,7 +78,7 @@ namespace Ujeby.Plosinofka.Core
 			var avgFps = (int)(1000.0 / (loopDuration / Renderer.Instance.FrameCount));
 			Log.Add($"Game.Run(): gameLoop={ (int)(loopDuration / 1000)}s frames={ Renderer.Instance.FrameCount }; avgFps={ avgFps }; minFps={ (int)minFps }; maxFps={ (int)maxFps };");
 
-			simulation.Destroy();
+			World.Destroy();
 			Renderer.Destroy();
 			SDL.SDL_Quit();
 		}

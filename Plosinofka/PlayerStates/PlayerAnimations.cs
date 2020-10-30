@@ -1,11 +1,9 @@
 ﻿
 namespace Ujeby.Plosinofka
 {
-	public enum PlayerAnimations
+	public enum PlayerAnimations : int
 	{
-		Default = 0,
-
-		Idle,
+		Idle = 0,
 		Crouching,
 		WalkingRight,
 		WalkingLeft,
