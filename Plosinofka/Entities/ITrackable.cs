@@ -1,6 +1,6 @@
 ﻿using Ujeby.Plosinofka.Common;
 
-namespace Ujeby.Plosinofka.Entities
+namespace Ujeby.Plosinofka.Interfaces
 {
 	public struct TrackedData
 	{

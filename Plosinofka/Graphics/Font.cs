@@ -14,7 +14,7 @@ namespace Ujeby.Plosinofka.Graphics
 		public string SpriteId;
 
 		/// <summary></summary>
-		public Vector2i CharacterSize;
+		public Vector2i CharSize;
 
 		/// <summary></summary>
 		public Vector2i Spacing;

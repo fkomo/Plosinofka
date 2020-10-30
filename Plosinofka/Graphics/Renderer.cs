@@ -98,7 +98,7 @@ namespace Ujeby.Plosinofka.Graphics
 			CurrentFont = new Font
 			{
 				SpriteId = SpriteCache.LoadSprite($".\\Content\\font-small.png")?.Id,
-				CharacterSize = new Vector2i(3, 5),
+				CharSize = new Vector2i(3, 5),
 				Spacing = new Vector2f(1, 2),
 			};
 		}
@@ -195,12 +195,12 @@ namespace Ujeby.Plosinofka.Graphics
 				Parallel.For(0, screenBuffer.Data.Length / 4, (i, loopState) =>
 				{
 					var screen = new Vector2i(i % camera.View.X, i / camera.View.X);
-					var worldMapIndex = (cameraPosition.Y + screen.Y) * dataLayer.Size.X + cameraPosition.X + screen.X;
-					var screenIndex = ((camera.View.Y - screen.Y - 1) * camera.View.X + screen.X) * 4;
+					var wIndex = (cameraPosition.Y + screen.Y) * dataLayer.Size.X + cameraPosition.X + screen.X;
+					var sIndex = ((camera.View.Y - screen.Y - 1) * camera.View.X + screen.X) * 4;
 
-					if ((dataLayer.Data[worldMapIndex] & Level.ShadowReceiverMask) == Level.ShadowReceiverMask)
+					if ((dataLayer.Data[wIndex] & Level.ShadowReceiverMask) == Level.ShadowReceiverMask)
 					{
-						var tmpColor = new Color4f(colorLayer.Data[worldMapIndex]);
+						var tmpColor = new Color4f(colorLayer.Data[wIndex]);
 						if (tmpColor.A > 0)
 						{
 							tmpColor += Shading(screen + cameraPosition, lights, occluders) * 0.5;
@@ -208,14 +208,14 @@ namespace Ujeby.Plosinofka.Graphics
 						}
 
 						var finalColor = new Color4b(tmpColor);
-						screenBuffer.Data[screenIndex + 0] = finalColor.A;
-						screenBuffer.Data[screenIndex + 1] = finalColor.B;
-						screenBuffer.Data[screenIndex + 2] = finalColor.G;
-						screenBuffer.Data[screenIndex + 3] = finalColor.R;
+						screenBuffer.Data[sIndex + 0] = finalColor.A;
+						screenBuffer.Data[sIndex + 1] = finalColor.B;
+						screenBuffer.Data[sIndex + 2] = finalColor.G;
+						screenBuffer.Data[sIndex + 3] = finalColor.R;
 					}
 					else
 						// just alpha channel
-						screenBuffer.Data[screenIndex] = 0;
+						screenBuffer.Data[sIndex] = 0;
 				});
 
 				// copy to data to unmanaged array
@@ -322,7 +322,7 @@ namespace Ujeby.Plosinofka.Graphics
 		{
 			// TODO render font with variable character width
 			var font = CurrentFont;
-			var viewScale = CurrentWindowSize / camera.InterpolatedView(interpolation);
+			var scale = CurrentWindowSize / camera.InterpolatedView(interpolation);
 			var fontSprite = SpriteCache.Get(font.SpriteId);
 
 			var sourceRect = new SDL.SDL_Rect();
@@ -332,15 +332,15 @@ namespace Ujeby.Plosinofka.Graphics
 			{
 				var charIndex = (int)text[i] - 32;
 
-				sourceRect.x = font.CharacterSize.X * charIndex;
+				sourceRect.x = font.CharSize.X * charIndex;
 				sourceRect.y = 0;
-				sourceRect.w = font.CharacterSize.X;
-				sourceRect.h = font.CharacterSize.Y;
+				sourceRect.w = font.CharSize.X;
+				sourceRect.h = font.CharSize.Y;
 
-				destinationRect.x = (int)(screenPosition.X + i * (font.CharacterSize.X + font.Spacing.X) * viewScale.X);
-				destinationRect.y = (int)(screenPosition.Y * viewScale.Y);
-				destinationRect.w = (int)(font.CharacterSize.X * viewScale.X);
-				destinationRect.h = (int)(font.CharacterSize.Y * viewScale.Y);
+				destinationRect.x = (int)(screenPosition.X + i * (font.CharSize.X + font.Spacing.X) * scale.X);
+				destinationRect.y = (int)(screenPosition.Y * scale.Y);
+				destinationRect.w = (int)(font.CharSize.X * scale.X);
+				destinationRect.h = (int)(font.CharSize.Y * scale.Y);
 
 				SDL.SDL_RenderCopy(RendererPtr, fontSprite.TexturePtr, ref sourceRect, ref destinationRect);
 			}

@@ -1,5 +1,4 @@
 ﻿using Ujeby.Plosinofka.Common;
-using Ujeby.Plosinofka.Entities;
 
 namespace Ujeby.Plosinofka.Interfaces
 {

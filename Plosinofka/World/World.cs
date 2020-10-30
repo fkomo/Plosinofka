@@ -182,7 +182,7 @@ namespace Ujeby.Plosinofka
 					Renderer.Instance.RenderLine(Camera, values[i - 1].Position, values[i].Position, 
 						color, interpolation);
 
-				// TODO tracked velocities
+				// TODO render tracked velocities ?
 			}
 		}
 
