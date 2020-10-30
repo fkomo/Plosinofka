@@ -26,7 +26,7 @@ namespace Ujeby.Plosinofka
 			}
 		}
 
-		private const double SneakingStep = BaseStep * 0.5;
+		private const double SneakingStep = BaseStep * 0.2;
 
 		public Sneaking(InputButton button) : base(button)
 		{

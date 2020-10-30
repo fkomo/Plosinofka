@@ -25,7 +25,6 @@ namespace Ujeby.Plosinofka.Entities
 			PlayerMovementStateEnum.Idle;
 
 		private readonly string DefaultSpriteId;
-		private readonly string DefaultDataSpriteId;
 
 		static Player()
 		{
@@ -40,10 +39,8 @@ namespace Ujeby.Plosinofka.Entities
 
 			var dataSprite = SpriteCache.LoadSprite($".\\Content\\Player\\player-data.png");
 			if (dataSprite != null)
-			{
-				DefaultDataSpriteId = dataSprite.Id;
 				BoundingBox = AABB.Union(AABB.FromMap(dataSprite, Level.ShadowCasterMask));
-			}
+
 			else if (sprite != null)
 				BoundingBox = new AABB(Vector2f.Zero, (Vector2f)sprite.Size);
 

@@ -32,16 +32,23 @@ namespace Ujeby.Plosinofka.Graphics
 
 	public class SpriteCache
 	{
+		/// <summary>
+		/// spriteId vs image path
+		/// </summary>
 		private static readonly Dictionary<string, string> LibraryFileMap = new Dictionary<string, string>()
 		{
 			{ DecalsEnum.DustParticlesLeft.ToString() , ".\\Content\\Effects\\DustParticlesLeft.png" },
 			{ DecalsEnum.DustParticlesRight.ToString() , ".\\Content\\Effects\\DustParticlesRight.png" },
 
+			{ PlayerAnimations.Idle.ToString() , ".\\Content\\Player\\player-idle.png" },
 			{ PlayerAnimations.WalkingLeft.ToString() , ".\\Content\\Player\\player-walkingLeft.png" },
 			{ PlayerAnimations.WalkingRight.ToString() , ".\\Content\\Player\\player-walkingRight.png" },
 
 		};
 
+		/// <summary>
+		/// spriteId vs Sprite
+		/// </summary>
 		private static Dictionary<string, Sprite> Library = new Dictionary<string, Sprite>();
 
 		public static Sprite LoadSprite(string filename, string id = null)
@@ -58,7 +65,7 @@ namespace Ujeby.Plosinofka.Graphics
 
 			Library.Add(sprite.Id, sprite);
 
-			Log.Add($"LoadSprite('{ filename }'): { id }; { (int)(Game.GetElapsed() - start) }ms");
+			Log.Add($"LoadSprite('{ filename }'): { sprite.Id }; { (int)(Game.GetElapsed() - start) }ms");
 			return sprite;
 		}
 

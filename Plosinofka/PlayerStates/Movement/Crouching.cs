@@ -27,6 +27,12 @@ namespace Ujeby.Plosinofka
 		public override void Update(Player player, IRayCasting environment)
 		{
 			base.Update(player, environment);
+
+			// nothing to do
+			player.Velocity.X = 0;
+
+			if (!player.StandingOnGround(environment))
+				player.ChangeMovement(new Falling());
 		}
 	}
 }

@@ -33,7 +33,7 @@ namespace Ujeby.Plosinofka
 		public Vector2f Direction { get; protected set; }
 		public bool Freeze { get; protected set; } = false;
 
-		protected PlayerMovementState()
+		protected PlayerMovementState() : this(Vector2f.Zero)
 		{
 		}
 
