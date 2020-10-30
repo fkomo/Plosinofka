@@ -14,9 +14,11 @@ namespace Ujeby.Plosinofka.Graphics
 		public byte[] Data;
 		public IntPtr SdlSurfacePtr;
 		public IntPtr UnmanagedPtr;
+
+		public bool Allocated() => Data != null && UnmanagedPtr != IntPtr.Zero && SdlSurfacePtr != IntPtr.Zero;
 	}
 
-	internal class Renderer
+	internal class Renderer : Singleton<Renderer>
 	{
 		public IntPtr WindowPtr { get; private set; }
 		public IntPtr RendererPtr { get; private set; }
@@ -36,45 +38,43 @@ namespace Ujeby.Plosinofka.Graphics
 		public double LastShadingDuration { get; internal set; }
 		public long FrameCount { get; private set; } = 0;
 
-		private static Renderer instance = new Renderer();
-		public static Renderer Instance 
-		{ 
-			get 
-			{
-				if (instance == null)
-					instance = new Renderer();
-
-				return instance; 
-			} 
-		}
-
-		private List<Text> TextBuffer = new List<Text>();
-		private Guid FontSpriteId;
-
-		private void LoadFont(string fontName)
-		{
-			// TODO better font sprite (3x5 for character is not enough for lowercase)
-			FontSpriteId = ResourceCache.LoadFontSprite(fontName, new Vector2i(3, 5)).Id;
-		}
+		private Font CurrentFont;
 
 		private ScreenBuffer ScreenBuffer;
 
-		private Renderer()
+		public Renderer()
 		{
-			// TODO screenBuffer have to be the size of Camera.View
-			var bufferSize = Vector2i.FullHD / 4;
+		}
 
-			ScreenBuffer = new ScreenBuffer
-			{
-				Data = new byte[bufferSize.Area() * 4]
-			};
-			ScreenBuffer.UnmanagedPtr = Marshal.AllocHGlobal(ScreenBuffer.Data.Length);
-			ScreenBuffer.SdlSurfacePtr = SDL.SDL_CreateRGBSurfaceFrom(ScreenBuffer.UnmanagedPtr,
-				bufferSize.X, bufferSize.Y, 32, 4 * bufferSize.X,
-				0xff000000,
-				0x00ff0000,
-				0x0000ff00,
-				0x000000ff);
+		private ScreenBuffer CreateScreenBuffer(Vector2i size)
+		{
+			if (size.Area() * 4 != ScreenBuffer.Data?.Length)
+			{ 
+				// different size
+				if (ScreenBuffer.Allocated())
+				{
+					// free old buffer
+					SDL.SDL_FreeSurface(ScreenBuffer.SdlSurfacePtr);
+					Marshal.FreeHGlobal(ScreenBuffer.UnmanagedPtr);
+				}
+
+				// create new buffer
+				ScreenBuffer = new ScreenBuffer
+				{
+					Data = new byte[size.Area() * 4]
+				};
+				ScreenBuffer.UnmanagedPtr = Marshal.AllocHGlobal(ScreenBuffer.Data.Length);
+				ScreenBuffer.SdlSurfacePtr = SDL.SDL_CreateRGBSurfaceFrom(ScreenBuffer.UnmanagedPtr,
+					size.X, size.Y, 32, 4 * size.X,
+					0xff000000,
+					0x00ff0000,
+					0x0000ff00,
+					0x000000ff);
+
+				Log.Add($"Renderer.ScreenBuffer({ size })");
+			}
+
+			return ScreenBuffer;
 		}
 
 		public void Initialize(Vector2i windowSize)
@@ -94,13 +94,22 @@ namespace Ujeby.Plosinofka.Graphics
 
 			SDL.SDL_SetRenderDrawBlendMode(RendererPtr, SDL.SDL_BlendMode.SDL_BLENDMODE_ADD);
 
-			LoadFont($".\\Content\\font-small.png");
+			// TODO better font sprite (3x5 for character is not enough for lowercase)
+			CurrentFont = new Font
+			{
+				SpriteId = SpriteCache.LoadSprite($".\\Content\\font-small.png")?.Id,
+				CharacterSize = new Vector2i(3, 5),
+				Spacing = new Vector2f(1, 2),
+			};
 		}
 
 		internal static void Destroy()
 		{
-			SDL.SDL_FreeSurface(instance.ScreenBuffer.SdlSurfacePtr);
-			Marshal.FreeHGlobal(instance.ScreenBuffer.UnmanagedPtr);
+			if (instance.ScreenBuffer.Allocated())
+			{
+				SDL.SDL_FreeSurface(instance.ScreenBuffer.SdlSurfacePtr);
+				Marshal.FreeHGlobal(instance.ScreenBuffer.UnmanagedPtr);
+			}
 
 			SDL.SDL_DestroyRenderer(instance.RendererPtr);
 			SDL.SDL_DestroyWindow(instance.WindowPtr);
@@ -116,6 +125,10 @@ namespace Ujeby.Plosinofka.Graphics
 			SDL.SDL_RenderClear(RendererPtr);
 
 			simulation.Render(interpolation);
+
+			// gui text
+			RenderText(simulation.Camera, interpolation, new Vector2i(0, 0),
+				"01234567890 ABCDEFGHIJKLMONOPRSTUVWXYZ abcdefghijklmnopqrstuvwxyz +-*= []{}<>\\/'\".:,;?|_");
 
 			// display backbuffer
 			SDL.SDL_RenderPresent(RendererPtr);
@@ -133,19 +146,19 @@ namespace Ujeby.Plosinofka.Graphics
 		/// renders sprite layer on whole screen (camera view) with specified offset
 		/// </summary>
 		/// <param name="camera"></param>
-		/// <param name="layer"></param>
-		/// <param name="layerOffset"></param>
+		/// <param name="sprite"></param>
+		/// <param name="offset"></param>
 		/// <param name="interpolation"></param>
-		internal void RenderLayer(Camera camera, Sprite layer, Vector2f layerOffset)
+		internal void RenderLayer(Camera camera, Sprite sprite, Vector2f offset)
 		{
 			var sourceRect = new SDL.SDL_Rect
 			{
-				x = (int)((layer.Size.X - camera.View.X) * layerOffset.X),
-				y = (int)(layer.Size.Y - camera.View.Y - ((layer.Size.Y - camera.View.Y) * layerOffset.Y)),
+				x = (int)((sprite.Size.X - camera.View.X) * offset.X),
+				y = (int)(sprite.Size.Y - camera.View.Y - ((sprite.Size.Y - camera.View.Y) * offset.Y)),
 				w = camera.View.X,
 				h = camera.View.Y
 			};
-			SDL.SDL_RenderCopy(RendererPtr, layer.TexturePtr, ref sourceRect, IntPtr.Zero);
+			SDL.SDL_RenderCopy(RendererPtr, sprite.TexturePtr, ref sourceRect, IntPtr.Zero);
 		}
 
 		/// <summary>
@@ -157,7 +170,7 @@ namespace Ujeby.Plosinofka.Graphics
 		/// <param name="interpolation"></param>
 		/// <param name="lights"></param>
 		/// <param name="occluders"></param>
-		internal void Render(Camera camera, Sprite colorLayer, Sprite dataLayer, double interpolation,
+		internal void RenderLayer(Camera camera, double interpolation, Sprite colorLayer, Sprite dataLayer,
 			Light[] lights, AABB[] occluders)
 		{
 			var cameraPosition = camera.InterpolatedPosition(interpolation);
@@ -175,9 +188,11 @@ namespace Ujeby.Plosinofka.Graphics
 			var shadingStart = Game.GetElapsed();
 			if (dataLayer != null && Settings.Current.GetVisual(VisualSetting.Shading))
 			{
+				var screenBuffer = CreateScreenBuffer(camera.View);
+
 				// shading from dynamic lights
 				//for (var i = 0; i < ScreenBuffer.Data.Length / 4; i++)
-				Parallel.For(0, ScreenBuffer.Data.Length / 4, (i, loopState) =>
+				Parallel.For(0, screenBuffer.Data.Length / 4, (i, loopState) =>
 				{
 					var screen = new Vector2i(i % camera.View.X, i / camera.View.X);
 					var worldMapIndex = (cameraPosition.Y + screen.Y) * dataLayer.Size.X + cameraPosition.X + screen.X;
@@ -193,36 +208,40 @@ namespace Ujeby.Plosinofka.Graphics
 						}
 
 						var finalColor = new Color4b(tmpColor);
-						ScreenBuffer.Data[screenIndex + 0] = finalColor.A;
-						ScreenBuffer.Data[screenIndex + 1] = finalColor.B;
-						ScreenBuffer.Data[screenIndex + 2] = finalColor.G;
-						ScreenBuffer.Data[screenIndex + 3] = finalColor.R;
+						screenBuffer.Data[screenIndex + 0] = finalColor.A;
+						screenBuffer.Data[screenIndex + 1] = finalColor.B;
+						screenBuffer.Data[screenIndex + 2] = finalColor.G;
+						screenBuffer.Data[screenIndex + 3] = finalColor.R;
 					}
 					else
 						// just alpha channel
-						ScreenBuffer.Data[screenIndex] = 0;
+						screenBuffer.Data[screenIndex] = 0;
 				});
 
 				// copy to data to unmanaged array
-				Marshal.Copy(ScreenBuffer.Data, 0, ScreenBuffer.UnmanagedPtr,
-					ScreenBuffer.Data.Length);
+				Marshal.Copy(screenBuffer.Data, 0, screenBuffer.UnmanagedPtr,
+					screenBuffer.Data.Length);
 
 				// create texture
 				var texturePtr = SDL.SDL_CreateTextureFromSurface(Instance.RendererPtr,
-					ScreenBuffer.SdlSurfacePtr);
+					screenBuffer.SdlSurfacePtr);
 
 				// draw shading layer
 				SDL.SDL_RenderCopy(RendererPtr, texturePtr, IntPtr.Zero, IntPtr.Zero);
 				SDL.SDL_DestroyTexture(texturePtr);
 			}
 
-			// osd text
-			RenderText(camera, interpolation, new Vector2i(10, 10), "01234567890 ABCDEFGHIJKLMONOPRSTUVWXYZ abcdefghijklmnopqrstuvwxyz +-*= []{}<>\\/'\".:,;?|_");
-
 			LastShadingDuration = Game.GetElapsed() - shadingStart;
 		}
 
-		internal void RenderRectangle(Camera camera, AABB rectangle, Color4b color, double interpolation)
+		/// <summary>
+		/// render color filled aabb
+		/// </summary>
+		/// <param name="camera"></param>
+		/// <param name="rectangle"></param>
+		/// <param name="color"></param>
+		/// <param name="interpolation"></param>
+		public void RenderRectangle(Camera camera, AABB rectangle, Color4b color, double interpolation)
 		{
 			var viewScale = CurrentWindowSize / camera.InterpolatedView(interpolation);
 			var relativeToCamera = camera.RelateTo(rectangle.Min, interpolation) * viewScale;
@@ -238,7 +257,15 @@ namespace Ujeby.Plosinofka.Graphics
 			SDL.SDL_RenderFillRect(RendererPtr, ref rect);
 		}
 
-		internal void RenderLine(Camera camera, Vector2f a, Vector2f b, Color4b color, double interpolation)
+		/// <summary>
+		/// render colored line between point a and b
+		/// </summary>
+		/// <param name="camera"></param>
+		/// <param name="a"></param>
+		/// <param name="b"></param>
+		/// <param name="color"></param>
+		/// <param name="interpolation"></param>
+		public void RenderLine(Camera camera, Vector2f a, Vector2f b, Color4b color, double interpolation)
 		{
 			var viewScale = CurrentWindowSize / camera.InterpolatedView(interpolation);
 			a = camera.RelateTo(a, interpolation) * viewScale;
@@ -255,51 +282,31 @@ namespace Ujeby.Plosinofka.Graphics
 		/// </summary>
 		/// <param name="camera"></param>
 		/// <param name="spritePosition">sprite position in world (bottomLeft)</param>
-		/// <param name="sprite"></param>
+		/// <param name="sprite">width == height, if not sprite is considered as animation strip</param>
 		/// <param name="interpolation"></param>
-		internal void RenderSprite(Camera camera, double interpolation, 
-			Sprite sprite, Vector2f spritePosition)
+		public void RenderSprite(Camera camera, double interpolation, Vector2f spritePosition,
+			Sprite sprite, int frame = 0)
 		{
+			if (sprite == null)
+				return;
+
 			var viewScale = CurrentWindowSize / camera.InterpolatedView(interpolation);
 			var screenPosition = camera.RelateTo(spritePosition, interpolation) * viewScale;
-
-			var destinationRect = new SDL.SDL_Rect
-			{
-				x = (int)screenPosition.X,
-				y = (int)((camera.View.Y - sprite.Size.Y) * viewScale.Y - screenPosition.Y),
-				w = (int)(sprite.Size.X * viewScale.X),
-				h = (int)(sprite.Size.Y * viewScale.Y)
-			};
-			SDL.SDL_RenderCopy(RendererPtr, sprite.TexturePtr, IntPtr.Zero, ref destinationRect);
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="camera"></param>
-		/// <param name="sprite"></param>
-		/// <param name="frame"></param>
-		/// <param name="spritePosition"></param>
-		/// <param name="interpolation"></param>
-		internal void RenderSpriteFrame(Camera camera, double interpolation, 
-			AnimationSprite sprite, int frame, Vector2f spritePosition)
-		{
-			var viewScale = CurrentWindowSize / camera.InterpolatedView(interpolation);
-			var screenPosition = camera.RelateTo(spritePosition, interpolation) * viewScale;
+			var spriteSize = sprite.Size.Y;
 
 			var sourceRect = new SDL.SDL_Rect
 			{
-				x = sprite.FrameSize.X * frame,
+				x = spriteSize * frame,
 				y = 0,
-				w = sprite.FrameSize.X,
-				h = sprite.FrameSize.Y
+				w = spriteSize,
+				h = spriteSize
 			};
 			var destinationRect = new SDL.SDL_Rect
 			{
 				x = (int)screenPosition.X,
-				y = (int)((camera.View.Y - sprite.FrameSize.Y) * viewScale.Y - screenPosition.Y),
-				w = (int)(sprite.FrameSize.X * viewScale.X),
-				h = (int)(sprite.FrameSize.Y * viewScale.Y)
+				y = (int)((camera.View.Y - spriteSize) * viewScale.Y - screenPosition.Y),
+				w = (int)(spriteSize * viewScale.X),
+				h = (int)(spriteSize * viewScale.Y)
 			};
 			SDL.SDL_RenderCopy(RendererPtr, sprite.TexturePtr, ref sourceRect, ref destinationRect);
 		}
@@ -309,14 +316,14 @@ namespace Ujeby.Plosinofka.Graphics
 		/// </summary>
 		/// <param name="camera"></param>
 		/// <param name="interpolation"></param>
-		/// <param name="screenPosition">top-down</param>
+		/// <param name="screenPosition">topLeft corner (increasing from top to bottom)</param>
 		/// <param name="text"></param>
 		public void RenderText(Camera camera, double interpolation, Vector2i screenPosition, string text)
 		{
 			// TODO render font with variable character width
-
+			var font = CurrentFont;
 			var viewScale = CurrentWindowSize / camera.InterpolatedView(interpolation);
-			var fontSprite = ResourceCache.Get<AnimationSprite>(FontSpriteId);
+			var fontSprite = SpriteCache.Get(font.SpriteId);
 
 			var sourceRect = new SDL.SDL_Rect();
 			var destinationRect = new SDL.SDL_Rect();
@@ -325,15 +332,15 @@ namespace Ujeby.Plosinofka.Graphics
 			{
 				var charIndex = (int)text[i] - 32;
 
-				sourceRect.x = fontSprite.FrameSize.X * charIndex;
+				sourceRect.x = font.CharacterSize.X * charIndex;
 				sourceRect.y = 0;
-				sourceRect.w = fontSprite.FrameSize.X;
-				sourceRect.h = fontSprite.FrameSize.Y;
+				sourceRect.w = font.CharacterSize.X;
+				sourceRect.h = font.CharacterSize.Y;
 
-				destinationRect.x = (int)(screenPosition.X + i * (fontSprite.FrameSize.X + 1) * viewScale.X);
-				destinationRect.y = screenPosition.Y;
-				destinationRect.w = (int)(fontSprite.FrameSize.X * viewScale.X);
-				destinationRect.h = (int)(fontSprite.FrameSize.Y * viewScale.Y);
+				destinationRect.x = (int)(screenPosition.X + i * (font.CharacterSize.X + font.Spacing.X) * viewScale.X);
+				destinationRect.y = (int)(screenPosition.Y * viewScale.Y);
+				destinationRect.w = (int)(font.CharacterSize.X * viewScale.X);
+				destinationRect.h = (int)(font.CharacterSize.Y * viewScale.Y);
 
 				SDL.SDL_RenderCopy(RendererPtr, fontSprite.TexturePtr, ref sourceRect, ref destinationRect);
 			}

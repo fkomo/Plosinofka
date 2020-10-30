@@ -51,6 +51,7 @@ namespace Ujeby.Plosinofka.Core
 				}
 				var interpolation = (GetElapsed() + skipTicks - nextGameTick) / skipTicks;
 				Renderer.Instance.Render(World.Instance, interpolation);
+				// TODO render GUI
 
 				Fps = (int)(1000.0 / (GetElapsed() - lastFrameTime));
 

@@ -9,12 +9,11 @@ using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka
 {
-	public enum LevelResourceType
+	public struct Layer
 	{
-		BackgroundLayer = 0,
-		Data = 1,
-
-		Count
+		public string SpriteId;
+		public string DataSpriteId;
+		public int Depth;
 	}
 
 	/// <summary>
@@ -26,14 +25,10 @@ namespace Ujeby.Plosinofka
 	{
 		public string Name { get; protected set; }
 		public Vector2i Size { get; protected set; }
-		public Guid[] Resources = new Guid[(int)LevelResourceType.Count];
 		public AABB[] Colliders;
 
-		/// <summary>ordered from farthest to nearest</summary>
-		public Guid[] BackgroundLayers { get; protected set; }
-
-		/// <summary>ordered from farthest to nearest</summary>
-		public Guid[] ForegroundLayers { get; protected set; }
+		/// <summary>ordered array of SpriteId from farthest to nearest</summary>
+		public Layer[] Layers { get; protected set; }
 
 		public Level(string name) => Name = name;
 
@@ -44,9 +39,7 @@ namespace Ujeby.Plosinofka
 				Size = new Vector2i((int)Colliders.Max(c => c.Right), (int)Colliders.Max(c => c.Top));
 		}
 
-		/// <summary>
-		/// load level by name
-		/// </summary>
+		/// <summary></summary>
 		/// <param name="name"></param>
 		/// <returns></returns>
 		public static Level Load(string name)
@@ -55,36 +48,36 @@ namespace Ujeby.Plosinofka
 
 			var level = new Level(name);
 
-			var color = ResourceCache.LoadSprite($".\\Content\\Worlds\\{ name }-color.png");
-			level.Size = color.Size;
-			level.Resources[(int)LevelResourceType.BackgroundLayer] = color.Id;
-
-			var data = ResourceCache.LoadSprite($".\\Content\\Worlds\\{ name }-data.png");
-			level.Resources[(int)LevelResourceType.Data] = data.Id;
-			level.Colliders = AABB.FromMap(data, ShadowCasterMask);
-
-			// load background layers
-			level.BackgroundLayers = Directory.EnumerateFiles($".\\Content\\Worlds\\", $"{ name }-bg-*")
-				.OrderBy(f => f).Select(layerFile =>
+			// load layers
+			level.Layers = Directory.EnumerateFiles($".\\Content\\Worlds\\", $"{ name }-color*")
+				.Select(layerFile =>
 				{
+					var sprite = SpriteCache.LoadSprite(layerFile);
+					var layer = new Layer
+					{
+						SpriteId = sprite?.Id,
+					};
+
 					var fileInfo = new FileInfo(layerFile);
-					var layerId = Convert.ToInt32(fileInfo.Name
-						.Replace($"{ name }-bg-", string.Empty)
+					layer.Depth = Convert.ToInt32(
+						fileInfo.Name
+						.Replace($"{ name }-color", string.Empty)
 						.Replace(fileInfo.Extension, string.Empty));
-					return ResourceCache.LoadSprite(layerFile).Id;
-				}).ToArray();
 
-			// load foreground layers
-			level.ForegroundLayers = Directory.EnumerateFiles($".\\Content\\Worlds\\", $"{ name }-fg-*")
-				.OrderBy(f => f).Select(layerFile =>
-				 {
-					 var fileInfo = new FileInfo(layerFile);
-					 var layerId = Convert.ToInt32(fileInfo.Name
-						 .Replace($"{ name }-bg-", string.Empty)
-						 .Replace(fileInfo.Extension, string.Empty));
+					var dataSpriteFilename = layerFile.Replace($"{ name }-color", $"{ name }-data");
+					if (File.Exists(dataSpriteFilename))
+						layer.DataSpriteId = SpriteCache.LoadSprite(dataSpriteFilename)?.Id;
+					return layer;
 
-					 return ResourceCache.LoadSprite(layerFile).Id;
-				 }).ToArray();
+				}).OrderBy(l => l.Depth).ToArray();
+
+			var mainLayer = level.Layers.SingleOrDefault(l => l.Depth == 0);
+
+			var dataSpriteId = mainLayer.DataSpriteId;
+			if (dataSpriteId != null)
+				level.Colliders = AABB.FromMap(SpriteCache.Get(dataSpriteId), ShadowCasterMask);
+
+			level.Size = SpriteCache.Get(mainLayer.SpriteId).Size;
 
 			var elapsed = Game.GetElapsed() - start;
 			Log.Add($"Level.Load('{ name }'): { (int)elapsed }ms");
@@ -97,7 +90,7 @@ namespace Ujeby.Plosinofka
 
 		public double Trace(AABB box, Vector2f direction, out Vector2f normal)
 		{
-			// TODO not working very well in world1/room1
+			// TODO not working very well in world1/room1 - platforms are not high enough
 
 			normal = Vector2f.Zero;
 			var tMin = double.PositiveInfinity;

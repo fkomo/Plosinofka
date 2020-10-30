@@ -100,38 +100,39 @@ namespace Ujeby.Plosinofka
 		{
 			var layerOffset = Camera.InterpolatedPosition(interpolation) / (Vector2f)(CurrentLevel.Size - Camera.View);
 
-			// background layers
-			RenderLayers(CurrentLevel.BackgroundLayers, layerOffset);
-
-			// main layer
-			var color = ResourceCache.Get<Sprite>(CurrentLevel.Resources[(int)LevelResourceType.BackgroundLayer]);
-			if (color != null)
+			// render all layers, back to front
+			foreach (var layer in CurrentLevel.Layers)
 			{
-				var data = ResourceCache.Get<Sprite>(CurrentLevel.Resources[(int)LevelResourceType.Data]);
-				var playerPosition = Player.InterpolatedPosition(interpolation);
+				// main layer
+				if (layer.Depth == 0)
+				{
+					var playerPosition = Player.InterpolatedPosition(interpolation);
+					var colliders = CurrentLevel.Colliders.ToList();
+					colliders.Add(Player.BoundingBox + playerPosition);
 
-				var colliders = CurrentLevel.Colliders.ToList();
-				colliders.Add(Player.BoundingBox + playerPosition);
+					var lights = Entities.Where(e => e is Light).Select(e => e as Light).ToArray();
 
-				var lights = Entities.Where(e => e is Light).Select(e => e as Light).ToArray();
+					Renderer.Instance.RenderLayer(Camera, interpolation,
+						SpriteCache.Get(layer.SpriteId), 
+						SpriteCache.Get(layer.DataSpriteId),
+						lights, colliders.ToArray());
 
-				Renderer.Instance.Render(Camera, color, data, interpolation, lights, colliders.ToArray());
+					// entities
+					foreach (var entity in Entities)
+						(entity as IRenderable)?.Render(Camera, interpolation);
+
+					// debug
+					if (Settings.Current.GetDebug(DebugSetting.MovementHistory))
+						RenderTrackedData(interpolation);
+					if (Settings.Current.GetDebug(DebugSetting.DrawAABB))
+						DrawAABBs(interpolation);
+					if (Settings.Current.GetDebug(DebugSetting.DrawVectors))
+						DrawVelocities(interpolation);
+				}
+				else
+					// background/foreground layers
+					Renderer.Instance.RenderLayer(Camera, SpriteCache.Get(layer.SpriteId), layerOffset);
 			}
-
-			// entities
-			foreach (var entity in Entities)
-				(entity as IRenderable)?.Render(Camera, interpolation);
-
-			// foreground layers
-			RenderLayers(CurrentLevel.ForegroundLayers, layerOffset);
-
-			// debug
-			if (Settings.Current.GetDebug(DebugSetting.MovementHistory))
-				RenderTrackedData(interpolation);
-			if (Settings.Current.GetDebug(DebugSetting.DrawAABB))
-				DrawAABBs(interpolation);
-			if (Settings.Current.GetDebug(DebugSetting.DrawVectors))
-				DrawVelocities(interpolation);
 		}
 
 		internal void AddEntity(Entity entity)
@@ -191,8 +192,6 @@ namespace Ujeby.Plosinofka
 		/// <param name="interpolation"></param>
 		private void RenderLayers(Guid[] layers, Vector2f layerOffset)
 		{
-			foreach (var layerId in layers)
-				Renderer.Instance.RenderLayer(Camera, ResourceCache.Get<Sprite>(layerId), layerOffset);
 		}
 
 		public bool Solve(DynamicEntity entity, out Vector2f position, out Vector2f velocity)

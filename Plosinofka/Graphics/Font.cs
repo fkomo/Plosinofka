@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Ujeby.Plosinofka.Common;
+﻿using Ujeby.Plosinofka.Common;
 
 namespace Ujeby.Plosinofka.Graphics
 {
@@ -12,6 +11,12 @@ namespace Ujeby.Plosinofka.Graphics
 
 	public class Font
 	{
+		public string SpriteId;
 
+		/// <summary></summary>
+		public Vector2i CharacterSize;
+
+		/// <summary></summary>
+		public Vector2i Spacing;
 	}
 }

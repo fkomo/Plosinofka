@@ -13,7 +13,7 @@ namespace Ujeby.Plosinofka.Entities
 		private PlayerAction Action = new PlayerAction();
 		private PlayerMovement Movement = new PlayerMovement();
 
-		public PlayerMovementStateEnum AllowedMovements =
+		public PlayerMovementStateEnum AllowedMovement =
 			PlayerMovementStateEnum.Walking |
 			PlayerMovementStateEnum.Jumping |
 			PlayerMovementStateEnum.Running |
@@ -24,58 +24,46 @@ namespace Ujeby.Plosinofka.Entities
 			PlayerMovementStateEnum.Falling |
 			PlayerMovementStateEnum.Idle;
 
-		private static Guid DefaultSprite;
-		private static Guid DefaultDataSprite;
-		private static Guid[] Animations = new Guid[(int)PlayerAnimations.Count];
+		private readonly string DefaultSpriteId;
+		private readonly string DefaultDataSpriteId;
 
 		static Player()
 		{
-			LoadSprites();
 		}
 
 		public Player(string name)
 		{
 			Name = name;
 
-			var dataSprite = ResourceCache.Get<Sprite>(DefaultDataSprite);
+			var sprite = SpriteCache.LoadSprite($".\\Content\\Player\\player.png");
+			DefaultSpriteId = sprite?.Id;
+
+			var dataSprite = SpriteCache.LoadSprite($".\\Content\\Player\\player-data.png");
 			if (dataSprite != null)
+			{
+				DefaultDataSpriteId = dataSprite.Id;
 				BoundingBox = AABB.Union(AABB.FromMap(dataSprite, Level.ShadowCasterMask));
-			else
-				BoundingBox = new AABB(Vector2f.Zero, (Vector2f)ResourceCache.Get<Sprite>(DefaultSprite).Size);
+			}
+			else if (sprite != null)
+				BoundingBox = new AABB(Vector2f.Zero, (Vector2f)sprite.Size);
 
 			ChangeMovement(new Idle());
-		}
-
-		/// <summary>
-		/// load all player sprites
-		/// </summary>
-		private static void LoadSprites()
-		{
-			DefaultSprite = ResourceCache.LoadAnimationSprite($".\\Content\\Player\\player1.png").Id;
-			DefaultDataSprite = ResourceCache.LoadSprite($".\\Content\\Player\\player1-data.png").Id;
-
-			for (var i = 1; i < (int)PlayerAnimations.Count; i++)
-			{
-				var id = ((PlayerAnimations)i).ToString().ToLower();
-				var sprite = ResourceCache.LoadAnimationSprite($".\\Content\\Player\\player1-{ id }.png");
-				if (sprite != null)
-					Animations[i] = sprite.Id;
-			}
 		}
 
 		public void Render(Camera camera, double interpolation)
 		{
 			var position = InterpolatedPosition(interpolation);
 
-			var animation = ResourceCache.Get<AnimationSprite>(Animations[(int)Movement.Current.Animation]);
+			var animation = SpriteCache.Get(Movement.Current.Animation.ToString());
 			if (animation != null)
-				Renderer.Instance.RenderSpriteFrame(camera, interpolation,
-					animation, Movement.Current.AnimationFrame % animation.Frames, position);
-
+			{
+				var frames = animation.Size.X / animation.Size.Y;
+				Renderer.Instance.RenderSprite(camera, interpolation, position,
+					animation, Movement.Current.AnimationFrame % frames);
+			}
 			else
 				// animation not found, use default sprite
-				Renderer.Instance.RenderSpriteFrame(camera, interpolation,
-					ResourceCache.Get<AnimationSprite>(DefaultSprite), 0, position);
+				Renderer.Instance.RenderSprite(camera, interpolation, position, SpriteCache.Get(DefaultSpriteId));
 		}
 
 		public void HandleButton(InputButton button, InputButtonState state)
@@ -86,10 +74,16 @@ namespace Ujeby.Plosinofka.Entities
 		public override void Update(IRayCasting env)
 		{
 			// add dust particles effect when motion direction is changed
-			if (StandingOnGround(env) && PreviousVelocity.X > 0 && !(Velocity.X > 0))
-				World.Instance.AddEntity(new Decal(
-						Decals.Library[DecalsEnum.DustParticlesRight], 
+			if (StandingOnGround(env))
+			{ 
+				if (PreviousVelocity.X > 0 && !(Velocity.X > 0))
+					World.Instance.AddEntity(new Decal(DecalsEnum.DustParticlesRight, 
 						new Vector2f(Position.X + BoundingBox.Right, Position.Y)));
+
+				else if (PreviousVelocity.X < 0 && !(Velocity.X < 0))
+					World.Instance.AddEntity(new Decal(DecalsEnum.DustParticlesLeft,
+						new Vector2f(Position.X + BoundingBox.Left, Position.Y)));
+			}
 
 			// save state before update
 			PreviousPosition = Position;
@@ -115,7 +109,7 @@ namespace Ujeby.Plosinofka.Entities
 		/// <param name="newState"></param>
 		public void ChangeMovement(PlayerMovementState newState, bool pushCurrentState = true)
 		{
-			if (AllowedMovements.HasFlag(newState.AsEnum))
+			if (AllowedMovement.HasFlag(newState.AsEnum))
 				Movement.Change(Movement.Current, newState, pushCurrentState);
 		}
 

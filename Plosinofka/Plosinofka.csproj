@@ -25,22 +25,22 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="Content\Player\player1.png">
+	  <None Update="Content\Player\player.png">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </None>
-	  <None Update="Content\Player\player1-data.png">
+	  <None Update="Content\Player\player-data.png">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </None>
-	  <None Update="Content\Worlds\world1-bg-0.png">
+	  <None Update="Content\Worlds\world1-color-2.png">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </None>
-	  <None Update="Content\Worlds\world1-bg-1.png">
+	  <None Update="Content\Worlds\world1-color-1.png">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </None>
-	  <None Update="Content\Worlds\world1-color.png">
+	  <None Update="Content\Worlds\world1-color0.png">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </None>
-	  <None Update="Content\Worlds\world1-data.png">
+	  <None Update="Content\Worlds\world1-data0.png">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>

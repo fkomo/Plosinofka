@@ -6,20 +6,15 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Ujeby.Plosinofka.Common;
 using Ujeby.Plosinofka.Core;
+using Ujeby.Plosinofka.Entities;
 
 namespace Ujeby.Plosinofka.Graphics
 {
-	public class Resource
+	public class Sprite
 	{
-		/// <summary>
-		/// internal resource id
-		/// </summary>
-		public Guid Id = Guid.NewGuid();
-	}
+		/// <summary>internal sprite id</summary>
+		public string Id;
 
-	public class Sprite : Resource
-	{
-		/// <summary></summary>
 		public string Filename;
 
 		/// <summary>width x height</summary>
@@ -35,73 +30,35 @@ namespace Ujeby.Plosinofka.Graphics
 		public IntPtr TexturePtr = IntPtr.Zero;
 	}
 
-	/// <summary>
-	/// horizontal collection of animation frames in single sprite
-	/// </summary>
-	public class AnimationSprite : Sprite
+	public class SpriteCache
 	{
-		/// <summary>frame count</summary>
-		public int Frames => Size.X / FrameSize.X;
+		private static readonly Dictionary<string, string> LibraryFileMap = new Dictionary<string, string>()
+		{
+			{ DecalsEnum.DustParticlesLeft.ToString() , ".\\Content\\Effects\\DustParticlesLeft.png" },
+			{ DecalsEnum.DustParticlesRight.ToString() , ".\\Content\\Effects\\DustParticlesRight.png" },
 
-		/// <summary></summary>
-		public Vector2i FrameSize;
-	}
+			{ PlayerAnimations.WalkingLeft.ToString() , ".\\Content\\Player\\player-walkingLeft.png" },
+			{ PlayerAnimations.WalkingRight.ToString() , ".\\Content\\Player\\player-walkingRight.png" },
 
-	class ResourceCache
-	{
-		private static Dictionary<Guid, Resource> Resources = new Dictionary<Guid, Resource>();
+		};
 
-		public static Sprite LoadSprite(string filename)
+		private static Dictionary<string, Sprite> Library = new Dictionary<string, Sprite>();
+
+		public static Sprite LoadSprite(string filename, string id = null)
 		{
 			var start = Game.GetElapsed();
 
 			var sprite = new Sprite
 			{
-				Filename = filename
+				Filename = filename,
+				Id = id ?? Guid.NewGuid().ToString("N"),
 			};
 			if (!LoadImage(filename, out sprite.TexturePtr, out sprite.Size, out sprite.Data))
 				return null;
 
-			Resources.Add(sprite.Id, sprite);
+			Library.Add(sprite.Id, sprite);
 
-			Log.Add($"LoadSprite('{ filename }'): { (int)(Game.GetElapsed() - start) }ms");
-			return sprite;
-		}
-
-		public static AnimationSprite LoadFontSprite(string filename, Vector2i charSize)
-		{
-			var start = Game.GetElapsed();
-
-			var fontSprite = new AnimationSprite
-			{
-				Filename = filename,
-				FrameSize = charSize
-			};
-			if (!LoadImage(filename, out fontSprite.TexturePtr, out fontSprite.Size, out fontSprite.Data))
-				return null;
-
-			Resources.Add(fontSprite.Id, fontSprite);
-
-			Log.Add($"LoadFontSprite('{ filename }'): { fontSprite.Frames } characters; { (int)(Game.GetElapsed() - start) }ms");
-			return fontSprite;
-		}
-
-		public static Sprite LoadAnimationSprite(string filename)
-		{
-			var start = Game.GetElapsed();
-
-			var sprite = new AnimationSprite
-			{
-				Filename = filename,
-			};
-			if (!LoadImage(filename, out sprite.TexturePtr, out sprite.Size, out sprite.Data))
-				return null;
-
-			sprite.FrameSize = new Vector2i(sprite.Size.Y, sprite.Size.Y);
-
-			Resources.Add(sprite.Id, sprite);
-
-			Log.Add($"LoadAnimationSprite('{ filename }'): { sprite.Frames } frames; { (int)(Game.GetElapsed() - start) }ms");
+			Log.Add($"LoadSprite('{ filename }'): { id }; { (int)(Game.GetElapsed() - start) }ms");
 			return sprite;
 		}
 
@@ -156,21 +113,26 @@ namespace Ujeby.Plosinofka.Graphics
 		public static void Destroy()
 		{
 			// free sdl textures
-			foreach (Sprite texture in Resources.Values.Where(r => (r as Sprite)?.TexturePtr != IntPtr.Zero))
-				SDL.SDL_DestroyTexture(texture.TexturePtr);
+			foreach (var sprite in Library.Values.Where(s => s.TexturePtr != IntPtr.Zero))
+				SDL.SDL_DestroyTexture(sprite.TexturePtr);
 
-			Resources.Clear();
+			Library.Clear();
 		}
 
-		internal static T Get<T>(Guid resourceId) where T : Resource
+		internal static Sprite Get(string id)
 		{
-			if (resourceId == Guid.Empty)
-				return default;
+			if (string.IsNullOrEmpty(id))
+				return null;
 
-			if (!Resources.TryGetValue(resourceId, out Resource resource))
-				Log.Add($"WARNING | Resource({ resourceId }) not found");
+			if (!Library.TryGetValue(id, out Sprite sprite))
+			{
+				if (!LibraryFileMap.TryGetValue(id, out string filename))
+					return null;
+					
+				return LoadSprite(filename, id);
+			}
 
-			return (T)resource;
+			return sprite;
 		}
 	}
 }
