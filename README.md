@@ -2,9 +2,11 @@
 
 retro/pixel"art" 2d platformer
 
-# required SDL2 libraries
-./3rd
-	libpng16-16.dll
-	SDL2.dll
-	SDL2_image.dll
-	zlib1.dll
+## required SDL2 ibraries
+
+https://www.libsdl.org/download-2.0.php
+
+* 	./3rd/libpng16-16.dll
+* 	./3rd/SDL2.dll
+* 	./3rd/SDL2_image.dll
+* 	./3rd/zlib1.dll
