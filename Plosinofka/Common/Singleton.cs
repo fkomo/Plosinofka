@@ -1,6 +1,6 @@
 ﻿namespace Ujeby.Plosinofka.Common
 {
-	internal class Singleton<T> where T : new()
+	public class Singleton<T> where T : new()
 	{
 		/// <summary>instance of type T</summary>
 		protected static T instance;

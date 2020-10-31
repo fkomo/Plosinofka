@@ -12,12 +12,12 @@
 	<ItemGroup>
 		<None Remove="Content\player-color.png" />
 		<None Remove="Content\player-data.png" />
-		<None Remove="Content\Worlds\color-test.png" />
-		<None Remove="Content\Worlds\player.png" />
-		<None Remove="Content\Worlds\world1-collision.bmp" />
-		<None Remove="Content\Worlds\world1-collision.png" />
-		<None Remove="Content\Worlds\world1.bmp" />
-		<None Remove="Content\Worlds\world2-collision.png" />
+		<None Remove="Content\World\color-test.png" />
+		<None Remove="Content\World\player.png" />
+		<None Remove="Content\World\world1-collision.bmp" />
+		<None Remove="Content\World\world1-collision.png" />
+		<None Remove="Content\World\world1.bmp" />
+		<None Remove="Content\World\world2-collision.png" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -31,16 +31,16 @@
 	  <None Update="Content\Player\player-data.png">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </None>
-	  <None Update="Content\Worlds\world1-color-2.png">
+	  <None Update="Content\World\Level0\color-2.png">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </None>
-	  <None Update="Content\Worlds\world1-color-1.png">
+	  <None Update="Content\World\Level0\color-1.png">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </None>
-	  <None Update="Content\Worlds\world1-color0.png">
+	  <None Update="Content\World\Level0\color0.png">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </None>
-	  <None Update="Content\Worlds\world1-data0.png">
+	  <None Update="Content\World\Level0\data0.png">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>

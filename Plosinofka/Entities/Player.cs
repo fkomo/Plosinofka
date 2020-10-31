@@ -39,7 +39,7 @@ namespace Ujeby.Plosinofka.Entities
 
 			var dataSprite = SpriteCache.LoadSprite($".\\Content\\Player\\player-data.png");
 			if (dataSprite != null)
-				BoundingBox = AABB.Union(AABB.FromMap(dataSprite, Level.ShadowCasterMask));
+				BoundingBox = AABB.Union(AABB.FromMap(dataSprite, Level.ObstacleMask));
 
 			else if (sprite != null)
 				BoundingBox = new AABB(Vector2f.Zero, (Vector2f)sprite.Size);
@@ -74,11 +74,11 @@ namespace Ujeby.Plosinofka.Entities
 			if (StandingOnGround(env))
 			{ 
 				if (PreviousVelocity.X > 0 && !(Velocity.X > 0))
-					World.Instance.AddEntity(new Decal(DecalsEnum.DustParticlesRight, 
+					Simulation.Instance.AddEntity(new Decal(DecalsEnum.DustParticlesRight, 
 						new Vector2f(Position.X + BoundingBox.Right, Position.Y)));
 
 				else if (PreviousVelocity.X < 0 && !(Velocity.X < 0))
-					World.Instance.AddEntity(new Decal(DecalsEnum.DustParticlesLeft,
+					Simulation.Instance.AddEntity(new Decal(DecalsEnum.DustParticlesLeft,
 						new Vector2f(Position.X + BoundingBox.Left, Position.Y)));
 			}
 

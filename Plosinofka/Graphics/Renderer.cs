@@ -198,7 +198,7 @@ namespace Ujeby.Plosinofka.Graphics
 					var wIndex = (cameraPosition.Y + screen.Y) * dataLayer.Size.X + cameraPosition.X + screen.X;
 					var sIndex = ((camera.View.Y - screen.Y - 1) * camera.View.X + screen.X) * 4;
 
-					if ((dataLayer.Data[wIndex] & Level.ShadowReceiverMask) == Level.ShadowReceiverMask)
+					if ((dataLayer.Data[wIndex] & Level.ShadeMask) == Level.ShadeMask)
 					{
 						var tmpColor = new Color4f(colorLayer.Data[wIndex]);
 						if (tmpColor.A > 0)

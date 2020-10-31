@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Ujeby.Plosinofka.Common;
 using Ujeby.Plosinofka.Core;
+using Ujeby.Plosinofka.Entities;
 using Ujeby.Plosinofka.Graphics;
 using Ujeby.Plosinofka.Interfaces;
 
@@ -17,26 +17,25 @@ namespace Ujeby.Plosinofka
 	}
 
 	/// <summary>
-	/// level properties
-	/// - minimum block size 8x8
-	/// -
 	/// </summary>
 	public class Level : IRayCasting, IRayMarching
 	{
-		public string Name { get; protected set; }
-		public Vector2i Size { get; protected set; }
-		public AABB[] Colliders;
+		public string Name { get; private set; }
+		public Vector2i Size { get; private set; }
+		public AABB[] Obstacles { get; private set; }
+		public Vector2f Start { get; private set; }
+		public AABB Finish { get; private set; }
 
 		/// <summary>ordered array of SpriteId from farthest to nearest</summary>
-		public Layer[] Layers { get; protected set; }
+		public Layer[] Layers { get; private set; }
 
 		public Level(string name) => Name = name;
 
-		public Level(string name, AABB[] colliders) : this(name)
+		public Level(string name, AABB[] obstacles) : this(name)
 		{
-			Colliders = colliders;
-			if (colliders.Any())
-				Size = new Vector2i((int)Colliders.Max(c => c.Right), (int)Colliders.Max(c => c.Top));
+			Obstacles = obstacles;
+			if (obstacles.Any())
+				Size = new Vector2i((int)Obstacles.Max(c => c.Right), (int)Obstacles.Max(c => c.Top));
 		}
 
 		/// <summary></summary>
@@ -48,8 +47,11 @@ namespace Ujeby.Plosinofka
 
 			var level = new Level(name);
 
+			level.Start = new Vector2f(64, 32);
+			level.Finish = new AABB(new Vector2f(1000, 0), new Vector2f(1100, 100));
+
 			// load layers
-			level.Layers = Directory.EnumerateFiles($".\\Content\\Worlds\\", $"{ name }-color*")
+			level.Layers = Directory.EnumerateFiles($".\\Content\\Worlds\\{ name }\\", $"color*.png")
 				.Select(layerFile =>
 				{
 					var sprite = SpriteCache.LoadSprite(layerFile);
@@ -61,12 +63,13 @@ namespace Ujeby.Plosinofka
 					var fileInfo = new FileInfo(layerFile);
 					layer.Depth = Convert.ToInt32(
 						fileInfo.Name
-						.Replace($"{ name }-color", string.Empty)
+						.Replace($"color", string.Empty)
 						.Replace(fileInfo.Extension, string.Empty));
 
-					var dataSpriteFilename = layerFile.Replace($"{ name }-color", $"{ name }-data");
+					var dataSpriteFilename = layerFile.Replace($"color", $"data");
 					if (File.Exists(dataSpriteFilename))
 						layer.DataSpriteId = SpriteCache.LoadSprite(dataSpriteFilename)?.Id;
+
 					return layer;
 
 				}).OrderBy(l => l.Depth).ToArray();
@@ -75,9 +78,12 @@ namespace Ujeby.Plosinofka
 
 			var dataSpriteId = mainLayer.DataSpriteId;
 			if (dataSpriteId != null)
-				level.Colliders = AABB.FromMap(SpriteCache.Get(dataSpriteId), ShadowCasterMask);
+				level.Obstacles = AABB.FromMap(SpriteCache.Get(dataSpriteId), ObstacleMask);
 
 			level.Size = SpriteCache.Get(mainLayer.SpriteId).Size;
+
+			Simulation.Instance.AddEntity(
+				new Light(new Color4f(1.0, 1.0, 0.8), 32.0) { Position = new Vector2f(300, 250) });
 
 			var elapsed = Game.GetElapsed() - start;
 			Log.Add($"Level.Load('{ name }'): { (int)elapsed }ms");
@@ -85,8 +91,8 @@ namespace Ujeby.Plosinofka
 			return level;
 		}
 
-		public const uint ShadowCasterMask = 0xff0000ff;
-		public const uint ShadowReceiverMask = 0xff00ff00;
+		public const uint ObstacleMask = 0xff0000ff;
+		public const uint ShadeMask = 0xff00ff00;
 
 		public double Trace(AABB box, Vector2f direction, out Vector2f normal)
 		{
@@ -164,7 +170,7 @@ namespace Ujeby.Plosinofka
 			normal = Vector2f.Zero;
 
 			var tMin = double.PositiveInfinity;
-			foreach (var bb in Colliders)
+			foreach (var bb in Obstacles)
 			{
 				var t = bb.Trace(origin, direction, out Vector2f n);
 				if (t < tMin)
@@ -179,7 +185,7 @@ namespace Ujeby.Plosinofka
 
 		public bool Overlaps(AABB box)
 		{
-			foreach (var bb in Colliders)
+			foreach (var bb in Obstacles)
 				if (bb.Overlaps(box))
 					return true;
 
@@ -192,7 +198,7 @@ namespace Ujeby.Plosinofka
 		private double Distance(Vector2f point)
 		{
 			var tMin = double.PositiveInfinity;
-			foreach (ISdf sdf in Colliders)
+			foreach (ISdf sdf in Obstacles)
 			{
 				var t = sdf.Distance(point);
 				if (t < tMin)
@@ -207,7 +213,7 @@ namespace Ujeby.Plosinofka
 			normal = Vector2f.Zero;
 
 			// only raymarch sdf's which are in front of ray
-			var validColliders = Colliders.Where(c =>
+			var obstacles = Obstacles.Where(c =>
 			{
 				if (direction.X < 0 && origin.X < c.Left)
 					return false;
@@ -225,13 +231,13 @@ namespace Ujeby.Plosinofka
 			}).ToArray();
 
 			var tMin = double.PositiveInfinity;
-			if (validColliders.Length > 0)
+			if (obstacles.Length > 0)
 			{
 				var t = 0.0;
 				for (var step = 0; step < RAY_MARCH_MAX_STEPS; step++)
 				{
 					var p = origin + direction * t;
-					var d = Colliders.Min(c => c.Distance(p));
+					var d = Obstacles.Min(c => c.Distance(p));
 
 					if (Math.Abs(d) < RAY_MARCH_EPSILON)
 					{
@@ -257,8 +263,8 @@ namespace Ujeby.Plosinofka
 
 		public bool Intersect(Ray ray, double from = 0, double to = double.PositiveInfinity)
 		{
-			foreach (var collider in Colliders)
-				if (collider.Intersects(ray, from, to))
+			foreach (var obstacle in Obstacles)
+				if (obstacle.Intersects(ray, from, to))
 					return true;
 
 			return false;

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Ujeby.Plosinofka.Common;
 using Ujeby.Plosinofka.Core;
@@ -9,19 +8,27 @@ using Ujeby.Plosinofka.Interfaces;
 
 namespace Ujeby.Plosinofka
 {
-	public class World : Simulation, ICollisionSolver
+	public class Simulation : Singleton<Simulation>, ICollisionSolver
 	{
-		public static World instance = null;
-		public static World Instance
-		{
-			get
-			{
-				if (instance == null)
-					instance = new World();
+		/// <summary>
+		/// desired number of updates per second
+		/// </summary>
+		public const int GameSpeed = 50;
+		public static Vector2f Gravity = new Vector2f(0.0, -1);
+		public static double TerminalFallingVelocity = -16;
 
-				return instance;
-			}
-		}
+		public double LastUpdateDuration { get; protected set; }
+
+		protected List<Entity> Entities = new List<Entity>();
+
+		/// <summary>
+		/// Entity.Name vs its TrackedData
+		/// </summary>
+		protected Dictionary<string, FixedQueue<TrackedData>> TrackedEntities =
+			new Dictionary<string, FixedQueue<TrackedData>>();
+
+		public Player Player { get; protected set; }
+		public Camera Camera { get; protected set; }
 
 		private Level CurrentLevel;
 
@@ -30,27 +37,35 @@ namespace Ujeby.Plosinofka
 		/// </summary>
 		public const int EntityTraceLength = 256;
 
-		private World()
+		public Simulation()
 		{
+			// create player
+			Player = new Player("player1");
 		}
 
-		public void Load(string name)
+		public void Initialize()
 		{
-			CurrentLevel = Level.Load(name);
+			LoadLevel("Level0");
+		}
 
-			Player = new Player("player1");
-			Player.Position = new Vector2f(64, 32);
+		private void LoadLevel(string levelName)
+		{
+			// clear old entities
+			Entities.Clear();
+			TrackedEntities.Clear();
+
+			// load level
+			CurrentLevel = Level.Load(levelName);
+
+			// set player position
+			Player.Position = CurrentLevel.Start;
 			AddEntity(Player);
-
-			var light = new Light(new Color4f(1.0, 1.0, 0.8), 32.0);
-			light.Position = new Vector2f(300, 250);
-			AddEntity(light);
 
 			// make camera view smaller then window size for more pixelated look!
 			Camera = new Camera(Vector2i.FullHD / 4, CurrentLevel.Size, Player);
 		}
 
-		public override void Update()
+		public void Update()
 		{
 			var start = Game.GetElapsed();
 
@@ -87,16 +102,7 @@ namespace Ujeby.Plosinofka
 			LastUpdateDuration = Game.GetElapsed() - start;
 		}
 
-		private void Track(ITrackable entity)
-		{
-			if (entity == null)
-				return;	
-
-			if (TrackedEntities.ContainsKey(entity.TrackId()))
-				TrackedEntities[entity.TrackId()].Add(entity.Track());
-		}
-
-		public override void Render(double interpolation)
+		public void Render(double interpolation)
 		{
 			var layerOffset = Camera.InterpolatedPosition(interpolation) / (Vector2f)(CurrentLevel.Size - Camera.View);
 
@@ -107,13 +113,13 @@ namespace Ujeby.Plosinofka
 				if (layer.Depth == 0)
 				{
 					var playerPosition = Player.InterpolatedPosition(interpolation);
-					var colliders = CurrentLevel.Colliders.ToList();
+					var colliders = CurrentLevel.Obstacles.ToList();
 					colliders.Add(Player.BoundingBox + playerPosition);
 
 					var lights = Entities.Where(e => e is Light).Select(e => e as Light).ToArray();
 
 					Renderer.Instance.RenderLayer(Camera, interpolation,
-						SpriteCache.Get(layer.SpriteId), 
+						SpriteCache.Get(layer.SpriteId),
 						SpriteCache.Get(layer.DataSpriteId),
 						lights, colliders.ToArray());
 
@@ -133,6 +139,15 @@ namespace Ujeby.Plosinofka
 					// background/foreground layers
 					Renderer.Instance.RenderLayer(Camera, SpriteCache.Get(layer.SpriteId), layerOffset);
 			}
+		}
+
+		private void Track(ITrackable entity)
+		{
+			if (entity == null)
+				return;	
+
+			if (TrackedEntities.ContainsKey(entity.TrackId()))
+				TrackedEntities[entity.TrackId()].Add(entity.Track());
 		}
 
 		internal void AddEntity(Entity entity)
@@ -159,7 +174,7 @@ namespace Ujeby.Plosinofka
 
 		private void DrawAABBs(double interpolation)
 		{
-			var aabbs = CurrentLevel.Colliders.ToList();
+			var aabbs = CurrentLevel.Obstacles.ToList();
 			aabbs.Add(Player.BoundingBox + Player.InterpolatedPosition(interpolation));
 
 			var color = new Color4b(0xff, 0x00, 0x00, 0xaf);
@@ -184,14 +199,6 @@ namespace Ujeby.Plosinofka
 
 				// TODO render tracked velocities ?
 			}
-		}
-
-		/// <summary>
-		/// render multiple layers with paralax scrolling
-		/// </summary>
-		/// <param name="interpolation"></param>
-		private void RenderLayers(Guid[] layers, Vector2f layerOffset)
-		{
 		}
 
 		public bool Solve(DynamicEntity entity, out Vector2f position, out Vector2f velocity)
@@ -230,7 +237,7 @@ namespace Ujeby.Plosinofka
 					else 
 						remainingVelocity.X = 0;
 
-					Log.Add($"World.CollisionSolved({ entity }, bb={ entityBox }): t={ t }; position={ position }; velocity={ velocity }; remainingVelocity={ remainingVelocity }");
+					//Log.Add($"Simulation.CollisionSolved({ entity }, bb={ entityBox }): t={ t }; position={ position }; velocity={ velocity }; remainingVelocity={ remainingVelocity }");
 
 					if (velocity == Vector2f.Zero) // or better just close to zero ?
 						break; // solved - nowhere to move
