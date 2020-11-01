@@ -1,4 +1,5 @@
 ﻿using SDL2;
+using System;
 using System.Diagnostics;
 using Ujeby.Plosinofka.Common;
 using Ujeby.Plosinofka.Graphics;
@@ -50,6 +51,9 @@ namespace Ujeby.Plosinofka.Core
 					loops++;
 				}
 				var interpolation = (GetElapsed() + skipTicks - nextGameTick) / skipTicks;
+				// TODO interpolation should be always betwen 0-1 ?
+				interpolation = Math.Clamp(interpolation, 0, 1);
+
 				Renderer.Instance.Render(Simulation.Instance, interpolation);
 				// TODO render GUI
 
@@ -76,8 +80,8 @@ namespace Ujeby.Plosinofka.Core
 			}
 
 			var loopDuration = (GetElapsed() - loopStart);
-			var avgFps = (int)(1000.0 / (loopDuration / Renderer.Instance.FrameCount));
-			Log.Add($"Game.Run(): gameLoop={ (int)(loopDuration / 1000)}s frames={ Renderer.Instance.FrameCount }; avgFps={ avgFps }; minFps={ (int)minFps }; maxFps={ (int)maxFps };");
+			var avgFps = (int)(1000.0 / (loopDuration / Renderer.Instance.FramesRendered));
+			Log.Add($"Game.Run(): gameLoop={ (int)(loopDuration / 1000)}s frames={ Renderer.Instance.FramesRendered }; avgFps={ avgFps }; minFps={ (int)minFps }; maxFps={ (int)maxFps };");
 
 			Simulation.Destroy();
 			Renderer.Destroy();

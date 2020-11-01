@@ -1,8 +1,11 @@
 ﻿using SDL2;
 using System.Collections.Generic;
+using System.Linq;
 using Ujeby.Plosinofka;
 using Ujeby.Plosinofka.Common;
 using Ujeby.Plosinofka.Entities;
+using Ujeby.Plosinofka.Graphics;
+using Ujeby.Plosinofka.Interfaces;
 
 namespace UjebyTest
 {
@@ -154,7 +157,7 @@ namespace UjebyTest
 					h = -(int)TmpBox.Size.Y,
 				};
 
-				if (TestLevel.Overlaps(TmpBox))
+				if (TestLevel.Overlap(TmpBox))
 				{
 					title += " overlaps |";
 					SDL.SDL_SetRenderDrawColor(Program.RendererPtr, 0xff, 0x00, 0x00, 0xff);
@@ -252,15 +255,14 @@ namespace UjebyTest
 				directions[i] = new Vector2f(Program.Rng.NextDouble() - 0.5, Program.Rng.NextDouble() - 0.5)
 					.Normalize();
 
-			var bb = new AABB(new Vector2f(space / -8), new Vector2f(space / -8) + new Vector2f(space / 4));
-			var level = new Ujeby.Plosinofka.Level("test-room", new AABB[]
-				{
-					bb,
-				});
+			var objects = new AABB[]
+			{
+				new AABB(new Vector2f(space / -8), new Vector2f(space / -8) + new Vector2f(space / 4))
+			}.Select(a => a as ISdf).ToArray();
 
 			var start = Program.Elapsed();
 			for (var i = 0; i < n; i++)
-				level.RayMarch(origins[i], directions[i], out Vector2f normal);
+				RayMarching.Distance(objects, origins[i], directions[i], out Vector2f normal);
 
 			Log.Add($"AABB.RayMarch({ n }): { (n / (Program.Elapsed() - start) / 1000.0):0.00}M per second");
 		}

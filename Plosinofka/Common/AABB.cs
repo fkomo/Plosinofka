@@ -288,7 +288,7 @@ namespace Ujeby.Plosinofka.Common
 					var p = y * map.Size.X + x;
 
 					// skip if point is already in another collider
-					if (FindCollider(colliders, x, y, out AABB oldCollider))
+					if (Find(colliders, x, y, out AABB oldCollider))
 						x += (int)oldCollider.Size.X - 1;
 
 					else if ((map.Data[p] & mask) == mask)
@@ -333,18 +333,20 @@ namespace Ujeby.Plosinofka.Common
 			return colliders.ToArray();
 		}
 
-		private static bool FindCollider(List<AABB> colliders, int x, int y, out AABB oldCollider)
+		private static bool Find(List<AABB> aabbs, int x, int y, out AABB match)
 		{
-			oldCollider = default;
+			match = default;
 
-			foreach (var collider in colliders)
-				if (collider.Inside(x, y))
+			foreach (var aabb in aabbs)
+				if (aabb.Inside(x, y))
 				{
-					oldCollider = collider;
+					match = aabb;
 					return true;
 				}
 
 			return false;
 		}
+
+		public AABB GetAABB() => this;
 	}
 }

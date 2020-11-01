@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Ujeby.Plosinofka.Common;
 using Ujeby.Plosinofka.Core;
 using Ujeby.Plosinofka.Entities;
@@ -104,7 +106,10 @@ namespace Ujeby.Plosinofka
 
 		public void Render(double interpolation)
 		{
-			var layerOffset = Camera.InterpolatedPosition(interpolation) / (Vector2f)(CurrentLevel.Size - Camera.View);
+			// camera view
+			var view = Camera.InterpolatedView(interpolation);
+			// parallax scrolling for background/foreground layers
+			var parallax = view.Min / (CurrentLevel.Size - view.Size);
 
 			// render all layers, back to front
 			foreach (var layer in CurrentLevel.Layers)
@@ -112,16 +117,17 @@ namespace Ujeby.Plosinofka
 				// main layer
 				if (layer.Depth == 0)
 				{
-					var playerPosition = Player.InterpolatedPosition(interpolation);
-					var colliders = CurrentLevel.Obstacles.ToList();
-					colliders.Add(Player.BoundingBox + playerPosition);
+					Renderer.Instance.RenderLayer(view, layer);
 
-					var lights = Entities.Where(e => e is Light).Select(e => e as Light).ToArray();
+					if (layer.DataMapId != null)
+					{
+						var obstacles = CurrentLevel.Obstacles.ToList();
+						obstacles.Add(Player.BoundingBox + Player.InterpolatedPosition(interpolation));
 
-					Renderer.Instance.RenderLayer(Camera, interpolation,
-						SpriteCache.Get(layer.SpriteId),
-						SpriteCache.Get(layer.DataSpriteId),
-						lights, colliders.ToArray());
+						Renderer.Instance.RenderLayer(view, layer,
+							Entities.Where(e => e is Light).Select(e => e as Light).ToArray(),
+							obstacles.ToArray());
+					}
 
 					// entities
 					foreach (var entity in Entities)
@@ -133,11 +139,16 @@ namespace Ujeby.Plosinofka
 					if (Settings.Current.GetDebug(DebugSetting.DrawAABB))
 						DrawAABBs(interpolation);
 					if (Settings.Current.GetDebug(DebugSetting.DrawVectors))
-						DrawVelocities(interpolation);
+					{
+						DrawDebugVectors(interpolation);
+					}
 				}
 				else
+				{
 					// background/foreground layers
-					Renderer.Instance.RenderLayer(Camera, SpriteCache.Get(layer.SpriteId), layerOffset);
+					var parallaxView = new AABB(Vector2f.Zero, view.Size) + ((Vector2f)layer.Size - view.Size) * parallax;
+					Renderer.Instance.RenderLayer(parallaxView, layer);
+				}
 			}
 		}
 
@@ -157,8 +168,10 @@ namespace Ujeby.Plosinofka
 				TrackedEntities.Add(trackableEntity.TrackId(), new FixedQueue<TrackedData>(EntityTraceLength));
 		}
 
-		private void DrawVelocities(double interpolation)
+		private void DrawDebugVectors(double interpolation)
 		{
+			var view = Camera.InterpolatedView(interpolation);
+
 			foreach (var entity in Entities)
 			{
 				if (entity is DynamicEntity dynamicEntity)
@@ -166,24 +179,27 @@ namespace Ujeby.Plosinofka
 					var center = dynamicEntity.InterpolatedPosition(interpolation) + 
 						entity.BoundingBox.Min + entity.BoundingBox.Size * 0.5;
 					
-					Renderer.Instance.RenderLine(Camera, center, center + dynamicEntity.Velocity, 
-						Color4b.Green, interpolation);
+					Renderer.Instance.RenderLine(view, center, center + dynamicEntity.Velocity, Color4b.Green);
 				}
 			}
 		}
 
 		private void DrawAABBs(double interpolation)
 		{
+			var view = Camera.InterpolatedView(interpolation);
+
 			var aabbs = CurrentLevel.Obstacles.ToList();
 			aabbs.Add(Player.BoundingBox + Player.InterpolatedPosition(interpolation));
 
 			var color = new Color4b(0xff, 0x00, 0x00, 0xaf);
 			foreach (var aabb in aabbs)
-				Renderer.Instance.RenderRectangle(Camera, aabb, color, interpolation);
+				Renderer.Instance.RenderRectangle(view, aabb, color);
 		}
 
 		private void RenderTrackedData(double interpolation)
 		{
+			var view = Camera.InterpolatedView(interpolation);
+
 			foreach (var trackedEntity in TrackedEntities)
 			{
 				if (trackedEntity.Value.Queue.Count < 2)
@@ -194,8 +210,7 @@ namespace Ujeby.Plosinofka
 				// positions
 				var values = trackedEntity.Value.Queue.ToArray();
 				for (var i = 1; i < values.Length; i++)
-					Renderer.Instance.RenderLine(Camera, values[i - 1].Position, values[i].Position, 
-						color, interpolation);
+					Renderer.Instance.RenderLine(view, values[i - 1].Position, values[i].Position, color);
 
 				// TODO render tracked velocities ?
 			}

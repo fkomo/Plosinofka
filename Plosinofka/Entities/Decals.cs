@@ -39,7 +39,10 @@ namespace Ujeby.Plosinofka.Entities
 		public void Render(Camera camera, double interpolation)
 		{
 			if (AnimationFrame < FrameCount)
-				Renderer.Instance.RenderSprite(camera, interpolation, Position, sprite, AnimationFrame);
+			{
+				var view = camera.InterpolatedView(interpolation);
+				Renderer.Instance.RenderSprite(view, sprite, Position, frame:AnimationFrame);
+			}
 		}
 
 		public override void Update(IRayCasting environment)

@@ -1,5 +1,4 @@
-﻿using System;
-using Ujeby.Plosinofka.Common;
+﻿using Ujeby.Plosinofka.Common;
 using Ujeby.Plosinofka.Graphics;
 using Ujeby.Plosinofka.Interfaces;
 
@@ -49,18 +48,18 @@ namespace Ujeby.Plosinofka.Entities
 
 		public void Render(Camera camera, double interpolation)
 		{
+			var view = camera.InterpolatedView(interpolation);
 			var position = InterpolatedPosition(interpolation);
 
 			var animation = SpriteCache.Get(Movement.Current.Animation.ToString());
 			if (animation != null)
 			{
 				var frames = animation.Size.X / animation.Size.Y;
-				Renderer.Instance.RenderSprite(camera, interpolation, position,
-					animation, Movement.Current.AnimationFrame % frames);
+				Renderer.Instance.RenderSprite(view, animation, position, frame:Movement.Current.AnimationFrame % frames);
 			}
 			else
 				// animation not found, use default sprite
-				Renderer.Instance.RenderSprite(camera, interpolation, position, SpriteCache.Get(DefaultSpriteId));
+				Renderer.Instance.RenderSprite(view, SpriteCache.Get(DefaultSpriteId), position);
 		}
 
 		public void HandleButton(InputButton button, InputButtonState state)

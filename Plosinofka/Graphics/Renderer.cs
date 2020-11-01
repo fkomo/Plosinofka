@@ -36,7 +36,7 @@ namespace Ujeby.Plosinofka.Graphics
 		public const int MaxFrameSkip = 5;
 		public double LastFrameDuration { get; internal set; }
 		public double LastShadingDuration { get; internal set; }
-		public long FrameCount { get; private set; } = 0;
+		public long FramesRendered { get; private set; } = 0;
 
 		private Font CurrentFont;
 
@@ -49,7 +49,7 @@ namespace Ujeby.Plosinofka.Graphics
 		private ScreenBuffer CreateScreenBuffer(Vector2i size)
 		{
 			if (size.Area() * 4 != ScreenBuffer.Data?.Length)
-			{ 
+			{
 				// different size
 				if (ScreenBuffer.Allocated())
 				{
@@ -127,13 +127,13 @@ namespace Ujeby.Plosinofka.Graphics
 			simulation.Render(interpolation);
 
 			// gui text
-			RenderText(simulation.Camera, interpolation, new Vector2i(0, 0),
+			RenderText(simulation.Camera.InterpolatedView(interpolation), new Vector2i(0, 0),
 				"01234567890 ABCDEFGHIJKLMONOPRSTUVWXYZ abcdefghijklmnopqrstuvwxyz +-*= []{}<>\\/'\".:,;?|_");
 
 			// display backbuffer
 			SDL.SDL_RenderPresent(RendererPtr);
 
-			FrameCount++;
+			FramesRendered++;
 			LastFrameDuration = Game.GetElapsed() - start;
 		}
 
@@ -143,67 +143,50 @@ namespace Ujeby.Plosinofka.Graphics
 		}
 
 		/// <summary>
-		/// renders sprite layer on whole screen (camera view) with specified offset
-		/// </summary>
-		/// <param name="camera"></param>
-		/// <param name="sprite"></param>
-		/// <param name="offset"></param>
-		/// <param name="interpolation"></param>
-		internal void RenderLayer(Camera camera, Sprite sprite, Vector2f offset)
-		{
-			var sourceRect = new SDL.SDL_Rect
-			{
-				x = (int)((sprite.Size.X - camera.View.X) * offset.X),
-				y = (int)(sprite.Size.Y - camera.View.Y - ((sprite.Size.Y - camera.View.Y) * offset.Y)),
-				w = camera.View.X,
-				h = camera.View.Y
-			};
-			SDL.SDL_RenderCopy(RendererPtr, sprite.TexturePtr, ref sourceRect, IntPtr.Zero);
-		}
-
-		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="camera"></param>
-		/// <param name="color"></param>
-		/// <param name="dataLayer"></param>
-		/// <param name="interpolation"></param>
-		/// <param name="lights"></param>
-		/// <param name="occluders"></param>
-		internal void RenderLayer(Camera camera, double interpolation, Sprite colorLayer, Sprite dataLayer,
-			Light[] lights, AABB[] occluders)
+		/// <param name="layer"></param>
+		/// <param name="view"></param>
+		internal void RenderLayer(AABB view, Layer layer)
 		{
-			var cameraPosition = camera.InterpolatedPosition(interpolation);
+			var colorSprite = SpriteCache.Get(layer.ColorMapId);
 
-			// draw color layer
 			var sourceRect = new SDL.SDL_Rect
 			{
-				x = cameraPosition.X,
-				y = colorLayer.Size.Y - camera.View.Y - cameraPosition.Y, // because sdl surface starts at topleft
-				w = camera.View.X,
-				h = camera.View.Y
+				x = (int)view.Left,
+				y = (int)(colorSprite.Size.Y - view.Top),
+				w = (int)view.Size.X,
+				h = (int)view.Size.Y
 			};
-			SDL.SDL_RenderCopy(RendererPtr, colorLayer.TexturePtr, ref sourceRect, IntPtr.Zero);
 
+			SDL.SDL_RenderCopy(RendererPtr, colorSprite.TexturePtr, ref sourceRect, IntPtr.Zero);
+		}
+
+		internal void RenderLayer(AABB view, Layer layer, Light[] lights, AABB[] obstacles)
+		{
 			var shadingStart = Game.GetElapsed();
-			if (dataLayer != null && Settings.Current.GetVisual(VisualSetting.Shading))
+
+			if (Settings.Current.GetVisual(VisualSetting.Shading) && layer.DataMapId != null)
 			{
-				var screenBuffer = CreateScreenBuffer(camera.View);
+				var data = SpriteCache.Get(layer.DataMapId);
+				var color = SpriteCache.Get(layer.ColorMapId);
+
+				var screenBuffer = CreateScreenBuffer(view.Size);
 
 				// shading from dynamic lights
 				//for (var i = 0; i < ScreenBuffer.Data.Length / 4; i++)
 				Parallel.For(0, screenBuffer.Data.Length / 4, (i, loopState) =>
 				{
-					var screen = new Vector2i(i % camera.View.X, i / camera.View.X);
-					var wIndex = (cameraPosition.Y + screen.Y) * dataLayer.Size.X + cameraPosition.X + screen.X;
-					var sIndex = ((camera.View.Y - screen.Y - 1) * camera.View.X + screen.X) * 4;
+					var screen = new Vector2i(i % (int)view.Size.X, i / (int)view.Size.X);
+					var wIndex = ((int)view.Bottom + screen.Y) * data.Size.X + (int)view.Left + screen.X;
+					var sIndex = (((int)view.Size.Y - screen.Y - 1) * (int)view.Size.X + screen.X) * 4;
 
-					if ((dataLayer.Data[wIndex] & Level.ShadeMask) == Level.ShadeMask)
+					if ((data.Data[wIndex] & Level.ShadeMask) == Level.ShadeMask)
 					{
-						var tmpColor = new Color4f(colorLayer.Data[wIndex]);
+						var tmpColor = new Color4f(color.Data[wIndex]);
 						if (tmpColor.A > 0)
 						{
-							tmpColor += Shading(screen + cameraPosition, lights, occluders) * 0.5;
+							tmpColor += RayTracer.Shade(screen + view.Min, lights, obstacles) * 0.5;
 							//tmpColor = tmpColor.GammaCorrection();
 						}
 
@@ -216,19 +199,18 @@ namespace Ujeby.Plosinofka.Graphics
 					else
 						// just alpha channel
 						screenBuffer.Data[sIndex] = 0;
-				});
+				}
+				);
 
 				// copy to data to unmanaged array
-				Marshal.Copy(screenBuffer.Data, 0, screenBuffer.UnmanagedPtr,
-					screenBuffer.Data.Length);
+				Marshal.Copy(screenBuffer.Data, 0, screenBuffer.UnmanagedPtr, screenBuffer.Data.Length);
 
 				// create texture
-				var texturePtr = SDL.SDL_CreateTextureFromSurface(Instance.RendererPtr,
-					screenBuffer.SdlSurfacePtr);
+				var texture = SDL.SDL_CreateTextureFromSurface(Instance.RendererPtr, screenBuffer.SdlSurfacePtr);
 
 				// draw shading layer
-				SDL.SDL_RenderCopy(RendererPtr, texturePtr, IntPtr.Zero, IntPtr.Zero);
-				SDL.SDL_DestroyTexture(texturePtr);
+				SDL.SDL_RenderCopy(RendererPtr, texture, IntPtr.Zero, IntPtr.Zero);
+				SDL.SDL_DestroyTexture(texture);
 			}
 
 			LastShadingDuration = Game.GetElapsed() - shadingStart;
@@ -240,18 +222,17 @@ namespace Ujeby.Plosinofka.Graphics
 		/// <param name="camera"></param>
 		/// <param name="rectangle"></param>
 		/// <param name="color"></param>
-		/// <param name="interpolation"></param>
-		public void RenderRectangle(Camera camera, AABB rectangle, Color4b color, double interpolation)
+		public void RenderRectangle(AABB view, AABB rectangle, Color4b color)
 		{
-			var viewScale = CurrentWindowSize / camera.InterpolatedView(interpolation);
-			var relativeToCamera = camera.RelateTo(rectangle.Min, interpolation) * viewScale;
+			var scale = CurrentWindowSize / view.Size;
+			var screenSpace = (rectangle.Min - view.Min) * scale;
 
 			var rect = new SDL.SDL_Rect
 			{
-				x = (int)relativeToCamera.X,
-				y = (int)((camera.View.Y - rectangle.Size.Y) * viewScale.Y - relativeToCamera.Y),
-				w = (int)(rectangle.Size.X * viewScale.X),
-				h = (int)(rectangle.Size.Y * viewScale.Y),
+				x = (int)screenSpace.X,
+				y = (int)((view.Size.Y - rectangle.Size.Y) * scale.Y - screenSpace.Y),
+				w = (int)(rectangle.Size.X * scale.X),
+				h = (int)(rectangle.Size.Y * scale.Y),
 			};
 			SDL.SDL_SetRenderDrawColor(RendererPtr, color.R, color.G, color.B, color.A);
 			SDL.SDL_RenderFillRect(RendererPtr, ref rect);
@@ -260,38 +241,37 @@ namespace Ujeby.Plosinofka.Graphics
 		/// <summary>
 		/// render colored line between point a and b
 		/// </summary>
-		/// <param name="camera"></param>
+		/// <param name="view"></param>
 		/// <param name="a"></param>
 		/// <param name="b"></param>
 		/// <param name="color"></param>
-		/// <param name="interpolation"></param>
-		public void RenderLine(Camera camera, Vector2f a, Vector2f b, Color4b color, double interpolation)
+		public void RenderLine(AABB view, Vector2f a, Vector2f b, Color4b color)
 		{
-			var viewScale = CurrentWindowSize / camera.InterpolatedView(interpolation);
-			a = camera.RelateTo(a, interpolation) * viewScale;
-			b = camera.RelateTo(b, interpolation) * viewScale;
+			var scale = CurrentWindowSize / view.Size;
+
+			// line points in screen space
+			a = (a - view.Min) * scale;
+			b = (b - view.Min) * scale;
 
 			SDL.SDL_SetRenderDrawColor(RendererPtr, color.R, color.G, color.B, color.A);
 			SDL.SDL_RenderDrawLine(RendererPtr,
-				(int)a.X, (int)(camera.View.Y * viewScale.Y - a.Y),
-				(int)b.X, (int)(camera.View.Y * viewScale.Y - b.Y));
+				(int)a.X, (int)(view.Size.Y * scale.Y - a.Y),
+				(int)b.X, (int)(view.Size.Y * scale.Y - b.Y));
 		}
 
 		/// <summary>
 		/// render sprite to screen
 		/// </summary>
-		/// <param name="camera"></param>
-		/// <param name="spritePosition">sprite position in world (bottomLeft)</param>
+		/// <param name="view"></param>
 		/// <param name="sprite">width == height, if not sprite is considered as animation strip</param>
-		/// <param name="interpolation"></param>
-		public void RenderSprite(Camera camera, double interpolation, Vector2f spritePosition,
-			Sprite sprite, int frame = 0)
+		/// <param name="spritePosition">sprite position in world (bottomLeft)</param>
+		public void RenderSprite(AABB view, Sprite sprite, Vector2f spritePosition, int frame = 0)
 		{
 			if (sprite == null)
 				return;
 
-			var viewScale = CurrentWindowSize / camera.InterpolatedView(interpolation);
-			var screenPosition = camera.RelateTo(spritePosition, interpolation) * viewScale;
+			var scale = CurrentWindowSize / view.Size;
+			var screenSpace = (spritePosition - view.Min) * scale;
 			var spriteSize = sprite.Size.Y;
 
 			var sourceRect = new SDL.SDL_Rect
@@ -303,10 +283,10 @@ namespace Ujeby.Plosinofka.Graphics
 			};
 			var destinationRect = new SDL.SDL_Rect
 			{
-				x = (int)screenPosition.X,
-				y = (int)((camera.View.Y - spriteSize) * viewScale.Y - screenPosition.Y),
-				w = (int)(spriteSize * viewScale.X),
-				h = (int)(spriteSize * viewScale.Y)
+				x = (int)screenSpace.X,
+				y = (int)((view.Size.Y - spriteSize) * scale.Y - screenSpace.Y),
+				w = (int)(spriteSize * scale.X),
+				h = (int)(spriteSize * scale.Y)
 			};
 			SDL.SDL_RenderCopy(RendererPtr, sprite.TexturePtr, ref sourceRect, ref destinationRect);
 		}
@@ -315,15 +295,15 @@ namespace Ujeby.Plosinofka.Graphics
 		/// 
 		/// </summary>
 		/// <param name="camera"></param>
-		/// <param name="interpolation"></param>
-		/// <param name="screenPosition">topLeft corner (increasing from top to bottom)</param>
+		/// <param name="position">topLeft corner (increasing from top to bottom)</param>
 		/// <param name="text"></param>
-		public void RenderText(Camera camera, double interpolation, Vector2i screenPosition, string text)
+		public void RenderText(AABB view, Vector2i position, string text)
 		{
 			// TODO render font with variable character width
 			var font = CurrentFont;
-			var scale = CurrentWindowSize / camera.InterpolatedView(interpolation);
 			var fontSprite = SpriteCache.Get(font.SpriteId);
+
+			var scale = CurrentWindowSize / view.Size;
 
 			var sourceRect = new SDL.SDL_Rect();
 			var destinationRect = new SDL.SDL_Rect();
@@ -337,40 +317,13 @@ namespace Ujeby.Plosinofka.Graphics
 				sourceRect.w = font.CharSize.X;
 				sourceRect.h = font.CharSize.Y;
 
-				destinationRect.x = (int)(screenPosition.X + i * (font.CharSize.X + font.Spacing.X) * scale.X);
-				destinationRect.y = (int)(screenPosition.Y * scale.Y);
+				destinationRect.x = (int)(position.X + i * (font.CharSize.X + font.Spacing.X) * scale.X);
+				destinationRect.y = (int)(position.Y * scale.Y);
 				destinationRect.w = (int)(font.CharSize.X * scale.X);
 				destinationRect.h = (int)(font.CharSize.Y * scale.Y);
 
 				SDL.SDL_RenderCopy(RendererPtr, fontSprite.TexturePtr, ref sourceRect, ref destinationRect);
 			}
-		}
-
-		private Color4f Shading(Vector2i pixel, Light[] lights, AABB[] occluders)
-		{
-			var origin = (Vector2f)pixel;
-			var result = Color4f.Black;
-			foreach (var light in lights)
-			{
-				var lightDistance = (light.Position - origin).Length();
-				var ray = new Ray(origin, light.Position - origin);
-
-				var occluded = false;
-				foreach (var occluder in occluders)
-				{
-					if (occluder.Intersects(ray, to: lightDistance))
-					{
-						occluded = true;
-						break;
-					}
-				}
-				if (occluded)
-					continue;
-
-				result += light.Color * (light.Intensity / (lightDistance));
-			}
-
-			return result;
 		}
 	}
 }
