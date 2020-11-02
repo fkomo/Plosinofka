@@ -94,7 +94,11 @@ namespace Ujeby.Plosinofka
 			level.Size = SpriteCache.Get(mainLayer.ColorMapId).Size;
 
 			Simulation.Instance.AddEntity(
-				new Light(new Color4f(1.0, 1.0, 0.8), 32.0) { Position = new Vector2f(300, 250) });
+				new Light(new Color4f(1.0, 0.2, 0.2), 10.0) { Position = new Vector2f(160, 160) });
+			Simulation.Instance.AddEntity(
+				new Light(new Color4f(0.2, 1.0, 0.2), 10.0) { Position = new Vector2f(380, 180) });
+			Simulation.Instance.AddEntity(
+				new Light(new Color4f(0.2, 0.2, 1.0), 10.0) { Position = new Vector2f(170, 80) });
 
 			var elapsed = Game.GetElapsed() - start;
 			Log.Add($"Level.Load('{ name }'): { (int)elapsed }ms");

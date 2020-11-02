@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Ujeby.Plosinofka.Common;
 using Ujeby.Plosinofka.Core;
 using Ujeby.Plosinofka.Entities;
@@ -23,21 +21,12 @@ namespace Ujeby.Plosinofka
 
 		protected List<Entity> Entities = new List<Entity>();
 
-		/// <summary>
-		/// Entity.Name vs its TrackedData
-		/// </summary>
-		protected Dictionary<string, FixedQueue<TrackedData>> TrackedEntities =
-			new Dictionary<string, FixedQueue<TrackedData>>();
-
 		public Player Player { get; protected set; }
 		public Camera Camera { get; protected set; }
 
 		private Level CurrentLevel;
 
-		/// <summary>
-		/// number of past records of entity properties (position, ...)
-		/// </summary>
-		public const int EntityTraceLength = 256;
+		private DebugData DebugData = new DebugData();
 
 		public Simulation()
 		{
@@ -54,7 +43,7 @@ namespace Ujeby.Plosinofka
 		{
 			// clear old entities
 			Entities.Clear();
-			TrackedEntities.Clear();
+			DebugData.Clear();
 
 			// load level
 			CurrentLevel = Level.Load(levelName);
@@ -74,12 +63,7 @@ namespace Ujeby.Plosinofka
 			// remove obsolete entities
 			for (var i = Entities.Count - 1; i >= 0; i--)
 				if ((Entities[i] as IDestroyable)?.Obsolete() == true)
-				{
-					if (Entities[i] is ITrackable trackedEntity)
-						TrackedEntities.Remove(trackedEntity.TrackId());
-
 					Entities.RemoveAt(i);
-				}
 
 			// update all entities
 			for (var i = Entities.Count - 1; i >= 0; i--)
@@ -94,7 +78,7 @@ namespace Ujeby.Plosinofka
 					dynamicEntity.Position = position;
 					dynamicEntity.Velocity = velocity;
 
-					Track(entity as ITrackable);
+					DebugData.TrackEntity(entity as ITrackable);
 				}
 			}
 
@@ -134,14 +118,11 @@ namespace Ujeby.Plosinofka
 						(entity as IRenderable)?.Render(Camera, interpolation);
 
 					// debug
-					if (Settings.Current.GetDebug(DebugSetting.MovementHistory))
-						RenderTrackedData(interpolation);
-					if (Settings.Current.GetDebug(DebugSetting.DrawAABB))
-						DrawAABBs(interpolation);
-					if (Settings.Current.GetDebug(DebugSetting.DrawVectors))
-					{
-						DrawDebugVectors(interpolation);
-					}
+
+					//var aabbs = CurrentLevel.Obstacles.ToList();
+					//aabbs.Add(Player.BoundingBox + Player.InterpolatedPosition(interpolation));
+
+					DebugData.Render(Camera, interpolation, Entities.ToArray(), CurrentLevel.Obstacles);
 				}
 				else
 				{
@@ -152,68 +133,10 @@ namespace Ujeby.Plosinofka
 			}
 		}
 
-		private void Track(ITrackable entity)
-		{
-			if (entity == null)
-				return;	
-
-			if (TrackedEntities.ContainsKey(entity.TrackId()))
-				TrackedEntities[entity.TrackId()].Add(entity.Track());
-		}
-
 		internal void AddEntity(Entity entity)
 		{
 			Entities.Add(entity);
-			if (entity is ITrackable trackableEntity)
-				TrackedEntities.Add(trackableEntity.TrackId(), new FixedQueue<TrackedData>(EntityTraceLength));
-		}
-
-		private void DrawDebugVectors(double interpolation)
-		{
-			var view = Camera.InterpolatedView(interpolation);
-
-			foreach (var entity in Entities)
-			{
-				if (entity is DynamicEntity dynamicEntity)
-				{
-					var center = dynamicEntity.InterpolatedPosition(interpolation) + 
-						entity.BoundingBox.Min + entity.BoundingBox.Size * 0.5;
-					
-					Renderer.Instance.RenderLine(view, center, center + dynamicEntity.Velocity, Color4b.Green);
-				}
-			}
-		}
-
-		private void DrawAABBs(double interpolation)
-		{
-			var view = Camera.InterpolatedView(interpolation);
-
-			var aabbs = CurrentLevel.Obstacles.ToList();
-			aabbs.Add(Player.BoundingBox + Player.InterpolatedPosition(interpolation));
-
-			var color = new Color4b(0xff, 0x00, 0x00, 0xaf);
-			foreach (var aabb in aabbs)
-				Renderer.Instance.RenderRectangle(view, aabb, color);
-		}
-
-		private void RenderTrackedData(double interpolation)
-		{
-			var view = Camera.InterpolatedView(interpolation);
-
-			foreach (var trackedEntity in TrackedEntities)
-			{
-				if (trackedEntity.Value.Queue.Count < 2)
-					continue;
-
-				var color = new Color4b((uint)trackedEntity.Key.GetHashCode()) { A = 0xff };
-
-				// positions
-				var values = trackedEntity.Value.Queue.ToArray();
-				for (var i = 1; i < values.Length; i++)
-					Renderer.Instance.RenderLine(view, values[i - 1].Position, values[i].Position, color);
-
-				// TODO render tracked velocities ?
-			}
+			DebugData.TrackEntity(entity as ITrackable);
 		}
 
 		public bool Solve(DynamicEntity entity, out Vector2f position, out Vector2f velocity)
