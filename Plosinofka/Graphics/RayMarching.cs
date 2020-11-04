@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
-using Ujeby.Plosinofka.Common;
-using Ujeby.Plosinofka.Interfaces;
+using Ujeby.Plosinofka.Engine.Common;
+using Ujeby.Plosinofka.Engine.Graphics;
 
-namespace Ujeby.Plosinofka.Graphics
+namespace Ujeby.Plosinofka.Game.Graphics
 {
 	public class RayMarching
 	{

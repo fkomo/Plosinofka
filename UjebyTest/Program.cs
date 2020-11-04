@@ -1,7 +1,7 @@
 ﻿using SDL2;
 using System;
 using System.Diagnostics;
-using Ujeby.Plosinofka.Common;
+using Ujeby.Plosinofka.Engine.Common;
 
 namespace UjebyTest
 {
@@ -65,6 +65,8 @@ namespace UjebyTest
 			SDL.SDL_DestroyRenderer(RendererPtr);
 			SDL.SDL_DestroyWindow(WindowPtr);
 			SDL.SDL_Quit();
+
+			Log.Add($"Destroy()");
 		}
 
 		private static byte[] CurrentKeys = new byte[(int)SDL.SDL_Scancode.SDL_NUM_SCANCODES];

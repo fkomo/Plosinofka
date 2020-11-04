@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30523.141
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plosinofka", "Plosinofka\Plosinofka.csproj", "{70DDFAFD-7064-4892-9897-936A4ADDE7B0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plosinofka.Game", "Plosinofka\Plosinofka.Game.csproj", "{70DDFAFD-7064-4892-9897-936A4ADDE7B0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UjebyTest", "UjebyTest\UjebyTest.csproj", "{453564F3-C145-4DBA-ABE3-F079B364CF9B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Plosinofka.Engine", "Plosinofka.Engine\Plosinofka.Engine.csproj", "{8B4D6A87-6192-459E-9FAF-BF52FB469CBC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{453564F3-C145-4DBA-ABE3-F079B364CF9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{453564F3-C145-4DBA-ABE3-F079B364CF9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{453564F3-C145-4DBA-ABE3-F079B364CF9B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B4D6A87-6192-459E-9FAF-BF52FB469CBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B4D6A87-6192-459E-9FAF-BF52FB469CBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B4D6A87-6192-459E-9FAF-BF52FB469CBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B4D6A87-6192-459E-9FAF-BF52FB469CBC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,18 +1,16 @@
-﻿using System;
-using Ujeby.Plosinofka.Common;
-using Ujeby.Plosinofka.Graphics;
-using Ujeby.Plosinofka.Interfaces;
+﻿using Ujeby.Plosinofka.Engine.Common;
+using Ujeby.Plosinofka.Engine.Core;
 
-namespace Ujeby.Plosinofka.Core
+namespace Ujeby.Plosinofka.Game
 {
-	public enum VisualSetting
+	internal enum VisualSetting
 	{
 		PerPixelShading,
 
 		Count,
 	}
 
-	public enum DebugSetting
+	internal enum DebugSetting
 	{
 		MovementHistory,
 		DrawAABB,

@@ -1,26 +1,14 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using Ujeby.Plosinofka.Common;
-using Ujeby.Plosinofka.Core;
-using Ujeby.Plosinofka.Entities;
-using Ujeby.Plosinofka.Graphics;
-using Ujeby.Plosinofka.Interfaces;
+using Ujeby.Plosinofka.Engine.Common;
+using Ujeby.Plosinofka.Engine.Core;
+using Ujeby.Plosinofka.Engine.Entities;
+using Ujeby.Plosinofka.Engine.Graphics;
+using Ujeby.Plosinofka.Game.Graphics;
 
-namespace Ujeby.Plosinofka
+namespace Ujeby.Plosinofka.Game
 {
-	public struct Layer
-	{
-		public string ColorMapId;
-		public string NormalMapId;
-		public string DataMapId;
-		public int Depth;
-
-		public bool Parallax;
-
-		public Vector2i Size => SpriteCache.Get(ColorMapId).Size;
-	}
-
 	/// <summary>
 	/// </summary>
 	public class Level : IRayCasting
@@ -56,7 +44,7 @@ namespace Ujeby.Plosinofka
 		/// <returns></returns>
 		public static Level Load(string name)
 		{
-			var start = Game.GetElapsed();
+			var start = Engine.Core.Game.GetElapsed();
 
 			var level = new Level(name);
 
@@ -83,6 +71,8 @@ namespace Ujeby.Plosinofka
 					if (File.Exists(dataSpriteFilename))
 						layer.DataMapId = SpriteCache.LoadSprite(dataSpriteFilename)?.Id;
 
+					layer.Size = sprite.Size;
+
 					return layer;
 
 				}).OrderBy(l => l.Depth).ToArray();
@@ -93,7 +83,7 @@ namespace Ujeby.Plosinofka
 			if (dataSpriteId != null)
 				level.Obstacles = AABB.FromMap(SpriteCache.Get(dataSpriteId), ObstacleMask);
 
-			level.Size = SpriteCache.Get(mainLayer.ColorMapId).Size;
+			level.Size = mainLayer.Size;
 
 			// layers that have different size than main layer are rendered with parallax scrolling
 			for (var i = 0; i < level.Layers.Length; i++)
@@ -106,7 +96,7 @@ namespace Ujeby.Plosinofka
 			Simulation.Instance.AddEntity(
 				new Light(new Color4f(0.2, 0.2, 1.0), 10.0) { Position = new Vector2f(170, 80) });
 
-			var elapsed = Game.GetElapsed() - start;
+			var elapsed = Engine.Core.Game.GetElapsed() - start;
 			Log.Add($"Level.Load('{ name }'): { (int)elapsed }ms");
 
 			return level;

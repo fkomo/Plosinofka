@@ -1,5 +1,5 @@
 ﻿
-namespace Ujeby.Plosinofka
+namespace Ujeby.Plosinofka.Game.PlayerStates
 {
 	public enum PlayerAnimations : int
 	{

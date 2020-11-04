@@ -1,8 +1,8 @@
 ﻿using System;
-using Ujeby.Plosinofka.Common;
-using Ujeby.Plosinofka.Entities;
+using Ujeby.Plosinofka.Engine.Common;
+using Ujeby.Plosinofka.Engine.Entities;
 
-namespace Ujeby.Plosinofka.Graphics
+namespace Ujeby.Plosinofka.Game.Graphics
 {
 	public class RayTracer
 	{

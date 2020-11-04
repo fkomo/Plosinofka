@@ -1,10 +1,10 @@
-﻿using Ujeby.Plosinofka.Interfaces;
-using Ujeby.Plosinofka.Entities;
-using Ujeby.Plosinofka.Core;
-using System;
-using Ujeby.Plosinofka.Common;
+﻿using System;
+using Ujeby.Plosinofka.Engine.Common;
+using Ujeby.Plosinofka.Engine.Core;
+using Ujeby.Plosinofka.Engine.Graphics;
+using Ujeby.Plosinofka.Game.Entities;
 
-namespace Ujeby.Plosinofka
+namespace Ujeby.Plosinofka.Game.PlayerStates
 {
 	class Diving : PlayerMovementState
 	{
@@ -18,7 +18,7 @@ namespace Ujeby.Plosinofka
 		{
 		}
 
-		public override void HandleButton(InputButton button, InputButtonState state, Player player)
+		public override void HandleButton(InputButton button, InputButtonState state, Player0 player)
 		{
 			if (state == InputButtonState.Released)
 			{
@@ -45,7 +45,7 @@ namespace Ujeby.Plosinofka
 			}
 		}
 
-		public override void Update(Player player, IRayCasting environment)
+		public override void Update(Player0 player, IRayCasting environment)
 		{
 			base.Update(player, environment);
 			
@@ -56,8 +56,7 @@ namespace Ujeby.Plosinofka
 			{
 				// air control
 				player.Velocity.X = Freeze ? 0 : Direction.X * DiveStep;
-
-				player.Velocity.Y = Math.Max((player.Velocity + Simulation.Gravity).Y, Simulation.TerminalFallingVelocity);
+				player.Velocity.Y += Simulation0.Gravity.Y;
 			}
 		}
 	}

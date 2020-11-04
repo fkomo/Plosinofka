@@ -1,9 +1,10 @@
-﻿using Ujeby.Plosinofka.Interfaces;
-using Ujeby.Plosinofka.Entities;
-using Ujeby.Plosinofka.Common;
-using Ujeby.Plosinofka.Core;
+﻿
+using Ujeby.Plosinofka.Engine.Common;
+using Ujeby.Plosinofka.Engine.Core;
+using Ujeby.Plosinofka.Engine.Graphics;
+using Ujeby.Plosinofka.Game.Entities;
 
-namespace Ujeby.Plosinofka
+namespace Ujeby.Plosinofka.Game.PlayerStates
 {
 	public enum PlayerMovementStateEnum : int
 	{
@@ -52,17 +53,17 @@ namespace Ujeby.Plosinofka
 			}
 		}
 
-		public abstract void HandleButton(InputButton button, InputButtonState state, Player player);
+		public abstract void HandleButton(InputButton button, InputButtonState state, Player0 player);
 
 		/// <summary>
 		/// base update, should be called from all inherited classes
 		/// </summary>
 		/// <param name="player"></param>
 		/// <param name="environment"></param>
-		public virtual void Update(Player player, IRayCasting environment)
+		public virtual void Update(Player0 player, IRayCasting environment)
 		{
 			// update animation frame
-			var current = Game.GetElapsed();
+			var current = Engine.Core.Game.GetElapsed();
 			if (current - LastFrameChange > AnimationFrameDelay)
 			{
 				AnimationFrame++;

@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
-using Ujeby.Plosinofka.Common;
-using Ujeby.Plosinofka.Entities;
-using Ujeby.Plosinofka.Graphics;
-using Ujeby.Plosinofka.Interfaces;
+using Ujeby.Plosinofka.Engine.Common;
+using Ujeby.Plosinofka.Engine.Entities;
+using Ujeby.Plosinofka.Engine.Graphics;
 
-namespace Ujeby.Plosinofka.Core
+namespace Ujeby.Plosinofka.Game
 {
-	class DebugData
+	internal class DebugData
 	{
 		/// <summary>
 		/// Entity.Name vs its TrackedData

@@ -4,32 +4,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Ujeby.Plosinofka.Common;
-using Ujeby.Plosinofka.Core;
-using Ujeby.Plosinofka.Entities;
+using Ujeby.Plosinofka.Engine.Common;
+using Ujeby.Plosinofka.Engine.Graphics;
+using Ujeby.Plosinofka.Game.Entities;
+using Ujeby.Plosinofka.Game.PlayerStates;
 
-namespace Ujeby.Plosinofka.Graphics
+namespace Ujeby.Plosinofka.Game.Graphics
 {
-	public class Sprite
-	{
-		/// <summary>internal sprite id</summary>
-		public string Id;
-
-		public string Filename;
-
-		/// <summary>width x height</summary>
-		public Vector2i Size;
-		
-		/// <summary>
-		/// pixel format: 0xARGB
-		/// topLeft -> bottomRight
-		/// </summary>
-		public uint[] Data;
-
-		/// <summary>sdl texture pointer</summary>
-		public IntPtr TexturePtr = IntPtr.Zero;
-	}
-
 	public class SpriteCache
 	{
 		/// <summary>
@@ -37,13 +18,12 @@ namespace Ujeby.Plosinofka.Graphics
 		/// </summary>
 		private static readonly Dictionary<string, string> LibraryFileMap = new Dictionary<string, string>()
 		{
-			{ DecalsEnum.DustParticlesLeft.ToString() , ".\\Content\\Effects\\DustParticlesLeft.png" },
-			{ DecalsEnum.DustParticlesRight.ToString() , ".\\Content\\Effects\\DustParticlesRight.png" },
+			{ PlayerDecals.DustParticlesLeft.ToString() , ".\\Content\\Effects\\DustParticlesLeft.png" },
+			{ PlayerDecals.DustParticlesRight.ToString() , ".\\Content\\Effects\\DustParticlesRight.png" },
 
 			{ PlayerAnimations.Idle.ToString() , ".\\Content\\Player\\player-idle.png" },
 			{ PlayerAnimations.WalkingLeft.ToString() , ".\\Content\\Player\\player-walkingLeft.png" },
 			{ PlayerAnimations.WalkingRight.ToString() , ".\\Content\\Player\\player-walkingRight.png" },
-
 		};
 
 		/// <summary>
@@ -53,7 +33,7 @@ namespace Ujeby.Plosinofka.Graphics
 
 		public static Sprite LoadSprite(string filename, string id = null)
 		{
-			var start = Game.GetElapsed();
+			var start = Engine.Core.Game.GetElapsed();
 
 			var sprite = new Sprite
 			{
@@ -65,7 +45,7 @@ namespace Ujeby.Plosinofka.Graphics
 
 			Library.Add(sprite.Id, sprite);
 
-			Log.Add($"LoadSprite('{ filename }'): { sprite.Id }; { (int)(Game.GetElapsed() - start) }ms");
+			Log.Add($"LoadSprite('{ filename }'): { sprite.Id }; { (int)(Engine.Core.Game.GetElapsed() - start) }ms");
 			return sprite;
 		}
 
@@ -83,7 +63,7 @@ namespace Ujeby.Plosinofka.Graphics
 
 			var imagePtr = SDL_image.IMG_Load(filename);
 			var surface = Marshal.PtrToStructure<SDL.SDL_Surface>(imagePtr);
-			texturePtr = SDL.SDL_CreateTextureFromSurface(Renderer.Instance.RendererPtr, imagePtr);
+			texturePtr = SDL.SDL_CreateTextureFromSurface((Renderer.Instance as SDL2Renderer).RendererPtr, imagePtr);
 
 			size = new Vector2i(surface.w, surface.h);
 
@@ -124,6 +104,8 @@ namespace Ujeby.Plosinofka.Graphics
 				SDL.SDL_DestroyTexture(sprite.TexturePtr);
 
 			Library.Clear();
+
+			Log.Add($"SpriteCache.Destroy()");
 		}
 
 		internal static Sprite Get(string id)
