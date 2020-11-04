@@ -29,7 +29,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 		/// <summary>
 		/// spriteId vs Sprite
 		/// </summary>
-		private static Dictionary<string, Sprite> Library = new Dictionary<string, Sprite>();
+		private static readonly Dictionary<string, Sprite> Library = new Dictionary<string, Sprite>();
 
 		public static Sprite LoadSprite(string filename, string id = null)
 		{

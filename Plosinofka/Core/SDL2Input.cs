@@ -5,8 +5,8 @@ namespace Ujeby.Plosinofka.Game
 {
 	public class SDL2Input : Input
 	{
-		private byte[] CurrentKeys = new byte[(int)SDL.SDL_Scancode.SDL_NUM_SCANCODES];
-		private byte[] PreviousKeys = new byte[(int)SDL.SDL_Scancode.SDL_NUM_SCANCODES];
+		private readonly byte[] CurrentKeys = new byte[(int)SDL.SDL_Scancode.SDL_NUM_SCANCODES];
+		private readonly byte[] PreviousKeys = new byte[(int)SDL.SDL_Scancode.SDL_NUM_SCANCODES];
 
 		public override bool Handle(Simulation simulation)
 		{

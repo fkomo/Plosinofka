@@ -12,11 +12,13 @@ namespace UjebyTest
 		public static Vector2i WindowSize = new Vector2i(1280, 720);
 		public static Random Rng = new Random();
 
-		static void Main(string[] args)
+		static void Main()
 		{
 			try
 			{
 				stopwatch.Restart();
+
+				Tests.ClassVsStruct();
 
 				InitSDL();
 
@@ -33,7 +35,7 @@ namespace UjebyTest
 			}
 		}
 
-		private static Stopwatch stopwatch = Stopwatch.StartNew();
+		private static readonly Stopwatch stopwatch = Stopwatch.StartNew();
 		/// <summary>
 		/// miliseconds since start
 		/// </summary>
@@ -69,8 +71,8 @@ namespace UjebyTest
 			Log.Add($"Destroy()");
 		}
 
-		private static byte[] CurrentKeys = new byte[(int)SDL.SDL_Scancode.SDL_NUM_SCANCODES];
-		private static byte[] PreviousKeys = new byte[(int)SDL.SDL_Scancode.SDL_NUM_SCANCODES];
+		private static readonly byte[] CurrentKeys = new byte[(int)SDL.SDL_Scancode.SDL_NUM_SCANCODES];
+		private static readonly byte[] PreviousKeys = new byte[(int)SDL.SDL_Scancode.SDL_NUM_SCANCODES];
 
 		private static bool HandleInput()
 		{

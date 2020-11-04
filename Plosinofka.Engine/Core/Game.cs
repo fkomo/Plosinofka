@@ -9,7 +9,7 @@ namespace Ujeby.Plosinofka.Engine.Core
 	{
 		private static readonly Stopwatch Stopwatch = new Stopwatch();
 
-		private string Title;
+		private readonly string Title;
 
 		public Game(string title, Renderer renderer, Simulation simulation, Input input)
 		{

@@ -7,7 +7,7 @@ namespace Ujeby.Plosinofka.Game
 {
 	class Program
 	{
-		static void Main(string[] args)
+		static void Main()
 		{
 			try
 			{

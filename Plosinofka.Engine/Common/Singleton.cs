@@ -8,7 +8,7 @@
 		/// <summary>
 		/// sync object for multithread access
 		/// </summary>
-		private static object syncRoot = new object();
+		private static readonly object LockObject = new object();
 
 		/// <summary>singleton instance property</summary>
 		public static T Instance
@@ -17,7 +17,7 @@
 			{
 				if (instance == null)
 				{
-					lock (syncRoot)
+					lock (LockObject)
 					{
 						if (instance == null)
 							instance = new T();

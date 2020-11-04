@@ -16,11 +16,11 @@ namespace Ujeby.Plosinofka.Game
 		public static Vector2f Gravity = new Vector2f(0.0, -1);
 		public static double TerminalFallingVelocity = -16;
 
-		private List<Entity> Entities = new List<Entity>();
+		private readonly List<Entity> Entities = new List<Entity>();
 
 		private Level CurrentLevel;
 
-		private DebugData DebugData = new DebugData();
+		private readonly DebugData DebugData = new DebugData();
 
 		public Simulation0()
 		{

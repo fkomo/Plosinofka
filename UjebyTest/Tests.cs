@@ -24,7 +24,7 @@ namespace UjebyTest
 
 	public class Tests
 	{
-		private static void ClassVsStruct(int n)
+		public static void ClassVsStruct(int n = 1000000)
 		{
 			var cList = new List<Vector2f_AsClass>();
 			var sList = new List<Vector2f>();

@@ -46,36 +46,37 @@ namespace Ujeby.Plosinofka.Game
 		{
 			var start = Engine.Core.Game.GetElapsed();
 
-			var level = new Level(name);
+			var level = new Level(name)
+			{
+				Start = new Vector2f(64, 32),
+				Finish = new AABB(new Vector2f(1000, 0), new Vector2f(1100, 100)),
 
-			level.Start = new Vector2f(64, 32);
-			level.Finish = new AABB(new Vector2f(1000, 0), new Vector2f(1100, 100));
-
-			// load layers
-			level.Layers = Directory.EnumerateFiles($".\\Content\\World\\{ name }\\", $"color*.png")
-				.Select(layerFile =>
-				{
-					var sprite = SpriteCache.LoadSprite(layerFile);
-					var layer = new Layer
+				// load layers
+				Layers = Directory.EnumerateFiles($".\\Content\\World\\{ name }\\", $"color*.png")
+					.Select(layerFile =>
 					{
-						ColorMapId = sprite?.Id,
-					};
+						var sprite = SpriteCache.LoadSprite(layerFile);
+						var layer = new Layer
+						{
+							ColorMapId = sprite?.Id,
+						};
 
-					var fileInfo = new FileInfo(layerFile);
-					layer.Depth = Convert.ToInt32(
-						fileInfo.Name
-						.Replace($"color", string.Empty)
-						.Replace(fileInfo.Extension, string.Empty));
+						var fileInfo = new FileInfo(layerFile);
+						layer.Depth = Convert.ToInt32(
+							fileInfo.Name
+							.Replace($"color", string.Empty)
+							.Replace(fileInfo.Extension, string.Empty));
 
-					var dataSpriteFilename = layerFile.Replace($"color", $"data");
-					if (File.Exists(dataSpriteFilename))
-						layer.DataMapId = SpriteCache.LoadSprite(dataSpriteFilename)?.Id;
+						var dataSpriteFilename = layerFile.Replace($"color", $"data");
+						if (File.Exists(dataSpriteFilename))
+							layer.DataMapId = SpriteCache.LoadSprite(dataSpriteFilename)?.Id;
 
-					layer.Size = sprite.Size;
+						layer.Size = sprite.Size;
 
-					return layer;
+						return layer;
 
-				}).OrderBy(l => l.Depth).ToArray();
+					}).OrderBy(l => l.Depth).ToArray()
+			};
 
 			var mainLayer = level.Layers.SingleOrDefault(l => l.Depth == 0);
 

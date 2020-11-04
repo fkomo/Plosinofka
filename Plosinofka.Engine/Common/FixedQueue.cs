@@ -6,7 +6,7 @@ namespace Ujeby.Plosinofka.Engine.Common
     {
         public Queue<T> Queue { get; private set; } = new Queue<T>();
 
-        private object LockObject = new object();
+        private readonly object LockObject = new object();
 
         public FixedQueue(int limit)
         {

@@ -49,7 +49,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 
 		private Font CurrentFont;
 
-		private Dictionary<BufferEnum, ScreenBuffer> ScreenBuffers = new Dictionary<BufferEnum, ScreenBuffer>();
+		private readonly Dictionary<BufferEnum, ScreenBuffer> ScreenBuffers = new Dictionary<BufferEnum, ScreenBuffer>();
 
 		private ScreenBuffer CreateScreenBuffer(BufferEnum id, Vector2i size)
 		{
