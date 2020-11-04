@@ -16,6 +16,8 @@ namespace Ujeby.Plosinofka
 		public string DataMapId;
 		public int Depth;
 
+		public bool Parallax;
+
 		public Vector2i Size => SpriteCache.Get(ColorMapId).Size;
 	}
 
@@ -62,7 +64,7 @@ namespace Ujeby.Plosinofka
 			level.Finish = new AABB(new Vector2f(1000, 0), new Vector2f(1100, 100));
 
 			// load layers
-			level.Layers = Directory.EnumerateFiles($".\\Content\\Worlds\\{ name }\\", $"color*.png")
+			level.Layers = Directory.EnumerateFiles($".\\Content\\World\\{ name }\\", $"color*.png")
 				.Select(layerFile =>
 				{
 					var sprite = SpriteCache.LoadSprite(layerFile);
@@ -92,6 +94,10 @@ namespace Ujeby.Plosinofka
 				level.Obstacles = AABB.FromMap(SpriteCache.Get(dataSpriteId), ObstacleMask);
 
 			level.Size = SpriteCache.Get(mainLayer.ColorMapId).Size;
+
+			// layers that have different size than main layer are rendered with parallax scrolling
+			for (var i = 0; i < level.Layers.Length; i++)
+				level.Layers[i].Parallax = level.Size != level.Layers[i].Size;
 
 			Simulation.Instance.AddEntity(
 				new Light(new Color4f(1.0, 0.2, 0.2), 10.0) { Position = new Vector2f(160, 160) });

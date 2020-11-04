@@ -30,10 +30,8 @@ namespace Ujeby.Plosinofka.Core
 			TrackedEntities[entity.TrackId()].Add(entity.Track());
 		}
 
-		public void Render(Camera camera, double interpolation, Entity[] entities, AABB[] obstacles)
+		public void Render(AABB view, double interpolation, Entity[] entities, AABB[] obstacles)
 		{
-			var view = camera.InterpolatedView(interpolation);
-
 			if (Settings.Current.GetDebug(DebugSetting.DrawVectors))
 			{
 				foreach (var entity in entities)

@@ -53,7 +53,7 @@ namespace Ujeby.Plosinofka
 			AddEntity(Player);
 
 			// make camera view smaller then window size for more pixelated look!
-			Camera = new Camera(Vector2i.FullHD / 4, CurrentLevel.Size, Player);
+			Camera = new RoomCamera(Vector2i.FullHD / 4);
 		}
 
 		public void Update()
@@ -90,9 +90,10 @@ namespace Ujeby.Plosinofka
 
 		public void Render(double interpolation)
 		{
-			// camera view
+			// viewport
 			var view = Camera.InterpolatedView(interpolation);
-			// parallax scrolling for background/foreground layers
+
+			// parallax scrolling
 			var parallax = view.Min / (CurrentLevel.Size - view.Size);
 
 			// render all layers, back to front
@@ -101,36 +102,27 @@ namespace Ujeby.Plosinofka
 				// main layer
 				if (layer.Depth == 0)
 				{
-					Renderer.Instance.RenderLayer(view, layer);
+					var obstacles = CurrentLevel.Obstacles.ToList();
+					obstacles.Add(Player.BoundingBox + Player.InterpolatedPosition(interpolation));
 
-					if (layer.DataMapId != null)
-					{
-						var obstacles = CurrentLevel.Obstacles.ToList();
-						obstacles.Add(Player.BoundingBox + Player.InterpolatedPosition(interpolation));
-
-						Renderer.Instance.RenderLayer(view, layer,
-							Entities.Where(e => e is Light).Select(e => e as Light).ToArray(),
-							obstacles.ToArray());
-					}
+					// background layer
+					Renderer.Instance.RenderLayer(view, layer,
+						Entities.Where(e => e is Light).Select(e => e as Light).ToArray(),
+						obstacles.ToArray());
 
 					// entities
 					foreach (var entity in Entities)
-						(entity as IRenderable)?.Render(Camera, interpolation);
-
-					// debug
-
-					//var aabbs = CurrentLevel.Obstacles.ToList();
-					//aabbs.Add(Player.BoundingBox + Player.InterpolatedPosition(interpolation));
-
-					DebugData.Render(Camera, interpolation, Entities.ToArray(), CurrentLevel.Obstacles);
+						(entity as IRenderable)?.Render(view, interpolation);
 				}
 				else
-				{
-					// background/foreground layers
-					var parallaxView = new AABB(Vector2f.Zero, view.Size) + ((Vector2f)layer.Size - view.Size) * parallax;
-					Renderer.Instance.RenderLayer(parallaxView, layer);
-				}
+					// background / foreground layers (with possible parallax scrolling)
+					Renderer.Instance.RenderLayer(!layer.Parallax ? 
+						view : (new AABB(Vector2f.Zero, view.Size) + (layer.Size - view.Size) * parallax), 
+						layer);
 			}
+
+			// debug
+			DebugData.Render(view, interpolation, Entities.ToArray(), CurrentLevel.Obstacles);
 		}
 
 		internal void AddEntity(Entity entity)

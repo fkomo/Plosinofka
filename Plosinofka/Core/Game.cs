@@ -51,7 +51,6 @@ namespace Ujeby.Plosinofka.Core
 					loops++;
 				}
 				var interpolation = (GetElapsed() + skipTicks - nextGameTick) / skipTicks;
-				// TODO interpolation should be always betwen 0-1 ?
 				interpolation = Math.Clamp(interpolation, 0, 1);
 
 				Renderer.Instance.Render(Simulation.Instance, interpolation);

@@ -17,7 +17,7 @@ namespace Ujeby.Plosinofka.Common
 
 		public Color4b(byte r, byte g, byte b, byte a)
 		{
-			R = a;
+			R = r;
 			G = g;
 			B = b;
 			A = a;
@@ -78,6 +78,10 @@ namespace Ujeby.Plosinofka.Common
 		{
 		}
 
+		public Color4f(double d) : this(d, d, d, d)
+		{
+		}
+
 		public Color4f(double r, double g, double b, double a)
 		{
 			R = r;
@@ -102,11 +106,15 @@ namespace Ujeby.Plosinofka.Common
 
 		public override string ToString() => $"0x{ AsUint:x}";
 
-		public static Color4f operator *(Color4f c1, Color4f c2) => new Color4f(c1.R * c2.R, c1.G * c2.G, c1.B * c2.B);
-		public static Color4f operator +(Color4f c1, Color4f c2) => new Color4f(c1.R + c2.R, c1.G + c2.G, c1.B + c2.B);
-		public static Color4f operator *(Color4f c, double k) => new Color4f(c.R * k, c.G * k, c.B * k);
+		public static Color4f operator *(Color4f c1, Color4f c2) => 
+			new Color4f(c1.R * c2.R, c1.G * c2.G, c1.B * c2.B, c1.A * c2.A);
+		public static Color4f operator +(Color4f c1, Color4f c2) => 
+			new Color4f(c1.R + c2.R, c1.G + c2.G, c1.B + c2.B, c1.A + c2.A);
+		public static Color4f operator *(Color4f c, double k) => 
+			new Color4f(c.R * k, c.G * k, c.B * k, c.A * k);
 
-		public Color4f Clamp() => new Color4f(Math.Clamp(R, 0.0, 1.0), Math.Clamp(G, 0.0, 1.0), Math.Clamp(B, 0.0, 1.0));
+		public Color4f Clamp() => 
+			new Color4f(Math.Clamp(R, 0.0, 1.0), Math.Clamp(G, 0.0, 1.0), Math.Clamp(B, 0.0, 1.0), Math.Clamp(A, 0.0, 1.0));
 		public Color4f GammaCorrection() => new Color4f(Math.Pow(R, 0.4545), Math.Pow(G, 0.4545), Math.Pow(B, 0.4545));
 	}
 }

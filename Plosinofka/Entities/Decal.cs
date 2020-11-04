@@ -36,13 +36,10 @@ namespace Ujeby.Plosinofka.Entities
 			FrameCount = sprite.Size.X / frameSize.Y;
 		}
 
-		public void Render(Camera camera, double interpolation)
+		public void Render(AABB view, double interpolation)
 		{
 			if (AnimationFrame < FrameCount)
-			{
-				var view = camera.InterpolatedView(interpolation);
 				Renderer.Instance.RenderSprite(view, sprite, Position, frame:AnimationFrame);
-			}
 		}
 
 		public override void Update(IRayCasting environment)

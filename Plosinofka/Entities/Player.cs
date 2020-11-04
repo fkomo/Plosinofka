@@ -41,14 +41,13 @@ namespace Ujeby.Plosinofka.Entities
 				BoundingBox = AABB.Union(AABB.FromMap(dataSprite, Level.ObstacleMask));
 
 			else if (sprite != null)
-				BoundingBox = new AABB(Vector2f.Zero, (Vector2f)sprite.Size);
+				BoundingBox = new AABB(Vector2f.Zero, sprite.Size);
 
 			ChangeMovement(new Idle());
 		}
 
-		public void Render(Camera camera, double interpolation)
+		public void Render(AABB view, double interpolation)
 		{
-			var view = camera.InterpolatedView(interpolation);
 			var position = InterpolatedPosition(interpolation);
 
 			var animation = SpriteCache.Get(Movement.Current.Animation.ToString());

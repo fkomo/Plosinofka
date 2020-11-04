@@ -1,8 +1,10 @@
 ﻿
+using Ujeby.Plosinofka.Common;
+
 namespace Ujeby.Plosinofka.Interfaces
 {
 	interface IRenderable
 	{
-		void Render(Camera camera, double interpolation);
+		void Render(AABB view, double interpolation);
 	}
 }

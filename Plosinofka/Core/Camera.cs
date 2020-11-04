@@ -1,6 +1,4 @@
-﻿using System;
-using System.Net.NetworkInformation;
-using Ujeby.Plosinofka.Common;
+﻿using Ujeby.Plosinofka.Common;
 using Ujeby.Plosinofka.Entities;
 
 namespace Ujeby.Plosinofka
@@ -8,35 +6,46 @@ namespace Ujeby.Plosinofka
 	/// <summary>
 	/// camera is a window to the world
 	/// </summary>
-	public class Camera
+	public abstract class Camera
 	{
-		public AABB View { get; private set; }
-		private AABB ViewBeforeUpdate;
+		protected Vector2i Origin;
+		protected Vector2i Size;
 
-		public Camera(Vector2i size, Vector2i worldBorders, Entity target)
+		protected Vector2i OriginBeforeUpdate;
+		protected Vector2i SizeBeforeUpdate;
+
+		public AABB View { get { return new AABB(Origin, (Origin + Size)); } }
+		protected AABB ViewBeforeUpdate
 		{
-			ViewBeforeUpdate = View = new AABB(Vector2f.Zero, (Vector2f)size);
-			
-			Update(target, worldBorders);
+			get
+			{
+				return new AABB(OriginBeforeUpdate, OriginBeforeUpdate + SizeBeforeUpdate);
+			}
 		}
 
-		public void Update(Entity target, Vector2i worldBorders)
+		public Camera(Vector2i size)
 		{
-			ViewBeforeUpdate = View;
-
-			// camera is targeted at entity and its view wont go beyond world borders
-			var newMin = target.Center - View.Size * 0.5;
-			newMin.X = Math.Min(worldBorders.X - View.Size.X, Math.Max(0, newMin.X));
-			newMin.Y = Math.Min(worldBorders.Y - View.Size.Y, Math.Max(0, newMin.Y));
-
-			View = new AABB(Vector2f.Zero, View.Size) + newMin;
+			Origin = OriginBeforeUpdate = Vector2i.Zero;
+			Size = SizeBeforeUpdate = size;
 		}
+
+		protected void BeforeUpdate()
+		{
+			OriginBeforeUpdate = Origin;
+			SizeBeforeUpdate = Size;
+		}
+
+		public abstract void Update(Entity target, Vector2i worldBorders);
 
 		public AABB InterpolatedView(double interpolation)
 		{
-			return new AABB(
-				ViewBeforeUpdate.Min + (View.Min - ViewBeforeUpdate.Min) * interpolation,
-				ViewBeforeUpdate.Max + (View.Max - ViewBeforeUpdate.Max) * interpolation);
+			var now = View;
+			var before = ViewBeforeUpdate;
+
+			var min = (before.Min + (now.Min - before.Min) * interpolation).Round();
+			var max = (before.Max + (now.Max - before.Max) * interpolation).Round();
+
+			return new AABB(min, max);
 		}
 	}
 }

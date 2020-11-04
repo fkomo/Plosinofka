@@ -56,16 +56,16 @@ namespace UjebyTest
 			var rightMouse = (MouseState & 4) == 4;
 
 			if (!DrawingRay && rightMouse)
-				TmpRay = new Ray((Vector2f)Mouse, Vector2f.Zero, true);
+				TmpRay = new Ray(Mouse, Vector2f.Zero, true);
 
 			DrawingRay = rightMouse;
 			if (DrawingRay)
-				TmpRay = new Ray(TmpRay.Origin, (Vector2f)Mouse - TmpRay.Origin);
+				TmpRay = new Ray(TmpRay.Origin, Mouse - TmpRay.Origin);
 
 			if (!DrawingBox && leftMouse)
 			{
 				TmpMouse = Mouse;
-				TmpBox = new AABB((Vector2f)Mouse, (Vector2f)Mouse);
+				TmpBox = new AABB(Mouse, Mouse);
 			}
 			else if (DrawingBox && !leftMouse)
 			{
@@ -75,7 +75,7 @@ namespace UjebyTest
 
 			DrawingBox = leftMouse;
 			if (DrawingBox)
-				TmpBox = new AABB((Vector2f)Vector2i.Min(TmpMouse, Mouse), (Vector2f)Vector2i.Max(TmpMouse, Mouse));
+				TmpBox = new AABB(Vector2i.Min(TmpMouse, Mouse), Vector2i.Max(TmpMouse, Mouse));
 		}
 
 		protected override void Render()
@@ -102,7 +102,7 @@ namespace UjebyTest
 
 			if (DrawingRay)
 			{
-				var rayLength = ((Vector2f)Mouse - TmpRay.Origin).Length();
+				var rayLength = (Mouse - TmpRay.Origin).Length();
 
 				var trace = TestLevel.Trace(TmpRay.Origin, TmpRay.Direction, out Vector2f n);
 				Log.Add($"Level.Intersect(origin={ TmpRay.Origin }, dir={ TmpRay.Direction }): { trace:0.00}, normal={ n }");

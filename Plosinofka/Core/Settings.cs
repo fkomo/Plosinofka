@@ -7,7 +7,7 @@ namespace Ujeby.Plosinofka.Core
 {
 	public enum VisualSetting
 	{
-		Shading,
+		PerPixelShading,
 
 		Count,
 	}

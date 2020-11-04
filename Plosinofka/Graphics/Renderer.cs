@@ -9,6 +9,14 @@ using Ujeby.Plosinofka.Entities;
 
 namespace Ujeby.Plosinofka.Graphics
 {
+	internal enum BufferEnum : int
+	{
+		PerPixelShading = 0,
+		AmbientOcclusion1,
+		AmbientOcclusion2,
+		DirectIllumination,
+	}
+
 	internal struct ScreenBuffer
 	{
 		public byte[] Data;
@@ -40,41 +48,48 @@ namespace Ujeby.Plosinofka.Graphics
 
 		private Font CurrentFont;
 
-		private ScreenBuffer ScreenBuffer;
+		private Dictionary<BufferEnum, ScreenBuffer> ScreenBuffers = new Dictionary<BufferEnum, ScreenBuffer>();
 
 		public Renderer()
 		{
 		}
 
-		private ScreenBuffer CreateScreenBuffer(Vector2i size)
+		private ScreenBuffer CreateScreenBuffer(BufferEnum id, Vector2i size)
 		{
-			if (size.Area() * 4 != ScreenBuffer.Data?.Length)
+			var bufferFound = ScreenBuffers.TryGetValue(id, out ScreenBuffer buffer);
+
+			if (!bufferFound || size.Area() * 4 != buffer.Data?.Length)
 			{
 				// different size
-				if (ScreenBuffer.Allocated())
+				if (bufferFound && buffer.Allocated())
 				{
 					// free old buffer
-					SDL.SDL_FreeSurface(ScreenBuffer.SdlSurfacePtr);
-					Marshal.FreeHGlobal(ScreenBuffer.UnmanagedPtr);
+					SDL.SDL_FreeSurface(buffer.SdlSurfacePtr);
+					Marshal.FreeHGlobal(buffer.UnmanagedPtr);
 				}
 
 				// create new buffer
-				ScreenBuffer = new ScreenBuffer
+				buffer = new ScreenBuffer
 				{
 					Data = new byte[size.Area() * 4]
 				};
-				ScreenBuffer.UnmanagedPtr = Marshal.AllocHGlobal(ScreenBuffer.Data.Length);
-				ScreenBuffer.SdlSurfacePtr = SDL.SDL_CreateRGBSurfaceFrom(ScreenBuffer.UnmanagedPtr,
+				buffer.UnmanagedPtr = Marshal.AllocHGlobal(buffer.Data.Length);
+				buffer.SdlSurfacePtr = SDL.SDL_CreateRGBSurfaceFrom(buffer.UnmanagedPtr,
 					size.X, size.Y, 32, 4 * size.X,
 					0xff000000,
 					0x00ff0000,
 					0x0000ff00,
 					0x000000ff);
 
-				Log.Add($"Renderer.ScreenBuffer({ size })");
+				if (!bufferFound)
+					ScreenBuffers.Add(id, buffer);
+				else
+					ScreenBuffers[id] = buffer;
+
+				Log.Add($"Renderer.ScreenBuffer({ id }, { size })");
 			}
 
-			return ScreenBuffer;
+			return buffer;
 		}
 
 		public void Initialize(Vector2i windowSize)
@@ -84,11 +99,12 @@ namespace Ujeby.Plosinofka.Graphics
 
 			WindowPtr = SDL.SDL_CreateWindow("sdl .net core test",
 				SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED,
-				windowSize.X, windowSize.Y, SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL);
+				windowSize.X, windowSize.Y, SDL.SDL_WindowFlags.SDL_WINDOW_VULKAN);
 			if (WindowPtr == null)
 				throw new Exception($"Failed to create window. SDL2Error({ SDL.SDL_GetError() })");
 
-			RendererPtr = SDL.SDL_CreateRenderer(WindowPtr, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED);
+			RendererPtr = SDL.SDL_CreateRenderer(WindowPtr, -1, 
+				SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC | SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED);
 			if (RendererPtr == null)
 				throw new Exception($"Failed to create renderer. SDL2Error({ SDL.SDL_GetError() })");
 
@@ -99,16 +115,19 @@ namespace Ujeby.Plosinofka.Graphics
 			{
 				SpriteId = SpriteCache.LoadSprite($".\\Content\\font-small.png")?.Id,
 				CharSize = new Vector2i(3, 5),
-				Spacing = new Vector2f(1, 2),
+				Spacing = new Vector2i(1, 2),
 			};
 		}
 
 		internal static void Destroy()
 		{
-			if (instance.ScreenBuffer.Allocated())
+			foreach (var buffer in instance.ScreenBuffers.Values)
 			{
-				SDL.SDL_FreeSurface(instance.ScreenBuffer.SdlSurfacePtr);
-				Marshal.FreeHGlobal(instance.ScreenBuffer.UnmanagedPtr);
+				if (buffer.Allocated())
+				{
+					SDL.SDL_FreeSurface(buffer.SdlSurfacePtr);
+					Marshal.FreeHGlobal(buffer.UnmanagedPtr);
+				}
 			}
 
 			SDL.SDL_DestroyRenderer(instance.RendererPtr);
@@ -140,80 +159,6 @@ namespace Ujeby.Plosinofka.Graphics
 		internal void SetWindowTitle(string title)
 		{
 			SDL.SDL_SetWindowTitle(WindowPtr, title);
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="layer"></param>
-		/// <param name="view"></param>
-		internal void RenderLayer(AABB view, Layer layer)
-		{
-			var colorSprite = SpriteCache.Get(layer.ColorMapId);
-
-			var sourceRect = new SDL.SDL_Rect
-			{
-				x = (int)view.Left,
-				y = (int)(colorSprite.Size.Y - view.Top),
-				w = (int)view.Size.X,
-				h = (int)view.Size.Y
-			};
-
-			SDL.SDL_RenderCopy(RendererPtr, colorSprite.TexturePtr, ref sourceRect, IntPtr.Zero);
-		}
-
-		internal void RenderLayer(AABB view, Layer layer, Light[] lights, AABB[] obstacles)
-		{
-			var shadingStart = Game.GetElapsed();
-
-			if (Settings.Current.GetVisual(VisualSetting.Shading) && layer.DataMapId != null)
-			{
-				var data = SpriteCache.Get(layer.DataMapId);
-				var color = SpriteCache.Get(layer.ColorMapId);
-
-				var screenBuffer = CreateScreenBuffer(view.Size);
-
-				// shading from dynamic lights
-				//for (var i = 0; i < ScreenBuffer.Data.Length / 4; i++)
-				Parallel.For(0, screenBuffer.Data.Length / 4, (i, loopState) =>
-				{
-					var screen = new Vector2i(i % (int)view.Size.X, i / (int)view.Size.X);
-					var wIndex = ((int)view.Bottom + screen.Y) * data.Size.X + (int)view.Left + screen.X;
-					var sIndex = (((int)view.Size.Y - screen.Y - 1) * (int)view.Size.X + screen.X) * 4;
-
-					if ((data.Data[wIndex] & Level.ShadeMask) == Level.ShadeMask)
-					{
-						var tmpColor = new Color4f(color.Data[wIndex]);
-						if (tmpColor.A > 0)
-						{
-							tmpColor += RayTracer.Shade(screen + view.Min, lights, obstacles) * 0.5;
-							//tmpColor = tmpColor.GammaCorrection();
-						}
-
-						var finalColor = new Color4b(tmpColor);
-						screenBuffer.Data[sIndex + 0] = finalColor.A;
-						screenBuffer.Data[sIndex + 1] = finalColor.B;
-						screenBuffer.Data[sIndex + 2] = finalColor.G;
-						screenBuffer.Data[sIndex + 3] = finalColor.R;
-					}
-					else
-						// just alpha channel
-						screenBuffer.Data[sIndex] = 0;
-				}
-				);
-
-				// copy to data to unmanaged array
-				Marshal.Copy(screenBuffer.Data, 0, screenBuffer.UnmanagedPtr, screenBuffer.Data.Length);
-
-				// create texture
-				var texture = SDL.SDL_CreateTextureFromSurface(Instance.RendererPtr, screenBuffer.SdlSurfacePtr);
-
-				// draw shading layer
-				SDL.SDL_RenderCopy(RendererPtr, texture, IntPtr.Zero, IntPtr.Zero);
-				SDL.SDL_DestroyTexture(texture);
-			}
-
-			LastShadingDuration = Game.GetElapsed() - shadingStart;
 		}
 
 		/// <summary>
@@ -324,6 +269,189 @@ namespace Ujeby.Plosinofka.Graphics
 
 				SDL.SDL_RenderCopy(RendererPtr, fontSprite.TexturePtr, ref sourceRect, ref destinationRect);
 			}
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="layer"></param>
+		/// <param name="view"></param>
+		internal void RenderLayer(AABB view, Layer layer)
+		{
+			var colorSprite = SpriteCache.Get(layer.ColorMapId);
+
+			var sourceRect = new SDL.SDL_Rect
+			{
+				x = (int)view.Left,
+				y = (int)(colorSprite.Size.Y - view.Top),
+				w = (int)view.Size.X,
+				h = (int)view.Size.Y
+			};
+
+			SDL.SDL_RenderCopy(RendererPtr, colorSprite.TexturePtr, ref sourceRect, IntPtr.Zero);
+		}
+
+		internal void RenderLayer(AABB view, Layer layer, Light[] lights, AABB[] obstacles)
+		{
+			var shadingStart = Game.GetElapsed();
+
+			if (Settings.Current.GetVisual(VisualSetting.PerPixelShading) && layer.DataMapId != null)
+			{
+				//var buffer = DirectLighting(view, layer, lights, obstacles);
+				//var buffer = AmbientOcclusion(view, layer, lights, obstacles, 2);
+				var buffer = PerPixelShading(view, layer, lights, obstacles);
+
+				// copy to data to unmanaged array
+				Marshal.Copy(buffer.Data, 0, buffer.UnmanagedPtr, buffer.Data.Length);
+
+				// create texture
+				var texture = SDL.SDL_CreateTextureFromSurface(Instance.RendererPtr, buffer.SdlSurfacePtr);
+
+				// draw layer
+				SDL.SDL_RenderCopy(RendererPtr, texture, IntPtr.Zero, IntPtr.Zero);
+				SDL.SDL_DestroyTexture(texture);
+			}
+			else
+				RenderLayer(view, layer);
+
+			LastShadingDuration = Game.GetElapsed() - shadingStart;
+		}
+
+		private ScreenBuffer PerPixelShading(AABB view, Layer layer, Light[] lights, AABB[] obstacles)
+		{
+			var colorLayer = SpriteCache.Get(layer.ColorMapId);
+
+			var viewMin = view.Min.Round();
+			var viewSize = view.Size.Round();
+
+			var buffer = CreateScreenBuffer(BufferEnum.PerPixelShading, viewSize);
+			var bufferLength = buffer.Data.Length / 4;
+
+			//for (var i = 0; i < bufferLength; i++)
+			Parallel.For(0, bufferLength, (i, loopState) =>
+			{
+				var bufferPixel = new Vector2i(i % viewSize.X, i / viewSize.X);
+				var layerIndex = (viewMin.Y + bufferPixel.Y) * colorLayer.Size.X + viewMin.X + bufferPixel.X;
+				var bufferIndex = ((viewSize.Y - bufferPixel.Y - 1) * viewSize.X + bufferPixel.X) * 4;
+
+				var color = new Color4f(colorLayer.Data[layerIndex]);
+				if (color.A > 0)
+				{
+					// TODO per pixel shading
+					color.A *= 0.5;
+
+					var finalColor = new Color4b(color);
+					buffer.Data[bufferIndex + 0] = finalColor.A;
+					buffer.Data[bufferIndex + 1] = finalColor.B;
+					buffer.Data[bufferIndex + 2] = finalColor.G;
+					buffer.Data[bufferIndex + 3] = finalColor.R;
+				}
+				else
+					// just alpha channel
+					buffer.Data[bufferIndex] = 0;
+			});
+
+			return buffer;
+		}
+
+		private ScreenBuffer DirectLighting(AABB view, Layer layer, Light[] lights, AABB[] obstacles)
+		{
+			var data = SpriteCache.Get(layer.DataMapId);
+			var color = SpriteCache.Get(layer.ColorMapId);
+
+			var viewMin = view.Min.Round();
+			var viewSize = view.Size.Round();
+
+			var result = CreateScreenBuffer(BufferEnum.DirectIllumination, viewSize);
+
+			//for (var i = 0; i < result.Data.Length / 4; i++)
+			Parallel.For(0, result.Data.Length / 4, (i, loopState) =>
+			{
+				var screen = new Vector2i(i % viewSize.X, i / viewSize.X);
+				var wIndex = (viewMin.Y + screen.Y) * data.Size.X + viewMin.X + screen.X;
+				var sIndex = ((viewSize.Y - screen.Y - 1) * viewSize.X + screen.X) * 4;
+
+				if ((data.Data[wIndex] & Level.ShadeMask) == Level.ShadeMask)
+				{
+					var tmpColor = new Color4f(color.Data[wIndex]);
+					if (tmpColor.A > 0)
+						tmpColor += RayTracer.DirectLight(screen + viewMin, lights, obstacles) * 0.5;
+
+					var finalColor = new Color4b(tmpColor);
+					result.Data[sIndex + 0] = finalColor.A;
+					result.Data[sIndex + 1] = finalColor.B;
+					result.Data[sIndex + 2] = finalColor.G;
+					result.Data[sIndex + 3] = finalColor.R;
+				}
+				else
+					// just alpha channel
+					result.Data[sIndex] = 0;
+			});
+
+			return result;
+		}
+
+		private ScreenBuffer AmbientOcclusion(AABB view, Layer layer, Light[] lights, AABB[] obstacles, int pixelSize)
+		{
+			var data = SpriteCache.Get(layer.DataMapId);
+			var color = SpriteCache.Get(layer.ColorMapId);
+
+			var viewMin = view.Min.Round();
+			var viewSize = view.Size.Round();
+
+			// ambient occlusion
+			var aoSize = viewSize / pixelSize;
+			var aoBuffer = CreateScreenBuffer(BufferEnum.AmbientOcclusion1, aoSize);
+			var aoBufferLength = aoBuffer.Data.Length / 4;
+			Parallel.For(0, aoBufferLength, (i, loopState) =>
+			{
+				var aoPixel = new Vector2i(i % aoSize.X, i / aoSize.X);
+				var aoIndex = ((aoSize.Y - aoPixel.Y - 1) * aoSize.X + aoPixel.X) * 4;
+				var screenPixel = aoPixel * pixelSize + new Vector2i(pixelSize / 2);
+
+				var pixelColor = RayTracer.AmbientOcclusion(viewMin + screenPixel, lights, obstacles,
+					probeDistance: 128, rayCount: 4);
+
+				var finalColor = new Color4b(pixelColor);
+				aoBuffer.Data[aoIndex + 0] = finalColor.A;
+				aoBuffer.Data[aoIndex + 1] = finalColor.B;
+				aoBuffer.Data[aoIndex + 2] = finalColor.G;
+				aoBuffer.Data[aoIndex + 3] = finalColor.R;
+			});
+
+			// ambient occlusion & color
+			var viewBuffer = CreateScreenBuffer(BufferEnum.AmbientOcclusion1, viewSize);
+			var viewBufferLength = viewBuffer.Data.Length / 4;
+			Parallel.For(0, viewBufferLength, (i, loopState) =>
+			{
+				var viewPixel = new Vector2i(i % viewSize.X, i / viewSize.X);
+				var viewIndex = ((viewSize.Y - viewPixel.Y - 1) * viewSize.X + viewPixel.X) * 4;
+
+				var colorIndex = (viewMin.Y + viewPixel.Y) * data.Size.X + viewMin.X + viewPixel.X;
+				if (color.Data[colorIndex + 0] > 0)
+				{
+					var aoPixel = viewPixel / pixelSize;
+					var aoIndex = ((aoSize.Y - aoPixel.Y - 1) * aoSize.X + aoPixel.X) * 4;
+
+					var pixelColor = new Color4f(color.Data[colorIndex]);
+					var aoColor = new Color4f(new Color4b(
+						aoBuffer.Data[aoIndex + 3],
+						aoBuffer.Data[aoIndex + 2],
+						aoBuffer.Data[aoIndex + 1],
+						aoBuffer.Data[aoIndex + 0]).AsUint);
+
+					var finalColor = new Color4b(pixelColor * aoColor);
+					viewBuffer.Data[viewIndex + 0] = finalColor.A;
+					viewBuffer.Data[viewIndex + 1] = finalColor.B;
+					viewBuffer.Data[viewIndex + 2] = finalColor.G;
+					viewBuffer.Data[viewIndex + 3] = finalColor.R;
+				}
+				else
+					// just alpha channel
+					viewBuffer.Data[viewIndex] = 0;
+			});
+
+			return viewBuffer;
 		}
 	}
 }

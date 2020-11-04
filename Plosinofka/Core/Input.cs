@@ -116,7 +116,7 @@ namespace Ujeby.Plosinofka.Core
 
 					// visual settings
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_F1))
-						Settings.Current.ToggleVisual(VisualSetting.Shading);
+						Settings.Current.ToggleVisual(VisualSetting.PerPixelShading);
 
 					// debug settings
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_F5))
