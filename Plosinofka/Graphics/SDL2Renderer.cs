@@ -148,10 +148,6 @@ namespace Ujeby.Plosinofka.Game.Graphics
 
 			simulation.Render(interpolation);
 
-			// gui text
-			RenderText(simulation.Camera.InterpolatedView(interpolation), new Vector2i(0, 0),
-				"01234567890 ABCDEFGHIJKLMONOPRSTUVWXYZ abcdefghijklmnopqrstuvwxyz +-*= []{}<>\\/'\".:,;?|_");
-
 			// display backbuffer
 			SDL.SDL_RenderPresent(RendererPtr);
 

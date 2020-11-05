@@ -57,7 +57,6 @@ namespace Ujeby.Plosinofka.Engine.Core
 				interpolation = Math.Clamp(interpolation, 0, 1);
 
 				Renderer.Instance.Render(Simulation.Instance, interpolation);
-				// TODO render GUI
 
 				Fps = (int)(1000.0 / (GetElapsed() - lastFrameTime));
 

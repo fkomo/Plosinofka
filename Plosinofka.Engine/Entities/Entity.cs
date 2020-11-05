@@ -17,6 +17,6 @@ namespace Ujeby.Plosinofka.Engine.Entities
 		public Vector2f Size => BoundingBox.Size;
 		public Vector2f Center => Position + BoundingBox.Center;
 
-		public abstract void Update(IRayCasting environment);
+		public abstract void Update(IEnvironment environment);
 	}
 }

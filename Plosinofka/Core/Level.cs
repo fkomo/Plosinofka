@@ -11,7 +11,7 @@ namespace Ujeby.Plosinofka.Game
 {
 	/// <summary>
 	/// </summary>
-	public class Level : IRayCasting
+	public class Level : IEnvironment
 	{
 		public string Name { get; private set; }
 		public Vector2i Size { get; private set; }
@@ -126,7 +126,7 @@ namespace Ujeby.Plosinofka.Game
 
 		public double Trace(AABB box, Vector2f direction, out Vector2f normal)
 		{
-			// TODO not working very well in world1/room1 - platforms are not high enough
+			// TODO not working very well when platforms are not high enough
 
 			normal = Vector2f.Zero;
 			var tMin = double.PositiveInfinity;
@@ -198,7 +198,7 @@ namespace Ujeby.Plosinofka.Game
 		public bool Overlap(AABB box)
 		{
 			foreach (var bb in Obstacles)
-				if (bb.Overlaps(box))
+				if (bb.Overlap(box))
 					return true;
 
 			return false;
@@ -207,7 +207,7 @@ namespace Ujeby.Plosinofka.Game
 		public bool Intersect(Ray ray, double from = 0, double to = double.PositiveInfinity)
 		{
 			foreach (var obstacle in Obstacles)
-				if (obstacle.Intersects(ray, from, to))
+				if (obstacle.Intersect(ray, from, to))
 					return true;
 
 			return false;

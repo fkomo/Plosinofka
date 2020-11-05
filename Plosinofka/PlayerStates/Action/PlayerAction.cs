@@ -16,7 +16,7 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 	{
 		public abstract void HandleButton(InputButton button, InputButtonState state, Player0 player);
 
-		public abstract void Update(Player0 player, IRayCasting environment);
+		public abstract void Update(Player0 player, IEnvironment environment);
 	}
 
 	public class PlayerAction : StateMachine<PlayerActionState>

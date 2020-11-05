@@ -24,14 +24,14 @@ namespace Ujeby.Plosinofka.Game.Entities
 		private readonly PlayerMovement Movement = new PlayerMovement();
 
 		public PlayerMovementStateEnum AllowedMovement =
+			PlayerMovementStateEnum.Crouching |
+			PlayerMovementStateEnum.Sneaking |
 			PlayerMovementStateEnum.Walking |
 			PlayerMovementStateEnum.Jumping |
 			PlayerMovementStateEnum.Running |
-			PlayerMovementStateEnum.Crouching |
-			PlayerMovementStateEnum.Sneaking |
 			PlayerMovementStateEnum.Dashing |
-			PlayerMovementStateEnum.Diving |
 			PlayerMovementStateEnum.Falling |
+			PlayerMovementStateEnum.Diving |
 			PlayerMovementStateEnum.Idle;
 
 		private readonly string DefaultSpriteId;
@@ -73,7 +73,7 @@ namespace Ujeby.Plosinofka.Game.Entities
 			Movement.Current?.HandleButton(button, state, this);
 		}
 
-		public override void Update(IRayCasting env)
+		public override void Update(IEnvironment env)
 		{
 			// add dust particles effect when motion direction is changed
 			if (StandingOnGround(env))
@@ -95,14 +95,17 @@ namespace Ujeby.Plosinofka.Game.Entities
 			Movement.Current?.Update(this, env);
 		}
 
-		internal bool StandingOnGround(IRayCasting env)
+		internal bool StandingOnGround(IEnvironment env)
 		{
 			var bb = BoundingBox + Position;
-			return 
-				0 == env.Trace(bb.Min, Vector2f.Down, out _) ||
-				0 == env.Trace(new Vector2f(bb.Max.X, bb.Bottom), Vector2f.Down, out _) ||
-				0 == env.Trace(new Vector2f(bb.Left + bb.Size.X * 0.33, bb.Bottom), Vector2f.Down, out _) ||
-				0 == env.Trace(new Vector2f(bb.Left + bb.Size.X * 0.66, bb.Bottom), Vector2f.Down, out _);
+			return env.Overlap(new AABB(new Vector2f(bb.Left + 1, bb.Bottom - 1), new Vector2f(bb.Right - 1, bb.Bottom)));
+
+			// old way
+			//return
+			//	0 == env.Trace(bb.Min, Vector2f.Down, out _) ||
+			//	0 == env.Trace(new Vector2f(bb.Max.X, bb.Bottom), Vector2f.Down, out _) ||
+			//	0 == env.Trace(new Vector2f(bb.Left + bb.Size.X * 0.33, bb.Bottom), Vector2f.Down, out _) ||
+			//	0 == env.Trace(new Vector2f(bb.Left + bb.Size.X * 0.66, bb.Bottom), Vector2f.Down, out _);
 		}
 
 		/// <summary>

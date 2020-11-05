@@ -3,7 +3,7 @@ using Ujeby.Plosinofka.Engine.Graphics;
 
 namespace Ujeby.Plosinofka.Engine.Entities
 {
-	public class Decal : Entity, IRenderable, IDestroyable
+	public class Decal : Entity, IRender, IDestroyable
 	{
 		protected double LastFrameChange;
 		/// <summary>desired delay betwen animation frames [ms]</summary>
@@ -34,7 +34,7 @@ namespace Ujeby.Plosinofka.Engine.Entities
 				Renderer.Instance.RenderSprite(view, sprite, Position, frame:AnimationFrame);
 		}
 
-		public override void Update(IRayCasting environment)
+		public override void Update(IEnvironment environment)
 		{
 			var current = Core.Game.GetElapsed();
 			if (current - LastFrameChange > AnimationFrameDelay)

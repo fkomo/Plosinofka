@@ -20,7 +20,7 @@ namespace Ujeby.Plosinofka.Engine.Graphics
 				var occluded = false;
 				foreach (var obstacle in obstacles)
 				{
-					if (obstacle.Intersects(ray, to: lightDistance))
+					if (obstacle.Intersect(ray, to: lightDistance))
 					{
 						occluded = true;
 						break;
@@ -53,7 +53,7 @@ namespace Ujeby.Plosinofka.Engine.Graphics
 				var occluded = false;
 				foreach (var obstacle in obstacles)
 				{
-					if (obstacle.Intersects(ray, to: probeDistance))
+					if (obstacle.Intersect(ray, to: probeDistance))
 					{
 						occluded = true;
 						break;

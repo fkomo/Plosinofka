@@ -13,7 +13,7 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 
 		}
 
-		public override void Update(Player0 player, IRayCasting environment)
+		public override void Update(Player0 player, IEnvironment environment)
 		{
 
 		}

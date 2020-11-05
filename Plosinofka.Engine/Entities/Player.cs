@@ -4,7 +4,7 @@ using Ujeby.Plosinofka.Engine.Graphics;
 
 namespace Ujeby.Plosinofka.Engine.Entities
 {
-	public abstract class Player : DynamicEntity, IRenderable, IHandleInput
+	public abstract class Player : DynamicEntity, IRender, IHandleInput
 	{
 		public abstract void Render(AABB view, double interpolation);
 

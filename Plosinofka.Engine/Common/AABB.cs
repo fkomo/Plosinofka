@@ -23,6 +23,9 @@ namespace Ujeby.Plosinofka.Engine.Common
 		public double Left => Min.X;
 		public double Right => Max.X;
 
+		public override string ToString() => $"{ Min }-{ Max }";
+		public static AABB operator +(AABB bb, Vector2f v) => new AABB(bb.Min + v, bb.Max + v);
+
 		public AABB(Vector2f min, Vector2f max)
 		{
 			Min = min;
@@ -31,43 +34,14 @@ namespace Ujeby.Plosinofka.Engine.Common
 			HalfSize = (max - min) * 0.5;
 		}
 
-		public static AABB operator +(AABB bb, Vector2f v) => new AABB(bb.Min + v, bb.Max + v);
-
 		public bool Inside(Vector2f p) => Inside(p.X, p.Y);
 		public bool Inside(int x, int y) => Inside((double)x, (double)y);
 		public bool Inside(double x, double y) => !(x < Left || y < Bottom || x >= Right || y >= Top);
 
-		public static AABB Union(AABB[] aABBs)
-		{
-			return new AABB(
-				new Vector2f(aABBs.Min(bb => bb.Min.X), aABBs.Min(bb => bb.Min.Y)),
-				new Vector2f(aABBs.Max(bb => bb.Max.X), aABBs.Max(bb => bb.Max.Y)));
-		}
-
 		public bool OutsideOrSurface(Vector2f p) => OutsideOrSurface(p.X, p.Y);
 		public bool OutsideOrSurface(double x, double y) => (x <= Left || y <= Bottom || x >= Right || y >= Top);
 
-		public override string ToString() => $"{ Min }-{ Max }";
-
-		/// <summary>
-		/// old alg (slower)
-		/// </summary>
-		/// <param name="other"></param>
-		/// <returns></returns>
-		//public bool Overlaps(BoundingBox other)
-		//{
-		//	if (other.Min.Y > Max.Y)
-		//		return false;
-		//	if (other.Max.Y < Min.Y)
-		//		return false;
-		//	if (other.Max.X < Min.X)
-		//		return false;
-		//	if (other.Min.X > Max.X)
-		//		return false;
-		//	return true;
-		//}
-
-		public bool Overlaps(AABB other)
+		public bool Overlap(AABB other)
 		{
 			if (Math.Abs(Center.X - other.Center.X) > HalfSize.X + other.HalfSize.X)
 				return false;
@@ -210,7 +184,7 @@ namespace Ujeby.Plosinofka.Engine.Common
 			return q.Max(Vector2f.Zero).Length() + Math.Min(Math.Max(q.X, q.Y), 0.0);
 		}
 
-		public bool Intersects(Ray ray, double from = 0, double to = double.PositiveInfinity)
+		public bool Intersect(Ray ray, double from = 0, double to = double.PositiveInfinity)
 		{
 			// "An Efficient and Robust Ray-Box Intersection Algorithm"
 			// Journal of graphics tools, 10(1):49-54, 2005
@@ -345,6 +319,13 @@ namespace Ujeby.Plosinofka.Engine.Common
 				}
 
 			return false;
+		}
+
+		public static AABB Union(AABB[] aABBs)
+		{
+			return new AABB(
+				new Vector2f(aABBs.Min(bb => bb.Min.X), aABBs.Min(bb => bb.Min.Y)),
+				new Vector2f(aABBs.Max(bb => bb.Max.X), aABBs.Max(bb => bb.Max.Y)));
 		}
 
 		public AABB GetAABB() => this;

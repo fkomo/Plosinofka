@@ -6,6 +6,7 @@ using Ujeby.Plosinofka.Engine.Core;
 using Ujeby.Plosinofka.Engine.Entities;
 using Ujeby.Plosinofka.Engine.Graphics;
 using Ujeby.Plosinofka.Game.Entities;
+using Ujeby.Plosinofka.Game.Graphics;
 
 namespace Ujeby.Plosinofka.Game
 {
@@ -113,7 +114,7 @@ namespace Ujeby.Plosinofka.Game
 
 					// entities
 					foreach (var entity in Entities)
-						(entity as IRenderable)?.Render(view, interpolation);
+						(entity as IRender)?.Render(view, interpolation);
 				}
 				else
 					// background / foreground layers (with possible parallax scrolling)
@@ -124,6 +125,9 @@ namespace Ujeby.Plosinofka.Game
 
 			// debug
 			DebugData.Render(view, interpolation, Entities.ToArray(), CurrentLevel.Obstacles);
+
+			// gui is always on top
+			Gui.Instance.Render(view, interpolation);
 		}
 
 		public override void AddEntity(Entity entity)
