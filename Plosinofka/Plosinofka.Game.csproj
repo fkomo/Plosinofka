@@ -50,7 +50,7 @@
 	</ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-		<Exec Command="copy $(SolutionDir)3rd\SDL2\*.dll $(OutDir)&#xD;&#xA;xcopy /S /Y $(ProjectDir)Content\*.png $(OutDir)Content\" />
+		<Exec Command="copy $(SolutionDir)3rd\SDL2\*.dll $(OutDir)&#xD;&#xA;rmdir /S /Q $(OutDir)Content&#xD;&#xA;xcopy /S /Y $(ProjectDir)Content\*.png $(OutDir)Content\" />
 	</Target>
 
 </Project>

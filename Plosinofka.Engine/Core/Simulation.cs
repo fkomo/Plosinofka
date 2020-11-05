@@ -13,7 +13,7 @@ namespace Ujeby.Plosinofka.Engine.Core
 		public abstract double LastUpdateDuration { get; protected set; }
 
 		public Player Player { get; protected set; }
-		public Camera Camera { get; protected set; }
+		public Viewport Camera { get; protected set; }
 
 		public abstract void Destroy();
 		public abstract void Initialize();

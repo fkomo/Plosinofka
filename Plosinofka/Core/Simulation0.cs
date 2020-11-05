@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Ujeby.Plosinofka.Engine.Common;
 using Ujeby.Plosinofka.Engine.Core;
@@ -14,7 +15,7 @@ namespace Ujeby.Plosinofka.Game
 		public override double LastUpdateDuration { get; protected set; }
 
 		public static Vector2f Gravity = new Vector2f(0.0, -1);
-		public static double TerminalFallingVelocity = -16;
+		private const double TerminalFallingVelocity = -8;
 
 		private readonly List<Entity> Entities = new List<Entity>();
 
@@ -29,7 +30,7 @@ namespace Ujeby.Plosinofka.Game
 		public override void Initialize()
 		{
 			// create player
-			Player = new Player0("player1");
+			Player = new Player0("player0");
 
 			LoadLevel("Level0");
 		}
@@ -53,7 +54,7 @@ namespace Ujeby.Plosinofka.Game
 			AddEntity(Player);
 
 			// make camera view smaller then window size for more pixelated look!
-			Camera = new RoomCamera(Vector2i.FullHD / 4);
+			Camera = new RoomViewport(Vector2i.FullHD / 4);
 		}
 
 		public override void Update()
@@ -136,8 +137,8 @@ namespace Ujeby.Plosinofka.Game
 			position = entity.Position;
 			velocity = entity.Velocity;
 
-			// TODO apply TerminalVelocity
-			//player.Velocity.Y = Math.Max(player.Velocity.Y, Simulation.TerminalFallingVelocity);
+			// limit falling velocity
+			velocity.Y = Math.Max(velocity.Y, TerminalFallingVelocity);
 
 			// no velocity ? no collision!
 			if (velocity == Vector2f.Zero)

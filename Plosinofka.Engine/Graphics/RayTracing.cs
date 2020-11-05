@@ -2,9 +2,9 @@
 using Ujeby.Plosinofka.Engine.Common;
 using Ujeby.Plosinofka.Engine.Entities;
 
-namespace Ujeby.Plosinofka.Game.Graphics
+namespace Ujeby.Plosinofka.Engine.Graphics
 {
-	public class RayTracer
+	public class RayTracing
 	{
 		public static Color4f DirectLight(Vector2i pixel, Light[] lights, AABB[] obstacles)
 		{
@@ -38,8 +38,8 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			return result;
 		}
 
-		internal static Color4f AmbientOcclusion(Vector2i pixel, Light[] lights, AABB[] obstacles, 
-			double probeDistance = 100, int rayCount = 16)
+		public static Color4f AmbientOcclusion(Vector2i pixel, AABB[] obstacles, 
+			double probeDistance = 128, int rayCount = 16)
 		{
 			var Rng = new Random();
 			

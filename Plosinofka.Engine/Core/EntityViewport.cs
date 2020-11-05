@@ -4,9 +4,9 @@ using Ujeby.Plosinofka.Engine.Entities;
 
 namespace Ujeby.Plosinofka.Engine.Core
 {
-	public class PlayerCamera : Camera
+	public class EntityViewport : Viewport
 	{
-		public PlayerCamera(Vector2i viewSize) : base(viewSize)
+		public EntityViewport(Vector2i viewSize) : base(viewSize)
 		{
 		}
 

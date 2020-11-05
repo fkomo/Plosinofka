@@ -6,7 +6,7 @@ namespace Ujeby.Plosinofka.Engine.Core
 	/// <summary>
 	/// camera is a window to the world
 	/// </summary>
-	public abstract class Camera
+	public abstract class Viewport
 	{
 		protected Vector2i Origin;
 		protected Vector2i Size;
@@ -23,7 +23,7 @@ namespace Ujeby.Plosinofka.Engine.Core
 			}
 		}
 
-		public Camera(Vector2i size)
+		public Viewport(Vector2i size)
 		{
 			Origin = OriginBeforeUpdate = Vector2i.Zero;
 			Size = SizeBeforeUpdate = size;

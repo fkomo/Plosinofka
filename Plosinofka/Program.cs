@@ -15,6 +15,7 @@ namespace Ujeby.Plosinofka.Game
 				var simulation = new Simulation0();
 				var input = new SDL2Input();
 
+				// game loop
 				new Engine.Core.Game("Plosinofka", renderer, simulation, input).Run();
 
 				simulation.Destroy();

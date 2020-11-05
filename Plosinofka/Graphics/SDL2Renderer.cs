@@ -378,7 +378,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 				{
 					var tmpColor = new Color4f(color.Data[wIndex]);
 					if (tmpColor.A > 0)
-						tmpColor += RayTracer.DirectLight(screen + viewMin, lights, obstacles) * 0.5;
+						tmpColor += RayTracing.DirectLight(screen + viewMin, lights, obstacles) * 0.5;
 
 					var finalColor = new Color4b(tmpColor);
 					result.Data[sIndex + 0] = finalColor.A;
@@ -412,7 +412,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 				var aoIndex = ((aoSize.Y - aoPixel.Y - 1) * aoSize.X + aoPixel.X) * 4;
 				var screenPixel = aoPixel * pixelSize + new Vector2i(pixelSize / 2);
 
-				var pixelColor = RayTracer.AmbientOcclusion(viewMin + screenPixel, lights, obstacles,
+				var pixelColor = RayTracing.AmbientOcclusion(viewMin + screenPixel, obstacles,
 					probeDistance: 128, rayCount: 4);
 
 				var finalColor = new Color4b(pixelColor);

@@ -6,7 +6,7 @@ using Ujeby.Plosinofka.Engine.Graphics;
 
 namespace Ujeby.Plosinofka.Engine.Common
 {
-	public struct AABB : IRayTracable, ISdf
+	public struct AABB : IRayTracing, ISdf
 	{
 		/// <summary>bottom left - world coordinates</summary>
 		public Vector2f Min { get; private set; }

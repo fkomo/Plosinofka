@@ -3,9 +3,9 @@ using Ujeby.Plosinofka.Engine.Entities;
 
 namespace Ujeby.Plosinofka.Engine.Core
 {
-	public class RoomCamera : Camera
+	public class RoomViewport : Viewport
 	{
-		public RoomCamera(Vector2i viewSize) : base(viewSize)
+		public RoomViewport(Vector2i viewSize) : base(viewSize)
 		{
 		}
 

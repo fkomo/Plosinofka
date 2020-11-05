@@ -10,8 +10,6 @@ namespace Ujeby.Plosinofka.Game
 
 		public override bool Handle(Simulation simulation)
 		{
-			//var windowId = SDL.SDL_GetWindowID((Renderer.Instance as SDL2Renderer).WindowPtr);
-
 			while (SDL.SDL_PollEvent(out SDL.SDL_Event e) != 0)
 			{
 				switch (e.type)
