@@ -4,17 +4,18 @@ using System.Linq;
 using Ujeby.Plosinofka.Engine.Common;
 using Ujeby.Plosinofka.Engine.Graphics;
 using Ujeby.Plosinofka.Game;
-using Ujeby.Plosinofka.Game.Graphics;
 
 namespace UjebyTest
 {
 	class AABBTest : TestBase
 	{
-		private const long TEST_COUNT = 10000000;
+		private const long TEST_COUNT = 1000000;
 
 		private Vector2i Mouse;
 		private Vector2i TmpMouse;
 		private uint MouseState;
+
+		private Triangle TmpTriangle;
 
 		private bool DrawingRay = false;
 		private Ray TmpRay;
@@ -39,6 +40,13 @@ namespace UjebyTest
 			//Boxes.Add(new AABB(new Vector2f(0, 0), new Vector2f(1920, 15)));
 
 			TestLevel = new Level("test", Boxes.ToArray());
+
+			TmpTriangle = new Triangle(
+				new Vector2f(100, 200),
+				new Vector2f(500, 300),
+				new Vector2f(300, 500)
+			);
+			var result = TmpTriangle.Overlap(new AABB(new Vector2f(342, 90), new Vector2f(671, 232)));
 
 			//var t = TestLevel.Trace(
 			//	new AABB(new Vector2f(309 + 8, 15), new Vector2f(309 + 8 + 16, 15 + 31)),
@@ -68,6 +76,7 @@ namespace UjebyTest
 			}
 			else if (DrawingBox && !leftMouse)
 			{
+				Log.Add($"box: { TmpBox }");
 				Boxes.Add(TmpBox);
 				TestLevel = new Level("test", Boxes.ToArray());
 			}
@@ -98,6 +107,18 @@ namespace UjebyTest
 				SDL.SDL_SetRenderDrawColor(Program.RendererPtr, 0xff, 0xff, 0xff, 0xff);
 				SDL.SDL_RenderDrawRect(Program.RendererPtr, ref rect);
 			}
+
+			// draw triangle
+			SDL.SDL_SetRenderDrawColor(Program.RendererPtr, 0x0, 0xff, 0xff, 0xff);
+			SDL.SDL_RenderDrawLine(Program.RendererPtr,
+				(int)TmpTriangle.V1.X, Program.WindowSize.Y - (int)TmpTriangle.V1.Y,
+				(int)TmpTriangle.V2.X, Program.WindowSize.Y - (int)TmpTriangle.V2.Y);
+			SDL.SDL_RenderDrawLine(Program.RendererPtr,
+				(int)TmpTriangle.V1.X, Program.WindowSize.Y - (int)TmpTriangle.V1.Y,
+				(int)TmpTriangle.V3.X, Program.WindowSize.Y - (int)TmpTriangle.V3.Y);
+			SDL.SDL_RenderDrawLine(Program.RendererPtr,
+				(int)TmpTriangle.V3.X, Program.WindowSize.Y - (int)TmpTriangle.V3.Y,
+				(int)TmpTriangle.V2.X, Program.WindowSize.Y - (int)TmpTriangle.V2.Y);
 
 			if (DrawingRay)
 			{
@@ -156,7 +177,7 @@ namespace UjebyTest
 					h = -(int)TmpBox.Size.Y,
 				};
 
-				if (TestLevel.Overlap(TmpBox))
+				if (TestLevel.Overlap(TmpBox) || TmpTriangle.Overlap(TmpBox))
 				{
 					title += " overlaps |";
 					SDL.SDL_SetRenderDrawColor(Program.RendererPtr, 0xff, 0x00, 0x00, 0xff);

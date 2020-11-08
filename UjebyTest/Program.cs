@@ -5,7 +5,7 @@ using Ujeby.Plosinofka.Engine.Common;
 
 namespace UjebyTest
 {
-	class Program
+	internal class Program
 	{
 		public static IntPtr WindowPtr;
 		public static IntPtr RendererPtr;
@@ -18,7 +18,7 @@ namespace UjebyTest
 			{
 				stopwatch.Restart();
 
-				Tests.ClassVsStruct();
+				StaticTests.ClassVsStruct();
 
 				InitSDL();
 
@@ -98,12 +98,12 @@ namespace UjebyTest
 			return true;
 		}
 
-		private static bool KeyPressed(SDL.SDL_Scancode scanCode)
+		internal static bool KeyPressed(SDL.SDL_Scancode scanCode)
 		{
 			return CurrentKeys[(int)scanCode] == 1 && PreviousKeys[(int)scanCode] == 0;
 		}
 
-		private static bool KeyReleased(SDL.SDL_Scancode scanCode)
+		internal static bool KeyReleased(SDL.SDL_Scancode scanCode)
 		{
 			return CurrentKeys[(int)scanCode] == 0 && PreviousKeys[(int)scanCode] == 1;
 		}

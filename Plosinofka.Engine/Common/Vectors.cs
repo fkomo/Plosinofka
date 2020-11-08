@@ -44,7 +44,7 @@ namespace Ujeby.Plosinofka.Engine.Common
 		public static Vector2f operator +(Vector2f a, double k) => new Vector2f(a.X + k, a.Y + k);
 		public static Vector2f operator -(Vector2f a, double k) => new Vector2f(a.X - k, a.Y - k);
 
-		public static bool operator ==(Vector2f a, Vector2f b) => a.X == b.X && a.Y == b.Y;
+		public static bool operator ==(Vector2f a, Vector2f b) => a.X.Eq(b.X) && a.Y.Eq(b.Y);
 		public static bool operator !=(Vector2f a, Vector2f b) => !(a == b);
 
 		public double Length() => Math.Sqrt(X * X + Y * Y);
@@ -56,6 +56,9 @@ namespace Ujeby.Plosinofka.Engine.Common
 		public Vector2f Min(Vector2f v) => new Vector2f(Math.Min(X, v.X), Math.Min(Y, v.Y));
 		public Vector2f Max(Vector2f v) => new Vector2f(Math.Max(X, v.X), Math.Max(Y, v.Y));
 		public Vector2f Inv() => new Vector2f(-X, -Y);
+
+		public static Vector2f Min(Vector2f v1, Vector2f v2) => new Vector2f(Math.Min(v1.X, v2.X), Math.Min(v1.Y, v2.Y));
+		public static Vector2f Max(Vector2f v1, Vector2f v2) => new Vector2f(Math.Max(v1.X, v2.X), Math.Max(v1.Y, v2.Y));
 
 		public Vector2i Trunc() => new Vector2i((int)X, (int)Y);
 		public Vector2i Round() => new Vector2i((int)Math.Round(X), (int)Math.Round(Y));

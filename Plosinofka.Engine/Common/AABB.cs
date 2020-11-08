@@ -14,7 +14,7 @@ namespace Ujeby.Plosinofka.Engine.Common
 		/// <summary>top right - world coordinates</summary>
 		public Vector2f Max { get; private set; }
 
-		private Vector2f HalfSize;
+		public Vector2f HalfSize { get; private set; }
 		public Vector2f Center { get; private set; }
 		public Vector2f Size => Max - Min;
 
@@ -36,17 +36,17 @@ namespace Ujeby.Plosinofka.Engine.Common
 
 		public bool Inside(Vector2f p) => Inside(p.X, p.Y);
 		public bool Inside(int x, int y) => Inside((double)x, (double)y);
-		public bool Inside(double x, double y) => !(x < Left || y < Bottom || x >= Right || y >= Top);
+		public bool Inside(double x, double y) => !(x < Left || y < Bottom || x.GrEq(Right) || y.GrEq(Top));
 
 		public bool OutsideOrSurface(Vector2f p) => OutsideOrSurface(p.X, p.Y);
-		public bool OutsideOrSurface(double x, double y) => (x <= Left || y <= Bottom || x >= Right || y >= Top);
+		public bool OutsideOrSurface(double x, double y) => x.LeEq(Left) || y.LeEq(Bottom) || x.GrEq(Right) || y.GrEq(Top);
 
 		public bool Overlap(AABB other)
 		{
-			if (Math.Abs(Center.X - other.Center.X) > HalfSize.X + other.HalfSize.X)
+			if (Math.Abs(Center.X - other.Center.X).GrEq(HalfSize.X + other.HalfSize.X))
 				return false;
 
-			if (Math.Abs(Center.Y - other.Center.Y) > HalfSize.Y + other.HalfSize.Y)
+			if (Math.Abs(Center.Y - other.Center.Y).GrEq(HalfSize.Y + other.HalfSize.Y))
 				return false;
 
 			return true;
@@ -60,7 +60,7 @@ namespace Ujeby.Plosinofka.Engine.Common
 			// if ray is coming from outside or from surface
 			if (OutsideOrSurface(origin))
 			{
-				if (origin.X <= Min.X && direction.X > 0)
+				if (origin.X.LeEq(Min.X) && direction.X > 0)
 				{
 					var t = (-origin.X + Math.Abs(Min.X)) / direction.X;
 					if (t < tMin && !double.IsInfinity(t))
@@ -73,7 +73,7 @@ namespace Ujeby.Plosinofka.Engine.Common
 						}
 					}
 				}
-				else if (origin.X >= Max.X && direction.X < 0)
+				else if (origin.X.GrEq(Max.X) && direction.X < 0)
 				{
 					var t = (-origin.X + Math.Abs(Max.X)) / direction.X;
 					if (t < tMin && !double.IsInfinity(t))
@@ -87,7 +87,7 @@ namespace Ujeby.Plosinofka.Engine.Common
 					}
 				}
 
-				if (origin.Y <= Min.Y && direction.Y > 0)
+				if (origin.Y.LeEq(Min.Y) && direction.Y > 0)
 				{
 					var t = (-origin.Y + Math.Abs(Min.Y)) / direction.Y;
 					if (t < tMin && !double.IsInfinity(t))
@@ -100,7 +100,7 @@ namespace Ujeby.Plosinofka.Engine.Common
 						}
 					}
 				}
-				else if (origin.Y >= Max.Y && direction.Y < 0)
+				else if (origin.Y.GrEq(Max.Y) && direction.Y < 0)
 				{
 					var t = (-origin.Y + Math.Abs(Max.Y)) / direction.Y;
 					if (t < tMin && !double.IsInfinity(t))
@@ -245,6 +245,51 @@ namespace Ujeby.Plosinofka.Engine.Common
 		}
 
 		/// <summary>
+		/// aabb vs edge (line defined by 2 points)
+		/// </summary>
+		/// <param name="a">line start</param>
+		/// <param name="b">line end</param>
+		/// <returns>true if line intersects aabb</returns>
+		public bool Intersect(Vector2f a, Vector2f b)
+		{
+			var e = b - a;
+
+			var te = (Bottom - a.Y) / e.Y;
+			if (te > 0 && te.LeEq(1))
+			{
+				var t = (e.X * te) + a.X;
+				if (t.GrEq(Left) && t < Right)
+					return true;
+			}
+
+			te = (Top - a.Y) / e.Y;
+			if (te > 0 && te.LeEq(1))
+			{
+				var t = (e.X * te) + a.X;
+				if (t.GrEq(Left) && t < Right)
+					return true;
+			}
+
+			te = (Left - a.X) / e.X;
+			if (te > 0 && te.LeEq(1))
+			{
+				var t = (e.Y * te) + a.Y;
+				if (t.GrEq(Bottom) && t < Top)
+					return true;
+			}
+
+			te = (Right - a.X) / e.X;
+			if (te > 0 && te.LeEq(1))
+			{
+				var t = (e.Y * te) + a.Y;
+				if (t.GrEq(Bottom) && t < Top)
+					return true;
+			}
+
+			return false;
+		}
+
+		/// <summary>
 		/// find nonoverlapping aabboxes in sprite
 		/// </summary>
 		/// <param name="map"></param>
@@ -326,6 +371,25 @@ namespace Ujeby.Plosinofka.Engine.Common
 			return new AABB(
 				new Vector2f(aABBs.Min(bb => bb.Min.X), aABBs.Min(bb => bb.Min.Y)),
 				new Vector2f(aABBs.Max(bb => bb.Max.X), aABBs.Max(bb => bb.Max.Y)));
+		}
+
+		/// <summary>
+		/// point vs 4 aabb planes
+		/// each bit (4) represents point side on one plane, 1 == outside, 0 == inside
+		/// so when result == 0, the point is inside of aabb
+		/// </summary>
+		/// <param name="cv">point centered to aabb (v - aabb.center)</param>
+		/// <returns>(-y | y | -x | x)</returns>
+		public int PointPosition(Vector2f cv)
+		{
+			var result = 0;
+
+			if (cv.X.GrEq(HalfSize.X)) result |= 1;
+			if (cv.X.LeEq(-HalfSize.X)) result |= 2;
+			if (cv.Y.GrEq(HalfSize.Y)) result |= 4;
+			if (cv.Y.LeEq(-HalfSize.Y)) result |= 8;
+
+			return result;
 		}
 
 		public AABB GetAABB() => this;

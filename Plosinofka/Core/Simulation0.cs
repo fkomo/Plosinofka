@@ -157,8 +157,8 @@ namespace Ujeby.Plosinofka.Game
 				var direction = velocity.Normalize();
 
 				var entityBox = entity.BoundingBox + position;
-				var t = CurrentLevel.Trace(entityBox, direction, out Vector2f normal);
-				if (t <= distance)
+				var t = CurrentLevel.Trace(entityBox, velocity, out Vector2f normal);
+				if (t.LeEq(distance))
 				{
 					collisionFound = true;
 

@@ -99,13 +99,6 @@ namespace Ujeby.Plosinofka.Game.Entities
 		{
 			var bb = BoundingBox + Position;
 			return env.Overlap(new AABB(new Vector2f(bb.Left + 1, bb.Bottom - 1), new Vector2f(bb.Right - 1, bb.Bottom)));
-
-			// old way
-			//return
-			//	0 == env.Trace(bb.Min, Vector2f.Down, out _) ||
-			//	0 == env.Trace(new Vector2f(bb.Max.X, bb.Bottom), Vector2f.Down, out _) ||
-			//	0 == env.Trace(new Vector2f(bb.Left + bb.Size.X * 0.33, bb.Bottom), Vector2f.Down, out _) ||
-			//	0 == env.Trace(new Vector2f(bb.Left + bb.Size.X * 0.66, bb.Bottom), Vector2f.Down, out _);
 		}
 
 		/// <summary>
