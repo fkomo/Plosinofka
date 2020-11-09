@@ -7,6 +7,8 @@ namespace Ujeby.Plosinofka.Game
 {
 	class Program
 	{
+		internal static string ContentDirectory = ".\\Content\\";
+
 		static void Main()
 		{
 			try

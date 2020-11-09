@@ -40,10 +40,10 @@ namespace Ujeby.Plosinofka.Game.Entities
 		{
 			Name = name;
 
-			var sprite = SpriteCache.LoadSprite($".\\Content\\Player\\player.png");
+			var sprite = SpriteCache.LoadSprite(Program.ContentDirectory + $"Player\\player.png");
 			DefaultSpriteId = sprite?.Id;
 
-			var dataSprite = SpriteCache.LoadSprite($".\\Content\\Player\\player-data.png");
+			var dataSprite = SpriteCache.LoadSprite(Program.ContentDirectory + $"Player\\player-data.png");
 			if (dataSprite != null)
 				BoundingBox = AABB.Union(AABB.FromMap(dataSprite, Level.ObstacleMask));
 

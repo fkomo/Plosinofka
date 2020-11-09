@@ -118,11 +118,9 @@ namespace Ujeby.Plosinofka.Game
 
 					// debug settings
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_F5))
-						Settings.Current.ToggleDebug(DebugSetting.MovementHistory);
+						Settings.Current.ToggleDebug(DebugSetting.DrawHistory);
 					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_F6))
 						Settings.Current.ToggleDebug(DebugSetting.DrawAABB);
-					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_F7))
-						Settings.Current.ToggleDebug(DebugSetting.DrawVectors);
 				}
 			}
 	

@@ -15,7 +15,7 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 		{
 			if (state == InputButtonState.Released)
 			{
-				if (button == Settings.Current.PlayerControls.Crouch)
+				if (button == Settings.Current.InputMappings.Crouch)
 					player.ChangeMovement(new Idle());
 			}
 			else if (state == InputButtonState.Pressed)

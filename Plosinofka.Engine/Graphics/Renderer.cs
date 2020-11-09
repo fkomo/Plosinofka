@@ -1,4 +1,5 @@
-﻿using Ujeby.Plosinofka.Engine.Common;
+﻿using System;
+using Ujeby.Plosinofka.Engine.Common;
 using Ujeby.Plosinofka.Engine.Core;
 using Ujeby.Plosinofka.Engine.Entities;
 
@@ -18,6 +19,12 @@ namespace Ujeby.Plosinofka.Engine.Graphics
 
 		public abstract void Initialize();
 		public abstract void Destroy();
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <returns></returns>
+		public abstract Font GetCurrentFont();
 
 		/// <summary>
 		/// 
@@ -60,10 +67,13 @@ namespace Ujeby.Plosinofka.Engine.Graphics
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="camera"></param>
-		/// <param name="position">topLeft corner (increasing from top to bottom)</param>
-		/// <param name="text"></param>
-		public abstract void RenderText(AABB view, Vector2i position, string text);
+		/// <param name="view"></param>
+		/// <param name="position"></param>
+		/// <param name="lines"></param>
+		/// <param name="color"></param>
+		/// <param name="fontSize"></param>
+		public abstract void RenderTextLines(AABB view, Vector2i position, string[] lines, Color4b color,
+			double fontSize = 1);
 
 		/// <summary>
 		/// 

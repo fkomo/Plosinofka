@@ -53,7 +53,7 @@ namespace Ujeby.Plosinofka.Game
 				Finish = new AABB(new Vector2f(1000, 0), new Vector2f(1100, 100)),
 
 				// load layers
-				Layers = Directory.EnumerateFiles($".\\Content\\World\\{ name }\\", $"color*.png")
+				Layers = Directory.EnumerateFiles(Program.ContentDirectory + $"World\\{ name }\\", $"color*.png")
 					.Select(layerFile =>
 					{
 						var sprite = SpriteCache.LoadSprite(layerFile);
@@ -81,6 +81,7 @@ namespace Ujeby.Plosinofka.Game
 
 			var mainLayer = level.Layers.SingleOrDefault(l => l.Depth == 0);
 
+			// TODO divide obstacles to multiple regions for faster collision detection
 			var dataSpriteId = mainLayer.DataMapId;
 			if (dataSpriteId != null)
 				level.Obstacles = AABB.FromMap(SpriteCache.Get(dataSpriteId), ObstacleMask);

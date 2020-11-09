@@ -11,9 +11,14 @@ namespace Ujeby.Plosinofka.Engine.Common
 
 		public static Color4b Black = new Color4b(0x0, 0x0, 0x0, 0xff);
 		public static Color4b White = new Color4b(0xff, 0xff, 0xff, 0xff);
+		public static Color4b Gray = new Color4b(0x7f, 0x7f, 0x7f, 0xff);
 		public static Color4b Red = new Color4b(0xff, 0x0, 0x0, 0xff);
 		public static Color4b Green = new Color4b(0x0, 0xff, 0x0, 0xff);
 		public static Color4b Blue = new Color4b(0x0, 0x0, 0xff, 0xff);
+
+		public Color4b(Color4b c) : this(c.R, c.G, c.B, c.A)
+		{
+		}
 
 		public Color4b(byte r, byte g, byte b, byte a)
 		{

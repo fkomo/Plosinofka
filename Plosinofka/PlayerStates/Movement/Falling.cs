@@ -60,7 +60,7 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 						player.AddMovement(new Walking(this));
 					}
 				}
-				else if (button == Settings.Current.PlayerControls.Crouch)
+				else if (button == Settings.Current.InputMappings.Crouch)
 				{
 					player.ChangeMovement(new Diving(this), false);
 				}

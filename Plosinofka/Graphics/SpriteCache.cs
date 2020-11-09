@@ -18,12 +18,12 @@ namespace Ujeby.Plosinofka.Game.Graphics
 		/// </summary>
 		private static readonly Dictionary<string, string> LibraryFileMap = new Dictionary<string, string>()
 		{
-			{ PlayerDecals.DustParticlesLeft.ToString() , ".\\Content\\Effects\\DustParticlesLeft.png" },
-			{ PlayerDecals.DustParticlesRight.ToString() , ".\\Content\\Effects\\DustParticlesRight.png" },
+			{ PlayerDecals.DustParticlesLeft.ToString() , Program.ContentDirectory + "Effects\\DustParticlesLeft.png" },
+			{ PlayerDecals.DustParticlesRight.ToString() , Program.ContentDirectory + "Effects\\DustParticlesRight.png" },
 
-			{ PlayerAnimations.Idle.ToString() , ".\\Content\\Player\\player-idle.png" },
-			{ PlayerAnimations.WalkingLeft.ToString() , ".\\Content\\Player\\player-walkingLeft.png" },
-			{ PlayerAnimations.WalkingRight.ToString() , ".\\Content\\Player\\player-walkingRight.png" },
+			{ PlayerAnimations.Idle.ToString() , Program.ContentDirectory + "Player\\player-idle.png" },
+			{ PlayerAnimations.WalkingLeft.ToString() , Program.ContentDirectory + "Player\\player-walkingLeft.png" },
+			{ PlayerAnimations.WalkingRight.ToString() , Program.ContentDirectory + "Player\\player-walkingRight.png" },
 		};
 
 		/// <summary>
@@ -122,6 +122,63 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			}
 
 			return sprite;
+		}
+
+		public static Font LoadFont(string name)
+		{
+			var file = Program.ContentDirectory + $"{ name }.png";
+			if (!File.Exists(file))
+			{
+				Log.Add($"LoadFont('{ file }'): file not found!");
+				return null;
+			}
+
+			var fileInfo = new FileInfo(file);
+			var sizeString = fileInfo.Name
+				.Replace(fileInfo.Extension, string.Empty)
+				.Split("-").Last()
+				.Split("x");
+
+			var font = new Font
+			{
+				SpriteId = LoadSprite(file)?.Id,
+				CharSize = new Vector2i(Convert.ToInt32(sizeString[0]), Convert.ToInt32(sizeString[1])),
+				Spacing = new Vector2i(1, 1),
+			};
+
+			// create aabb's for each character
+			var dataFile = Program.ContentDirectory + $"{ name }-data.png";
+			if (File.Exists(dataFile))
+			{
+				var dataSprite = LoadSprite(dataFile);
+				font.DataSpriteId = dataSprite.Id;
+
+				font.CharBoxes = new AABB[dataSprite.Size.X / font.CharSize.X];
+				for (var ci = 0; ci < dataSprite.Size.X; ci += font.CharSize.X)
+				{
+					var min = new Vector2i(font.CharSize.X, font.CharSize.Y);
+					var max = new Vector2i(0, 0);
+
+					for (var y = 0; y < font.CharSize.Y; y++)
+					{
+						for (var x = 0; x < font.CharSize.X; x++)
+						{
+							var index = y * dataSprite.Size.X + x + ci;
+							if (dataSprite.Data[index] != 0)
+							{
+								min.X = Math.Min(min.X, x);
+								min.Y = Math.Min(min.Y, y);
+								max.X = Math.Max(max.X, x + 1);
+								max.Y = Math.Max(max.Y, y + 1);
+							}
+						}
+					}
+					
+					font.CharBoxes[ci / font.CharSize.X] = new AABB(min, max);
+				}
+			}
+
+			return font;
 		}
 	}
 }

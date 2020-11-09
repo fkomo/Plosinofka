@@ -28,11 +28,12 @@ namespace Ujeby.Plosinofka.Engine.Core
 			Renderer.Instance.Initialize();
 			Simulation.Instance.Initialize();
 
+			Renderer.Instance.SetWindowTitle(Title);
+
 			var skipTicks = 1000 / Simulation.Instance.GameSpeed;
 
 			var running = true;
 
-			var lastTitleUpdate = 0.0;
 			var lastFrameTime = GetElapsed();
 			var nextGameTick = lastFrameTime;
 
@@ -66,18 +67,6 @@ namespace Ujeby.Plosinofka.Engine.Core
 					minFps = Fps;
 
 				lastFrameTime = GetElapsed();
-
-				if (lastFrameTime - lastTitleUpdate > 500)
-				{
-					var upd = $"{ Simulation.Instance.LastUpdateDuration:0.00}";
-					var render = $"{ Renderer.Instance.LastFrameDuration:0.00}";
-					var shading = $"{ (int)(Renderer.Instance.LastShadingDuration / Renderer.Instance.LastFrameDuration * 100) }";
-
-					var loopTime = (int)((GetElapsed() - loopStart) / 1000);
-					var title = $"{ Title } [time: { loopTime }s | fps: { Fps } | update:{ upd }ms | render:{ render }ms ~(shading:{ shading }%) | ]";
-					Renderer.Instance.SetWindowTitle(title);
-					lastTitleUpdate = lastFrameTime;
-				}
 			}
 
 			var loopDuration = (GetElapsed() - loopStart);

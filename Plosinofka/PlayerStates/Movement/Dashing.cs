@@ -43,7 +43,7 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 				if ((button == InputButton.Right && Direction.X > 0) || (button == InputButton.Left && Direction.X < 0))
 					player.AddMovement(new Idle());
 
-				else if (button == Settings.Current.PlayerControls.Run)
+				else if (button == Settings.Current.InputMappings.Run)
 					player.AddMovement(new Walking(Direction.Normalize()));
 			}
 		}

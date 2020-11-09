@@ -31,7 +31,7 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 		}
 
 		private const double JumpImpulse = 10;
-		private const double DoubleJumpMultiplier = 1.25;
+		private const double DoubleJumpMultiplier = 1;
 		private const double AirStep = BaseStep * 0.8;
 
 		private Vector2f Jump = new Vector2f(0, JumpImpulse);
@@ -72,11 +72,11 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 						player.AddMovement(new Walking(Direction));
 					}
 				}
-				else if (button == Settings.Current.PlayerControls.Crouch)
+				else if (button == Settings.Current.InputMappings.Crouch)
 				{
 					player.ChangeMovement(new Diving(this), false);
 				}
-				else if (button == Settings.Current.PlayerControls.Jump)
+				else if (button == Settings.Current.InputMappings.Jump)
 				{
 					if (ExtraJump > 0)
 					{
@@ -84,7 +84,7 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 						Jump = new Vector2f(0, JumpImpulse * DoubleJumpMultiplier);
 					}
 				}
-				else if (button == Settings.Current.PlayerControls.Dash)
+				else if (button == Settings.Current.InputMappings.Dash)
 				{
 					if (!Freeze && Math.Abs(Direction.X) > 0)
 						player.ChangeMovement(new Dashing(this), false);
@@ -108,12 +108,12 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 						player.AddMovement(new Idle());
 					}
 				}
-				else if (button == Settings.Current.PlayerControls.Jump)
+				else if (button == Settings.Current.InputMappings.Jump)
 				{
 					if (player.Velocity.Y > 0)
 						player.Velocity.Y = 0.0;
 				}
-				else if (button == Settings.Current.PlayerControls.Run)
+				else if (button == Settings.Current.InputMappings.Run)
 				{
 					RunMultiplier = 1.0;
 					player.AddMovement(new Walking(this));
@@ -130,10 +130,11 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 
 			else
 			{
-				// NOTE possible problem, if double jump is pressed at high fall velocity, it makes no real difference
-				// best double jump is from highest point (when velocity is 0)
-				player.Velocity += Jump;
-				Jump = Vector2f.Zero;
+				if (Jump != Vector2f.Zero)
+				{
+					player.Velocity = Jump;
+					Jump = Vector2f.Zero;
+				}
 
 				// air control
 				player.Velocity.X = Freeze ? 0 : Direction.X * AirStep * RunMultiplier;

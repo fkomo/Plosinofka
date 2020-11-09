@@ -3,18 +3,17 @@ using Ujeby.Plosinofka.Engine.Core;
 
 namespace Ujeby.Plosinofka.Game
 {
-	internal enum VisualSetting
+	internal enum VisualSetting : int
 	{
-		PerPixelShading,
+		PerPixelShading = 0,
 
 		Count,
 	}
 
-	internal enum DebugSetting
+	internal enum DebugSetting : int
 	{
-		MovementHistory,
+		DrawHistory = 0,
 		DrawAABB,
-		DrawVectors,
 
 		Count,
 	}
@@ -50,19 +49,28 @@ namespace Ujeby.Plosinofka.Game
 		/// X - melee attack
 		/// Y - 
 		/// </summary>
-		internal class Controls
+		internal class InputMapping
 		{
 			public InputButton Jump = InputButton.Up;
 			public InputButton Crouch = InputButton.Down;
-
 			public InputButton Run = InputButton.LT;
 			public InputButton Dash = InputButton.RB;
-
 			public InputButton MeleeAttack = InputButton.X;
-
 			public InputButton Menu = InputButton.Start;
+
+			public KeyboardButton[] VisualSettings = new KeyboardButton[(int)VisualSetting.Count]
+			{
+				KeyboardButton.F1,
+			};
+
+			public KeyboardButton[] DebugSettings = new KeyboardButton[(int)DebugSetting.Count]
+			{
+				KeyboardButton.F5,
+				KeyboardButton.F6,
+			};
 		}
-		public Controls PlayerControls { get; private set; } = new Controls();
+
+		public InputMapping InputMappings { get; private set; } = new InputMapping();
 
 		public bool[] VisualToggles { get; private set; } = new bool[(int)VisualSetting.Count];
 		public bool[] DebugToggles { get; private set; } = new bool[(int)DebugSetting.Count];

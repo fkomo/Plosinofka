@@ -12,11 +12,14 @@ namespace Ujeby.Plosinofka.Engine.Graphics
 	public class Font
 	{
 		public string SpriteId;
+		public string DataSpriteId;
 
 		/// <summary></summary>
 		public Vector2i CharSize;
 
 		/// <summary></summary>
 		public Vector2i Spacing;
+
+		public AABB[] CharBoxes;
 	}
 }

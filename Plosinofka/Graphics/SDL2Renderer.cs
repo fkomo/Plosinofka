@@ -7,6 +7,8 @@ using Ujeby.Plosinofka.Engine.Common;
 using Ujeby.Plosinofka.Engine.Entities;
 using Ujeby.Plosinofka.Engine.Graphics;
 using Ujeby.Plosinofka.Engine.Core;
+using System.IO;
+using System.Linq;
 
 namespace Ujeby.Plosinofka.Game.Graphics
 {
@@ -50,6 +52,8 @@ namespace Ujeby.Plosinofka.Game.Graphics
 		private Font CurrentFont;
 
 		private readonly Dictionary<BufferEnum, ScreenBuffer> ScreenBuffers = new Dictionary<BufferEnum, ScreenBuffer>();
+
+		public override Font GetCurrentFont() => CurrentFont;
 
 		private ScreenBuffer CreateScreenBuffer(BufferEnum id, Vector2i size)
 		{
@@ -101,7 +105,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 				throw new Exception($"Failed to create window. SDL2Error({ SDL.SDL_GetError() })");
 
 			RendererPtr = SDL.SDL_CreateRenderer(WindowPtr, -1, 
-				SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC | SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED);
+				/*SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC |*/ SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED);
 			if (RendererPtr == null)
 				throw new Exception($"Failed to create renderer. SDL2Error({ SDL.SDL_GetError() })");
 
@@ -110,13 +114,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 
 		public override void Initialize()
 		{
-			// TODO better font sprite (3x5 for character is not enough for lowercase)
-			CurrentFont = new Font
-			{
-				SpriteId = SpriteCache.LoadSprite($".\\Content\\font-small.png")?.Id,
-				CharSize = new Vector2i(3, 5),
-				Spacing = new Vector2i(1, 2),
-			};
+			CurrentFont = SpriteCache.LoadFont("font-5x7");
 		}
 
 		public override void Destroy()
@@ -235,38 +233,45 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			SDL.SDL_RenderCopy(RendererPtr, sprite.TexturePtr, ref sourceRect, ref destinationRect);
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="camera"></param>
-		/// <param name="position">topLeft corner (increasing from top to bottom)</param>
-		/// <param name="text"></param>
-		public override void RenderText(AABB view, Vector2i position, string text)
+		public override void RenderTextLines(AABB view, Vector2i position, string[] lines, Color4b color, 
+			double fontSize = 1)
 		{
-			// TODO render font with variable character width
 			var font = CurrentFont;
+			if (font == null)
+				return;
+
 			var fontSprite = SpriteCache.Get(font.SpriteId);
 
-			var scale = CurrentWindowSize / view.Size;
+			var scale = CurrentWindowSize / view.Size * fontSize;
 
 			var sourceRect = new SDL.SDL_Rect();
 			var destinationRect = new SDL.SDL_Rect();
 
-			for (var i = 0; i < text.Length; i++)
+			var textPosition = position;
+			foreach (var line in lines)
 			{
-				var charIndex = (int)text[i] - 32;
+				// TODO RenderText color
+				for (var i = 0; i < line.Length; i++)
+				{
+					var charIndex = (int)line[i] - 32;
+					var charAabb = font.CharBoxes[charIndex];
 
-				sourceRect.x = font.CharSize.X * charIndex;
-				sourceRect.y = 0;
-				sourceRect.w = font.CharSize.X;
-				sourceRect.h = font.CharSize.Y;
+					sourceRect.x = font.CharSize.X * charIndex + (int)charAabb.Min.X;
+					sourceRect.y = (int)charAabb.Min.Y;
+					sourceRect.w = (int)charAabb.Size.X;
+					sourceRect.h = (int)charAabb.Size.Y;
 
-				destinationRect.x = (int)(position.X + i * (font.CharSize.X + font.Spacing.X) * scale.X);
-				destinationRect.y = (int)(position.Y * scale.Y);
-				destinationRect.w = (int)(font.CharSize.X * scale.X);
-				destinationRect.h = (int)(font.CharSize.Y * scale.Y);
+					destinationRect.x = (int)(textPosition.X * scale.X);
+					destinationRect.y = (int)(textPosition.Y * scale.Y);
+					destinationRect.w = (int)(charAabb.Size.X * scale.X);
+					destinationRect.h = (int)(charAabb.Size.Y * scale.Y);
 
-				SDL.SDL_RenderCopy(RendererPtr, fontSprite.TexturePtr, ref sourceRect, ref destinationRect);
+					SDL.SDL_RenderCopy(RendererPtr, fontSprite.TexturePtr, ref sourceRect, ref destinationRect);
+					textPosition.X += (int)charAabb.Size.X + font.Spacing.X;
+				}
+
+				textPosition.Y += font.CharSize.Y + font.Spacing.Y;
+				textPosition.X = position.X;
 			}
 		}
 

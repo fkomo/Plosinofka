@@ -18,10 +18,10 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 				if (button == InputButton.Left || button == InputButton.Right)
 					player.ChangeMovement(new Walking(button));
 
-				else if (button == Settings.Current.PlayerControls.Jump)
+				else if (button == Settings.Current.InputMappings.Jump)
 					player.ChangeMovement(new Jumping());
 
-				else if (button == Settings.Current.PlayerControls.Crouch)
+				else if (button == Settings.Current.InputMappings.Crouch)
 					player.ChangeMovement(new Crouching());
 			}
 		}
