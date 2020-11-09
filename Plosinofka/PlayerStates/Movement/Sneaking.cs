@@ -57,7 +57,7 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 					else
 						player.ChangeMovement(new Crouching());
 				}
-				else if (button == Settings.Current.InputMappings.Crouch)
+				else if (button == Settings.Instance.InputMappings.Crouch)
 					player.ChangeMovement(new Walking(this));
 			}
 		}

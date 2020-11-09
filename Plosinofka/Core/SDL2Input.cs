@@ -1,4 +1,6 @@
 ﻿using SDL2;
+using System;
+using System.Linq;
 using Ujeby.Plosinofka.Engine.Core;
 
 namespace Ujeby.Plosinofka.Game
@@ -112,15 +114,22 @@ namespace Ujeby.Plosinofka.Game
 					if (KeyReleased(SDL.SDL_Scancode.SDL_SCANCODE_M))
 						player.HandleButton(InputButton.Start, InputButtonState.Released);
 
-					// visual settings
-					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_F1))
-						Settings.Current.ToggleVisual(VisualSetting.PerPixelShading);
+					// F1 - F12 toggles
+					for (var i = SDL.SDL_Scancode.SDL_SCANCODE_F1; i < SDL.SDL_Scancode.SDL_SCANCODE_F12; i++)
+					{
+						if (!KeyPressed(i))
+							continue;
 
-					// debug settings
-					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_F5))
-						Settings.Current.ToggleDebug(DebugSetting.DrawHistory);
-					if (KeyPressed(SDL.SDL_Scancode.SDL_SCANCODE_F6))
-						Settings.Current.ToggleDebug(DebugSetting.DrawAABB);
+						var visualSetting = Array.IndexOf(Settings.Instance.InputMappings.VisualSettings,
+							(KeyboardButton)(i - SDL.SDL_Scancode.SDL_SCANCODE_F1), 0);
+						if (visualSetting != -1)
+							Settings.Instance.ToggleVisual((VisualSetting)visualSetting);
+
+						var debugSetting = Array.IndexOf(Settings.Instance.InputMappings.DebugSettings,
+							(KeyboardButton)(i - SDL.SDL_Scancode.SDL_SCANCODE_F1), 0);
+						if (debugSetting != -1)
+							Settings.Instance.ToggleDebug((DebugSetting)debugSetting);
+					}
 				}
 			}
 	

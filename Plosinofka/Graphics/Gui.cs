@@ -24,36 +24,47 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			//	Color4b.White,
 			//	0.5);
 
-			var lines = new List<string>()
+			var buffer = new List<TextLine>()
 			{
-				$"fps: { Engine.Core.Game.Fps }",
-				$"update: { Simulation.Instance.LastUpdateDuration:0.00}ms",
-				$"render: { Renderer.Instance.LastFrameDuration:0.00}ms",
-				$" + shading: { Renderer.Instance.LastShadingDuration:0.00}ms",
-				$" + gui: { LastGuiDuration:0.00}ms",
-				"",
+				new Text { Value = $"fps: { Engine.Core.Game.Fps }", Color = Color4b.White },
+				new Text { Value = $"update: { Simulation.Instance.LastUpdateDuration:0.00}ms", Color = Color4b.White },
+				new Text { Value = $"render: { Renderer.Instance.LastFrameDuration:0.00}ms", Color = Color4b.White },
+				new Text { Value = $"+ shading: { Renderer.Instance.LastShadingDuration:0.00}ms", Color = Color4b.White },
+				new Text { Value = $"+ gui: { LastGuiDuration:0.00}ms", Color = Color4b.White },
 			};
 
-			for (var i = 0; i < Settings.Current.InputMappings.VisualSettings.Length; i++)
+			buffer.Add(new EmptyLine());
+			buffer.Add(new Text { Value = $"{ nameof(VisualSetting) }", Color = Color4b.White });
+			for (var i = 0; i < Settings.Instance.InputMappings.VisualSettings.Length; i++)
 			{
 				var settingName = ((VisualSetting)i).ToString();
-				var key = Settings.Current.InputMappings.VisualSettings[i].ToString();
+				var key = Settings.Instance.InputMappings.VisualSettings[i].ToString();
 
-				var state = Settings.Current.GetVisual((VisualSetting)i) ? "enabled" : "disabled";
-				lines.Add($"[{ key.ToUpper() }] { settingName }: { state }");
+				var state = Settings.Instance.GetVisual((VisualSetting)i) ? "enabled" : "disabled";
+				buffer.Add(new Text { Value = $"+ { settingName } [{ key.ToUpper() }]: { state }",
+					Color = Settings.Instance.GetVisual((VisualSetting)i) ? Color4b.White : Color4b.Gray });
 			}
-			lines.Add("");
 
-			for (var i = 0; i < Settings.Current.InputMappings.DebugSettings.Length; i++)
+			buffer.Add(new EmptyLine());
+			buffer.Add(new Text { Value = $"{ nameof(DebugSetting) }", Color = Color4b.White });
+			for (var i = 0; i < Settings.Instance.InputMappings.DebugSettings.Length; i++)
 			{
 				var settingName = ((DebugSetting)i).ToString();
-				var key = Settings.Current.InputMappings.DebugSettings[i].ToString();
+				var key = Settings.Instance.InputMappings.DebugSettings[i].ToString();
 
-				var state = Settings.Current.GetDebug((DebugSetting)i) ? "enabled" : "disabled";
-				lines.Add($"[{ key.ToUpper() }] { settingName }: { state }");
+				var state = Settings.Instance.GetDebug((DebugSetting)i) ? "enabled" : "disabled";
+				buffer.Add(new Text { Value = $"+ { settingName } [{ key.ToUpper() }]: { state }", 
+					Color = Settings.Instance.GetDebug((DebugSetting)i) ? Color4b.White : Color4b.Gray });
 			}
 
-			Renderer.Instance.RenderTextLines(view, new Vector2i(5, 5), lines.ToArray(), Color4b.White, 0.5);
+			var lines = buffer.ToArray();
+
+			// TODO draw gui elements
+			//var textSize = Renderer.Instance.GetTextSize(lines);
+			//Renderer.Instance.RenderRectangleOverlay(view, new AABB(Vector2f.Zero, textSize), 
+			//	Color4b.Red);
+
+			Renderer.Instance.RenderTextLines(view, new Vector2i(5, 5), lines, Color4b.White, 0.5);
 
 			LastGuiDuration = Engine.Core.Game.GetElapsed() - start;
 		}

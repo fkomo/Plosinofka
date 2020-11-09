@@ -48,16 +48,16 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 				if (button == InputButton.Left || button == InputButton.Right)
 					Freeze = true;
 
-				else if (button == Settings.Current.InputMappings.Jump)
+				else if (button == Settings.Instance.InputMappings.Jump)
 					player.ChangeMovement(new Jumping(this));
 
-				else if (button == Settings.Current.InputMappings.Crouch)
+				else if (button == Settings.Instance.InputMappings.Crouch)
 					player.ChangeMovement(new Sneaking(this));
 
-				else if (button == Settings.Current.InputMappings.Run)
+				else if (button == Settings.Instance.InputMappings.Run)
 					player.ChangeMovement(new Running(this));
 
-				else if (button == Settings.Current.InputMappings.Dash && !Freeze)
+				else if (button == Settings.Instance.InputMappings.Dash && !Freeze)
 					player.ChangeMovement(new Dashing(this));
 			}
 			else if (state == InputButtonState.Released)

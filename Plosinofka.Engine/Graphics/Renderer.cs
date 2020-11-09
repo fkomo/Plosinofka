@@ -72,8 +72,16 @@ namespace Ujeby.Plosinofka.Engine.Graphics
 		/// <param name="lines"></param>
 		/// <param name="color"></param>
 		/// <param name="fontSize"></param>
-		public abstract void RenderTextLines(AABB view, Vector2i position, string[] lines, Color4b color,
+		public abstract void RenderTextLines(AABB view, Vector2i position, TextLine[] lines, Color4b color,
 			double fontSize = 1);
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="lines"></param>
+		/// <param name="font"></param>
+		/// <returns></returns>
+		public abstract Vector2i GetTextSize(TextLine[] lines, Font font = null);
 
 		/// <summary>
 		/// 

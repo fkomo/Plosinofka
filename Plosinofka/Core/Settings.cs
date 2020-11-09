@@ -18,21 +18,9 @@ namespace Ujeby.Plosinofka.Game
 		Count,
 	}
 
-	internal class Settings
+	internal class Settings : Singleton<Settings>
 	{
-		private static Settings Instance;
-		public static Settings Current
-		{
-			get
-			{
-				if (Instance == null)
-					Instance = new Settings();
-
-				return Instance;
-			}
-		}
-
-		private Settings()
+		public Settings()
 		{
 			Load();
 		}

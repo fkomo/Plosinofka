@@ -32,7 +32,7 @@ namespace Ujeby.Plosinofka.Game
 
 		public void Render(AABB view, double interpolation, Entity[] entities, AABB[] obstacles)
 		{
-			if (Settings.Current.GetDebug(DebugSetting.DrawAABB))
+			if (Settings.Instance.GetDebug(DebugSetting.DrawAABB))
 			{
 				var color = new Color4b(0xff, 0x00, 0x00, 0xaf);
 				foreach (var aabb in obstacles)
@@ -59,7 +59,7 @@ namespace Ujeby.Plosinofka.Game
 				}
 			}
 
-			if (Settings.Current.GetDebug(DebugSetting.DrawHistory))
+			if (Settings.Instance.GetDebug(DebugSetting.DrawHistory))
 			{
 				foreach (var trackedEntity in TrackedEntities)
 				{

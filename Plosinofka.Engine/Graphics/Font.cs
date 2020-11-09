@@ -2,10 +2,17 @@
 
 namespace Ujeby.Plosinofka.Engine.Graphics
 {
-	public class Text
+	public abstract class TextLine
+	{
+	}
+
+	public class EmptyLine : TextLine
+	{
+	}
+
+	public class Text : TextLine
 	{
 		public string Value;
-		public Vector2i Position;
 		public Color4b Color;
 	}
 

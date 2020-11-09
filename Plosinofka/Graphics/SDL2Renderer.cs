@@ -7,8 +7,6 @@ using Ujeby.Plosinofka.Engine.Common;
 using Ujeby.Plosinofka.Engine.Entities;
 using Ujeby.Plosinofka.Engine.Graphics;
 using Ujeby.Plosinofka.Engine.Core;
-using System.IO;
-using System.Linq;
 
 namespace Ujeby.Plosinofka.Game.Graphics
 {
@@ -100,7 +98,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 
 			WindowPtr = SDL.SDL_CreateWindow("sdl .net core test",
 				SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED,
-				windowSize.X, windowSize.Y, SDL.SDL_WindowFlags.SDL_WINDOW_VULKAN);
+				windowSize.X, windowSize.Y, SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL);
 			if (WindowPtr == null)
 				throw new Exception($"Failed to create window. SDL2Error({ SDL.SDL_GetError() })");
 
@@ -233,7 +231,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			SDL.SDL_RenderCopy(RendererPtr, sprite.TexturePtr, ref sourceRect, ref destinationRect);
 		}
 
-		public override void RenderTextLines(AABB view, Vector2i position, string[] lines, Color4b color, 
+		public override void RenderTextLines(AABB view, Vector2i position, TextLine[] lines, Color4b color, 
 			double fontSize = 1)
 		{
 			var font = CurrentFont;
@@ -250,29 +248,68 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			var textPosition = position;
 			foreach (var line in lines)
 			{
-				// TODO RenderText color
-				for (var i = 0; i < line.Length; i++)
+				if (line is Text text)
 				{
-					var charIndex = (int)line[i] - 32;
-					var charAabb = font.CharBoxes[charIndex];
+					// TODO RenderText color
+					for (var i = 0; i < text.Value.Length; i++)
+					{
+						var charIndex = (int)text.Value[i] - 32;
+						var charAabb = font.CharBoxes[charIndex];
 
-					sourceRect.x = font.CharSize.X * charIndex + (int)charAabb.Min.X;
-					sourceRect.y = (int)charAabb.Min.Y;
-					sourceRect.w = (int)charAabb.Size.X;
-					sourceRect.h = (int)charAabb.Size.Y;
+						sourceRect.x = font.CharSize.X * charIndex + (int)charAabb.Min.X;
+						sourceRect.y = (int)charAabb.Min.Y;
+						sourceRect.w = (int)charAabb.Size.X;
+						sourceRect.h = (int)charAabb.Size.Y;
 
-					destinationRect.x = (int)(textPosition.X * scale.X);
-					destinationRect.y = (int)(textPosition.Y * scale.Y);
-					destinationRect.w = (int)(charAabb.Size.X * scale.X);
-					destinationRect.h = (int)(charAabb.Size.Y * scale.Y);
+						destinationRect.x = (int)(textPosition.X * scale.X);
+						destinationRect.y = (int)(textPosition.Y * scale.Y);
+						destinationRect.w = (int)(charAabb.Size.X * scale.X);
+						destinationRect.h = (int)(charAabb.Size.Y * scale.Y);
 
-					SDL.SDL_RenderCopy(RendererPtr, fontSprite.TexturePtr, ref sourceRect, ref destinationRect);
-					textPosition.X += (int)charAabb.Size.X + font.Spacing.X;
+						SDL.SDL_RenderCopy(RendererPtr, fontSprite.TexturePtr, ref sourceRect, ref destinationRect);
+						textPosition.X += (int)charAabb.Size.X + font.Spacing.X;
+					}
+
+					textPosition.Y += font.CharSize.Y + font.Spacing.Y;
+					textPosition.X = position.X;
 				}
-
-				textPosition.Y += font.CharSize.Y + font.Spacing.Y;
-				textPosition.X = position.X;
+				else if (line is EmptyLine)
+				{
+					textPosition.Y += font.CharSize.Y + font.Spacing.Y;
+				}
 			}
+		}
+
+		public override Vector2i GetTextSize(TextLine[] lines, Font font = null)
+		{
+			var size = Vector2i.Zero;
+
+			font ??= CurrentFont;
+			if (font == null)
+				return size;
+
+			foreach (var line in lines)
+			{
+				if (line is Text text)
+				{
+					var lineLength = 0;
+					for (var i = 0; i < text.Value.Length; i++)
+					{
+						var charIndex = (int)text.Value[i] - 32;
+						var charAabb = font.CharBoxes[charIndex];
+
+						lineLength += (int)charAabb.Size.X + font.Spacing.X;
+					}
+					size.X = Math.Max(lineLength, size.X);
+					size.Y += font.CharSize.Y + font.Spacing.Y;
+				}
+				else if (line is EmptyLine)
+				{
+					size.Y += font.CharSize.Y + font.Spacing.Y;
+				}
+			}
+
+			return size;
 		}
 
 		/// <summary>
@@ -299,7 +336,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 		{
 			var shadingStart = Engine.Core.Game.GetElapsed();
 
-			if (Settings.Current.GetVisual(VisualSetting.PerPixelShading) && layer.DataMapId != null)
+			if (Settings.Instance.GetVisual(VisualSetting.PerPixelShading) && layer.DataMapId != null)
 			{
 				//var buffer = DirectLighting(view, layer, lights, obstacles);
 				//var buffer = AmbientOcclusion(view, layer, lights, obstacles, 2);

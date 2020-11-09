@@ -72,11 +72,11 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 						player.AddMovement(new Walking(Direction));
 					}
 				}
-				else if (button == Settings.Current.InputMappings.Crouch)
+				else if (button == Settings.Instance.InputMappings.Crouch)
 				{
 					player.ChangeMovement(new Diving(this), false);
 				}
-				else if (button == Settings.Current.InputMappings.Jump)
+				else if (button == Settings.Instance.InputMappings.Jump)
 				{
 					if (ExtraJump > 0)
 					{
@@ -84,7 +84,7 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 						Jump = new Vector2f(0, JumpImpulse * DoubleJumpMultiplier);
 					}
 				}
-				else if (button == Settings.Current.InputMappings.Dash)
+				else if (button == Settings.Instance.InputMappings.Dash)
 				{
 					if (!Freeze && Math.Abs(Direction.X) > 0)
 						player.ChangeMovement(new Dashing(this), false);
@@ -108,12 +108,12 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 						player.AddMovement(new Idle());
 					}
 				}
-				else if (button == Settings.Current.InputMappings.Jump)
+				else if (button == Settings.Instance.InputMappings.Jump)
 				{
 					if (player.Velocity.Y > 0)
 						player.Velocity.Y = 0.0;
 				}
-				else if (button == Settings.Current.InputMappings.Run)
+				else if (button == Settings.Instance.InputMappings.Run)
 				{
 					RunMultiplier = 1.0;
 					player.AddMovement(new Walking(this));
