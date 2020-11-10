@@ -60,7 +60,7 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 		/// </summary>
 		/// <param name="player"></param>
 		/// <param name="environment"></param>
-		public virtual void Update(Player0 player, IEnvironment environment)
+		public virtual void Update(Player0 player)
 		{
 			// update animation frame
 			var current = Engine.Core.Game.GetElapsed();

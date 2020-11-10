@@ -14,6 +14,7 @@ namespace Ujeby.Plosinofka.Game
 	{
 		DrawHistory = 0,
 		DrawAABB,
+		DrawCamera,
 
 		Count,
 	}
@@ -55,6 +56,7 @@ namespace Ujeby.Plosinofka.Game
 			{
 				KeyboardButton.F5,
 				KeyboardButton.F6,
+				KeyboardButton.F7,
 			};
 		}
 

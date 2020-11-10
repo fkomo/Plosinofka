@@ -1,6 +1,7 @@
 ﻿using System;
 using Ujeby.Plosinofka.Engine.Common;
 using Ujeby.Plosinofka.Engine.Core;
+using Ujeby.Plosinofka.Engine.Entities;
 using Ujeby.Plosinofka.Engine.Graphics;
 using Ujeby.Plosinofka.Game.Entities;
 
@@ -45,11 +46,11 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 			}
 		}
 
-		public override void Update(Player0 player, IEnvironment environment)
+		public override void Update(Player0 player)
 		{
-			base.Update(player, environment);
+			base.Update(player);
 			
-			if (player.Velocity.Y == 0 && player.StandingOnGround(environment))
+			if (player.Velocity.Y == 0 && player.ObstacleAt(Side.Down))
 				player.ChangeToPreviousMovement();
 
 			else
@@ -58,6 +59,8 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 				player.Velocity.X = Freeze ? 0 : Direction.X * DiveStep;
 				player.Velocity.Y += Simulation0.Gravity.Y;
 			}
+
+			// TODO move camera slightly down
 		}
 	}
 }

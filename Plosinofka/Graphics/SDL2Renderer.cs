@@ -200,6 +200,27 @@ namespace Ujeby.Plosinofka.Game.Graphics
 		}
 
 		/// <summary>
+		/// render colored line between point a and b (screenspace)
+		/// both points have origin in topleft corner of screen
+		/// </summary>
+		/// <param name="view"></param>
+		/// <param name="a"></param>
+		/// <param name="b"></param>
+		/// <param name="color"></param>
+		public override void RenderLineOverlay(AABB view, Vector2i a, Vector2i b, Color4b color)
+		{
+			var scale = CurrentWindowSize / view.Size;
+
+			var af = a * scale;
+			var bf = b * scale;
+
+			SDL.SDL_SetRenderDrawColor(RendererPtr, color.R, color.G, color.B, color.A);
+			SDL.SDL_RenderDrawLine(RendererPtr,
+				(int)af.X, (int)af.Y,
+				(int)bf.X, (int)bf.Y);
+		}
+
+		/// <summary>
 		/// render sprite to screen
 		/// </summary>
 		/// <param name="view"></param>
@@ -231,7 +252,15 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			SDL.SDL_RenderCopy(RendererPtr, sprite.TexturePtr, ref sourceRect, ref destinationRect);
 		}
 
-		public override void RenderTextLines(AABB view, Vector2i position, TextLine[] lines, Color4b color, 
+		/// <summary>
+		/// render text lines in screen space
+		/// </summary>
+		/// <param name="view"></param>
+		/// <param name="position">origin in topleft</param>
+		/// <param name="lines"></param>
+		/// <param name="color"></param>
+		/// <param name="fontSize"></param>
+		public override void RenderTextLinesOverlay(AABB view, Vector2i position, TextLine[] lines, Color4b color, 
 			double fontSize = 1)
 		{
 			var font = CurrentFont;

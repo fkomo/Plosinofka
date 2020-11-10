@@ -48,13 +48,21 @@ namespace Ujeby.Plosinofka.Engine.Graphics
 		public abstract void RenderRectangle(AABB view, AABB rectangle, Color4b color);
 
 		/// <summary>
-		/// render colored line between point a and b
+		/// render colored line between point a and b in world space
 		/// </summary>
 		/// <param name="view"></param>
 		/// <param name="a"></param>
 		/// <param name="b"></param>
 		/// <param name="color"></param>
 		public abstract void RenderLine(AABB view, Vector2f a, Vector2f b, Color4b color);
+
+		/// <summary>
+		/// render colored line between point a and b in screen space
+		/// </summary>
+		/// <param name="a"></param>
+		/// <param name="b"></param>
+		/// <param name="color"></param>
+		public abstract void RenderLineOverlay(AABB view, Vector2i a, Vector2i b, Color4b color);
 
 		/// <summary>
 		/// render sprite to screen
@@ -65,14 +73,14 @@ namespace Ujeby.Plosinofka.Engine.Graphics
 		public abstract void RenderSprite(AABB view, Sprite sprite, Vector2f spritePosition, int frame = 0);
 
 		/// <summary>
-		/// 
+		/// render text lines in screen space
 		/// </summary>
 		/// <param name="view"></param>
 		/// <param name="position"></param>
 		/// <param name="lines"></param>
 		/// <param name="color"></param>
 		/// <param name="fontSize"></param>
-		public abstract void RenderTextLines(AABB view, Vector2i position, TextLine[] lines, Color4b color,
+		public abstract void RenderTextLinesOverlay(AABB view, Vector2i position, TextLine[] lines, Color4b color,
 			double fontSize = 1);
 
 		/// <summary>

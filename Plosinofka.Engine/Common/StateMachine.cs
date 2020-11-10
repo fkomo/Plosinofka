@@ -5,11 +5,7 @@ namespace Ujeby.Plosinofka.Engine.Common
 {
 	public abstract class State<T> where T : struct, IConvertible
 	{
-		public override string ToString()
-		{
-			return AsEnum.ToString();
-		}
-
+		public override string ToString() => AsEnum.ToString();
 		public abstract T AsEnum { get; }
 	}
 
@@ -38,7 +34,7 @@ namespace Ujeby.Plosinofka.Engine.Common
 			if (previous != null && pushPreviousState)
 				Push(previous);
 
-			Log.Add($"State.Change({ next })");
+			//Log.Add($"State.Change({ next })");
 
 			Current = next;
 			return Current;

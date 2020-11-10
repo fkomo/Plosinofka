@@ -6,14 +6,12 @@ namespace Ujeby.Plosinofka.Engine.Core
 	{
 		public static Simulation Instance { get; internal set; }
 
-		/// <summary>
-		/// desired number of updates per second
-		/// </summary>
+		/// <summary>desired number of updates per second</summary>
 		public abstract int GameSpeed { get; protected set; }
 		public abstract double LastUpdateDuration { get; protected set; }
 
 		public Player Player { get; protected set; }
-		public Viewport Camera { get; protected set; }
+		public Camera Camera { get; protected set; }
 
 		public abstract void Destroy();
 		public abstract void Initialize();

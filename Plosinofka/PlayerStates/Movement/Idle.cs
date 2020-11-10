@@ -1,5 +1,6 @@
 ﻿
 using Ujeby.Plosinofka.Engine.Core;
+using Ujeby.Plosinofka.Engine.Entities;
 using Ujeby.Plosinofka.Engine.Graphics;
 using Ujeby.Plosinofka.Game.Entities;
 
@@ -26,14 +27,14 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 			}
 		}
 
-		public override void Update(Player0 player, IEnvironment environment)
+		public override void Update(Player0 player)
 		{
-			base.Update(player, environment);
+			base.Update(player);
 
 			// nothing to do
 			player.Velocity.X = 0;
 
-			if (!player.StandingOnGround(environment))
+			if (!player.ObstacleAt(Side.Down))
 				player.ChangeMovement(new Falling());
 		}
 	}

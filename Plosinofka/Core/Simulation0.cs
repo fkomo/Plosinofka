@@ -55,7 +55,13 @@ namespace Ujeby.Plosinofka.Game
 			AddEntity(Player);
 
 			// make camera view smaller then window size for more pixelated look!
-			Camera = new RoomViewport(Vector2i.FullHD / 4);
+			//Camera = new RoomFixedCamera(Vector2i.FullHD / 4);
+
+			var camWindowSize = Vector2i.FullHD / 4 / 3;
+			Camera = new WindowCamera(Vector2i.FullHD / 4, new AABB(Vector2f.Zero, camWindowSize) + camWindowSize);
+			//{
+			//	PlatformSnapping = true
+			//};
 		}
 
 		public override void Update()
@@ -79,13 +85,21 @@ namespace Ujeby.Plosinofka.Game
 					Solve(dynamicEntity, out Vector2f position, out Vector2f velocity);
 					dynamicEntity.Position = position;
 					dynamicEntity.Velocity = velocity;
+				}
+			}
 
+			// update entities ate collision were solved
+			foreach (var entity in Entities)
+			{
+				if (entity is DynamicEntity dynamicEntity)
+				{
+					dynamicEntity.AfterUpdate(CurrentLevel);
 					DebugData.TrackEntity(entity as ITrackable);
 				}
 			}
 
 			// update camera with respect to world/level borders
-			Camera.Update(Player, CurrentLevel.Size);
+			Camera.Update(Player, new AABB(Vector2f.Zero, CurrentLevel.Size));
 
 			LastUpdateDuration = Engine.Core.Game.GetElapsed() - start;
 		}
@@ -125,6 +139,9 @@ namespace Ujeby.Plosinofka.Game
 
 			// debug
 			DebugData.Render(view, interpolation, Entities.ToArray(), CurrentLevel.Obstacles);
+
+			if (Settings.Instance.GetDebug(DebugSetting.DrawCamera))
+				(Camera as IRender)?.Render(view, interpolation);
 
 			// gui is always on top
 			Gui.Instance.Render(view, interpolation);

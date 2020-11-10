@@ -48,9 +48,9 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 			}
 		}
 
-		public override void Update(Player0 player, IEnvironment environment)
+		public override void Update(Player0 player)
 		{
-			base.Update(player, environment);
+			base.Update(player);
 
 			player.Velocity = CurrentDashVelocity;
 

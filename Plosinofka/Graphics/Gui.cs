@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Ujeby.Plosinofka.Engine.Common;
 using Ujeby.Plosinofka.Engine.Core;
+using Ujeby.Plosinofka.Engine.Entities;
 using Ujeby.Plosinofka.Engine.Graphics;
 
 namespace Ujeby.Plosinofka.Game.Graphics
@@ -34,7 +35,13 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			};
 
 			buffer.Add(new EmptyLine());
-			buffer.Add(new Text { Value = $"{ nameof(VisualSetting) }", Color = Color4b.White });
+			buffer.Add(new Text { Value = Simulation.Instance.Player.ToString(), Color = Color4b.White });
+
+			buffer.Add(new EmptyLine());
+			buffer.Add(new Text { Value = Simulation.Instance.Camera.ToString(), Color = Color4b.White });
+
+			buffer.Add(new EmptyLine());
+			buffer.Add(new Text { Value = $"{ nameof(VisualSetting) }s", Color = Color4b.White });
 			for (var i = 0; i < Settings.Instance.InputMappings.VisualSettings.Length; i++)
 			{
 				var settingName = ((VisualSetting)i).ToString();
@@ -46,7 +53,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			}
 
 			buffer.Add(new EmptyLine());
-			buffer.Add(new Text { Value = $"{ nameof(DebugSetting) }", Color = Color4b.White });
+			buffer.Add(new Text { Value = $"{ nameof(DebugSetting) }s", Color = Color4b.White });
 			for (var i = 0; i < Settings.Instance.InputMappings.DebugSettings.Length; i++)
 			{
 				var settingName = ((DebugSetting)i).ToString();
@@ -64,7 +71,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			//Renderer.Instance.RenderRectangleOverlay(view, new AABB(Vector2f.Zero, textSize), 
 			//	Color4b.Red);
 
-			Renderer.Instance.RenderTextLines(view, new Vector2i(5, 5), lines, Color4b.White, 0.5);
+			Renderer.Instance.RenderTextLinesOverlay(view, new Vector2i(5, 5), lines, Color4b.White, 0.5);
 
 			LastGuiDuration = Engine.Core.Game.GetElapsed() - start;
 		}

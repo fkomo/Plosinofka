@@ -1,5 +1,4 @@
 ﻿using Ujeby.Plosinofka.Engine.Core;
-using Ujeby.Plosinofka.Engine.Graphics;
 using Ujeby.Plosinofka.Game.Entities;
 
 namespace Ujeby.Plosinofka.Game.PlayerStates
@@ -13,7 +12,7 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 
 		}
 
-		public override void Update(Player0 player, IEnvironment environment)
+		public override void Update(Player0 player)
 		{
 
 		}

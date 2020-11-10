@@ -53,6 +53,8 @@ namespace Ujeby.Plosinofka.Game.Entities
 			ChangeMovement(new Idle());
 		}
 
+		public override string ToString() => $"{ Name }: { Position }, { Movement.Current }";
+
 		public override void Render(AABB view, double interpolation)
 		{
 			var position = InterpolatedPosition(interpolation);
@@ -60,8 +62,8 @@ namespace Ujeby.Plosinofka.Game.Entities
 			var animation = SpriteCache.Get(Movement.Current.Animation.ToString());
 			if (animation != null)
 			{
-				var frames = animation.Size.X / animation.Size.Y;
-				Renderer.Instance.RenderSprite(view, animation, position, frame:Movement.Current.AnimationFrame % frames);
+				Renderer.Instance.RenderSprite(view, animation, position,
+					frame: Movement.Current.AnimationFrame % (animation.Size.X / animation.Size.Y));
 			}
 			else
 				// animation not found, use default sprite
@@ -76,7 +78,7 @@ namespace Ujeby.Plosinofka.Game.Entities
 		public override void Update(IEnvironment env)
 		{
 			// add dust particles effect when motion direction is changed
-			if (StandingOnGround(env))
+			if (ObstacleAt(Side.Down))
 			{ 
 				if (PreviousVelocity.X > 0 && !(Velocity.X > 0))
 					Simulation.Instance.AddEntity(new Decal(SpriteCache.Get(PlayerDecals.DustParticlesRight.ToString()), 
@@ -92,13 +94,8 @@ namespace Ujeby.Plosinofka.Game.Entities
 			PreviousVelocity = Velocity;
 
 			// update player according to his state and set new moving vector
-			Movement.Current?.Update(this, env);
-		}
-
-		internal bool StandingOnGround(IEnvironment env)
-		{
-			var bb = BoundingBox + Position;
-			return env.Overlap(new AABB(new Vector2f(bb.Left + 1, bb.Bottom - 1), new Vector2f(bb.Right - 1, bb.Bottom)));
+			Movement.Current?.Update(this);
+			Action.Current?.Update(this);
 		}
 
 		/// <summary>
