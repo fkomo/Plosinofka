@@ -26,13 +26,11 @@ namespace Ujeby.Plosinofka.Engine.Core
 		public void Run()
 		{
 			Renderer.Instance.Initialize();
+			Renderer.Instance.SetWindowTitle(Title);
+			
 			Simulation.Instance.Initialize();
 
-			Renderer.Instance.SetWindowTitle(Title);
-
 			var skipTicks = 1000 / Simulation.Instance.GameSpeed;
-
-			var running = true;
 
 			var lastFrameTime = GetElapsed();
 			var nextGameTick = lastFrameTime;
@@ -41,12 +39,12 @@ namespace Ujeby.Plosinofka.Engine.Core
 			var minFps = double.PositiveInfinity;
 
 			var loopStart = GetElapsed();
-			while (running)
+			while (Input.Instance.Handle(Simulation.Instance))
 			{
-				running = Input.Instance.Handle(Simulation.Instance);
 				//simulation.Update();
 				//Renderer.Instance.Render(simulation, 1.0);
 
+				// update specified [Simulation.Instance.GameSpeed] number of times per second
 				var loops = 0;
 				while (GetElapsed() > nextGameTick && loops < Renderer.Instance.MaxFrameSkip)
 				{
@@ -57,10 +55,11 @@ namespace Ujeby.Plosinofka.Engine.Core
 				var interpolation = (GetElapsed() + skipTicks - nextGameTick) / skipTicks;
 				interpolation = Math.Clamp(interpolation, 0, 1);
 
+				// render is called as much as possible with interpolation 0..1 (time between updates)
 				Renderer.Instance.Render(Simulation.Instance, interpolation);
 
+				// update fps for statistics
 				Fps = (int)(1000.0 / (GetElapsed() - lastFrameTime));
-
 				if (Fps > maxFps)
 					maxFps = Fps;
 				if (Fps < minFps)
