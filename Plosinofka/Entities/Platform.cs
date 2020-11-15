@@ -22,9 +22,11 @@ namespace Ujeby.Plosinofka.Engine.Entities
 
 		private double WaitStart = 0;
 
+		public override bool Responsive => false;
+
 		public Platform(string name, IEnumerable<Vector2f> path = null)
 		{
-			var sprite = SpriteCache.LoadSprite(Program.ContentDirectory + $"World\\{ name }-color.png");
+			var sprite = SpriteCache.LoadSprite(Program.ContentDirectory + $"World\\{ name }.png");
 			SpriteId = sprite?.Id;
 
 			var dataSprite = SpriteCache.LoadSprite(Program.ContentDirectory + $"World\\{ name }-data.png");

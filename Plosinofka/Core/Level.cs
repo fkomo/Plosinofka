@@ -102,16 +102,15 @@ namespace Ujeby.Plosinofka.Game
 			var p = new Platform("platform",
 				path:new Vector2f[] 
 				{ 
-					new Vector2f(32, 48), 
-					new Vector2f(32, 132),
+					new Vector2f(40, 56), 
+					new Vector2f(40, 132),
 					new Vector2f(192, 132),
-					new Vector2f(192, 48),
+					new Vector2f(192, 56),
 				})
 				{
 					PathStep = 2,
 					PathPointWaitDuration = 1000,
 				};
-
 			Simulation.Instance.AddEntity(p);
 
 			var elapsed = Engine.Core.Game.GetElapsed() - start;
@@ -150,6 +149,8 @@ namespace Ujeby.Plosinofka.Game
 			if (move.X.Eq(0) && move.Y.Eq(0))
 				return tMin;
 
+
+
 			var movedAabb = aabb + move;
 			if (move.X.Eq(0) || move.Y.Eq(0))
 			{
@@ -157,7 +158,7 @@ namespace Ujeby.Plosinofka.Game
 					new Vector2f(Math.Min(aabb.Right, movedAabb.Left), Math.Min(aabb.Top, movedAabb.Bottom)),
 					new Vector2f(Math.Max(aabb.Left, movedAabb.Right), Math.Max(aabb.Bottom, movedAabb.Top)));
 
-				var obstaclesInPath = Obstacles.Where(o => o.Overlap(path)).ToArray();
+				var obstaclesInPath = obstacles.Where(o => o.Overlap(path)).ToArray();
 				if (obstaclesInPath.Length != 0)
 				{
 					normal = move.Inv().Normalize();
@@ -190,7 +191,7 @@ namespace Ujeby.Plosinofka.Game
 				var t1 = new Triangle(v1, v3, v4);
 				var t2 = new Triangle(v1, v2, v4);
 
-				var obstaclesInPath = Obstacles.Where(o => movedAabb.Overlap(o) || t1.Overlap(o) || t2.Overlap(o))
+				var obstaclesInPath = obstacles.Where(o => movedAabb.Overlap(o) || t1.Overlap(o) || t2.Overlap(o))
 					.ToArray();
 				if (obstaclesInPath.Length != 0)
 				{

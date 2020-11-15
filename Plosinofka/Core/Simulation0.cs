@@ -82,9 +82,17 @@ namespace Ujeby.Plosinofka.Game
 			{
 				if (entity is DynamicEntity dynamicEntity)
 				{
-					Solve(dynamicEntity, out Vector2f position, out Vector2f velocity);
-					dynamicEntity.Position = position;
-					dynamicEntity.Velocity = velocity;
+					// if no collision check is needed
+					if (!dynamicEntity.Responsive)
+						dynamicEntity.Position += dynamicEntity.Velocity;
+
+					else
+					{
+						// TODO solve against all entities, not just static level aabb's
+						Solve(dynamicEntity, out Vector2f position, out Vector2f velocity);
+						dynamicEntity.Position = position;
+						dynamicEntity.Velocity = velocity;
+					}
 				}
 			}
 

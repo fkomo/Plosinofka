@@ -23,6 +23,8 @@ namespace Ujeby.Plosinofka.Engine.Entities
 		private bool[] Obstacle = new bool[(int)Side.Count];
 		public bool ObstacleAt(Side side) => Obstacle[(int)side];
 
+		public virtual bool Responsive { get; } = true;
+
 		public virtual void AfterUpdate(IEnvironment env)
 		{
 			UpdateObstacles(env);
