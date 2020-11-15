@@ -45,6 +45,13 @@ namespace Ujeby.Plosinofka.Engine.Entities
 				new AABB(new Vector2f(bb.Right, bb.Bottom + 1), new Vector2f(bb.Right + 1, bb.Top - 1)));
 		}
 
+		public override void Update(IEnvironment environment)
+		{
+			// save state before update
+			PreviousPosition = Position;
+			PreviousVelocity = Velocity;
+		}
+
 		public Vector2f InterpolatedPosition(double interpolation) 
 			=> PreviousPosition + (Position - PreviousPosition) * interpolation;
 	}

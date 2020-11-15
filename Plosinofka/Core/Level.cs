@@ -99,6 +99,21 @@ namespace Ujeby.Plosinofka.Game
 			Simulation.Instance.AddEntity(
 				new Light(new Color4f(0.2, 0.2, 1.0), 10.0) { Position = new Vector2f(170, 80) });
 
+			var p = new Platform("platform",
+				path:new Vector2f[] 
+				{ 
+					new Vector2f(32, 48), 
+					new Vector2f(32, 132),
+					new Vector2f(192, 132),
+					new Vector2f(192, 48),
+				})
+				{
+					PathStep = 2,
+					PathPointWaitDuration = 1000,
+				};
+
+			Simulation.Instance.AddEntity(p);
+
 			var elapsed = Engine.Core.Game.GetElapsed() - start;
 			Log.Add($"Level.Load('{ name }'): { (int)elapsed }ms");
 

@@ -31,7 +31,7 @@ namespace Ujeby.Plosinofka.Engine.Entities
 		public void Render(AABB view, double interpolation)
 		{
 			if (AnimationFrame < FrameCount)
-				Renderer.Instance.RenderSprite(view, sprite, Position, frame:AnimationFrame);
+				Renderer.Instance.RenderSpriteFrame(view, sprite, Position, AnimationFrame);
 		}
 
 		public override void Update(IEnvironment environment)

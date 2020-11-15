@@ -15,7 +15,7 @@ namespace Ujeby.Plosinofka.Game.Entities
 		Count
 	}
 
-	public class Player0 : Player, ITrackable
+	public class Player0 : Player, ITrack
 	{
 		// TODO melee attack
 		// TODO directional shooting
@@ -62,8 +62,8 @@ namespace Ujeby.Plosinofka.Game.Entities
 			var animation = SpriteCache.Get(Movement.Current.Animation.ToString());
 			if (animation != null)
 			{
-				Renderer.Instance.RenderSprite(view, animation, position,
-					frame: Movement.Current.AnimationFrame % (animation.Size.X / animation.Size.Y));
+				Renderer.Instance.RenderSpriteFrame(view, animation, position,
+					Movement.Current.AnimationFrame % (animation.Size.X / animation.Size.Y));
 			}
 			else
 				// animation not found, use default sprite
@@ -89,9 +89,7 @@ namespace Ujeby.Plosinofka.Game.Entities
 						new Vector2f(Position.X + BoundingBox.Left, Position.Y)));
 			}
 
-			// save state before update
-			PreviousPosition = Position;
-			PreviousVelocity = Velocity;
+			base.Update(env);
 
 			// update player according to his state and set new moving vector
 			Movement.Current?.Update(this);

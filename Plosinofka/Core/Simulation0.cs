@@ -55,10 +55,10 @@ namespace Ujeby.Plosinofka.Game
 			AddEntity(Player);
 
 			// make camera view smaller then window size for more pixelated look!
-			//Camera = new RoomFixedCamera(Vector2i.FullHD / 4);
-
-			var camWindowSize = Vector2i.FullHD / 4 / 3;
-			Camera = new WindowCamera(Vector2i.FullHD / 4, new AABB(Vector2f.Zero, camWindowSize) + camWindowSize);
+			var view = Vector2i.FullHD / 4;
+			//Camera = new RoomFixedCamera(view);
+			var camWindowSize = view / 3;
+			Camera = new WindowCamera(view, new AABB(Vector2f.Zero, camWindowSize) + camWindowSize);
 			//{
 			//	PlatformSnapping = true
 			//};
@@ -94,7 +94,7 @@ namespace Ujeby.Plosinofka.Game
 				if (entity is DynamicEntity dynamicEntity)
 				{
 					dynamicEntity.AfterUpdate(CurrentLevel);
-					DebugData.TrackEntity(entity as ITrackable);
+					DebugData.TrackEntity(entity as ITrack);
 				}
 			}
 
@@ -150,7 +150,7 @@ namespace Ujeby.Plosinofka.Game
 		public override void AddEntity(Entity entity)
 		{
 			Entities.Add(entity);
-			DebugData.TrackEntity(entity as ITrackable);
+			DebugData.TrackEntity(entity as ITrack);
 		}
 
 		public bool Solve(DynamicEntity entity, out Vector2f position, out Vector2f velocity)

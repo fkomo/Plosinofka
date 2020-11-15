@@ -48,7 +48,7 @@ namespace Ujeby.Plosinofka.Engine.Core
 		}
 
 		/// <summary>frame duration for smooth movement [ms]</summary>
-		private const int UpdateDuration = 20;
+		private const int UpdateDuration = 10;
 
 		/// <summary>time of last smooth update frame [ms]</summary>
 		private double LastUpdate;

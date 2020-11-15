@@ -226,7 +226,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 		/// <param name="view"></param>
 		/// <param name="sprite">width == height, if not sprite is considered as animation strip</param>
 		/// <param name="spritePosition">sprite position in world (bottomLeft)</param>
-		public override void RenderSprite(AABB view, Sprite sprite, Vector2f spritePosition, int frame = 0)
+		public override void RenderSpriteFrame(AABB view, Sprite sprite, Vector2f spritePosition, int frame)
 		{
 			if (sprite == null)
 				return;
@@ -248,6 +248,31 @@ namespace Ujeby.Plosinofka.Game.Graphics
 				y = (int)((view.Size.Y - spriteSize) * scale.Y - screenSpace.Y),
 				w = (int)(spriteSize * scale.X),
 				h = (int)(spriteSize * scale.Y)
+			};
+			SDL.SDL_RenderCopy(RendererPtr, sprite.TexturePtr, ref sourceRect, ref destinationRect);
+		}
+
+		public override void RenderSprite(AABB view, Sprite sprite, Vector2f spritePosition)
+		{
+			if (sprite == null)
+				return;
+
+			var scale = CurrentWindowSize / view.Size;
+			var screenSpace = (spritePosition - view.Min) * scale;
+
+			var sourceRect = new SDL.SDL_Rect
+			{
+				x = 0,
+				y = 0,
+				w = sprite.Size.X,
+				h = sprite.Size.Y
+			};
+			var destinationRect = new SDL.SDL_Rect
+			{
+				x = (int)screenSpace.X,
+				y = (int)((view.Size.Y - sprite.Size.Y) * scale.Y - screenSpace.Y),
+				w = (int)(sprite.Size.X * scale.X),
+				h = (int)(sprite.Size.Y * scale.Y)
 			};
 			SDL.SDL_RenderCopy(RendererPtr, sprite.TexturePtr, ref sourceRect, ref destinationRect);
 		}

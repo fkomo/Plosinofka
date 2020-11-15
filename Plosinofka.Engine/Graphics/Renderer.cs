@@ -65,12 +65,20 @@ namespace Ujeby.Plosinofka.Engine.Graphics
 		public abstract void RenderLineOverlay(AABB view, Vector2i a, Vector2i b, Color4b color);
 
 		/// <summary>
+		/// render sprite frame to screen
+		/// </summary>
+		/// <param name="view"></param>
+		/// <param name="sprite">width == height, sprite is considered as animation strip</param>
+		/// <param name="spritePosition">position in world space (bottomLeft)</param>
+		public abstract void RenderSpriteFrame(AABB view, Sprite sprite, Vector2f spritePosition, int frame);
+
+		/// <summary>
 		/// render sprite to screen
 		/// </summary>
 		/// <param name="view"></param>
-		/// <param name="sprite">width == height, if not sprite is considered as animation strip</param>
-		/// <param name="spritePosition">sprite position in world (bottomLeft)</param>
-		public abstract void RenderSprite(AABB view, Sprite sprite, Vector2f spritePosition, int frame = 0);
+		/// <param name="sprite"></param>
+		/// <param name="spritePosition">position in world space (bottomLeft)</param>
+		public abstract void RenderSprite(AABB view, Sprite sprite, Vector2f spritePosition);
 
 		/// <summary>
 		/// render text lines in screen space

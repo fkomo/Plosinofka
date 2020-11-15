@@ -19,7 +19,7 @@ namespace Ujeby.Plosinofka.Game
 		/// </summary>
 		private const int EntityTraceLength = 256;
 
-		public void TrackEntity(ITrackable entity)
+		public void TrackEntity(ITrack entity)
 		{
 			if (entity == null)
 				return;

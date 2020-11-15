@@ -8,7 +8,7 @@ namespace Ujeby.Plosinofka.Engine.Entities
 		public Vector2f Velocity;
 	}
 
-	public interface ITrackable
+	public interface ITrack
 	{
 		string TrackId();
 		TrackedData Track();
