@@ -14,7 +14,7 @@ namespace Ujeby.Plosinofka.Engine.Entities
 			Intensity = intensity;
 		}
 
-		public override void Update(IEnvironment environment)
+		public override void Update()
 		{
 			// save state before update
 			PreviousPosition = Position;

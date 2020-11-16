@@ -34,7 +34,7 @@ namespace Ujeby.Plosinofka.Engine.Entities
 				Renderer.Instance.RenderSpriteFrame(view, sprite, Position, AnimationFrame);
 		}
 
-		public override void Update(IEnvironment environment)
+		public override void Update()
 		{
 			var current = Core.Game.GetElapsed();
 			if (current - LastFrameChange > AnimationFrameDelay)

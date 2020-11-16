@@ -75,7 +75,7 @@ namespace Ujeby.Plosinofka.Game.Entities
 			Movement.Current?.HandleButton(button, state, this);
 		}
 
-		public override void Update(IEnvironment env)
+		public override void Update()
 		{
 			// add dust particles effect when motion direction is changed
 			if (ObstacleAt(Side.Down))
@@ -89,7 +89,7 @@ namespace Ujeby.Plosinofka.Game.Entities
 						new Vector2f(Position.X + BoundingBox.Left, Position.Y)));
 			}
 
-			base.Update(env);
+			base.Update();
 
 			// update player according to his state and set new moving vector
 			Movement.Current?.Update(this);

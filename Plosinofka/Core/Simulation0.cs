@@ -10,7 +10,7 @@ using Ujeby.Plosinofka.Game.Graphics;
 
 namespace Ujeby.Plosinofka.Game
 {
-	public class Simulation0 : Simulation, ICollisionSolver
+	public class Simulation0 : Simulation
 	{
 		public override int GameSpeed { get; protected set; } = 50;
 		public override double LastUpdateDuration { get; protected set; }
@@ -31,7 +31,7 @@ namespace Ujeby.Plosinofka.Game
 		public override void Initialize()
 		{
 			// create player
-			Player = new Player0("player0");
+			Player = new Player0("ujeb");
 
 			LoadLevel("Level0");
 		}
@@ -75,36 +75,32 @@ namespace Ujeby.Plosinofka.Game
 
 			// update all entities
 			for (var i = Entities.Count - 1; i >= 0; i--)
-				Entities[i].Update(CurrentLevel);
+				Entities[i].Update();
+
+			var obstacles = Entities.Where(e => (e as Obstacle) != null).Select(e => (e as Obstacle).BoundingBox + e.Position).ToArray();
 
 			// solve collisions of dynamic entities
 			foreach (var entity in Entities)
 			{
 				if (entity is DynamicEntity dynamicEntity)
 				{
-					// if no collision check is needed
-					if (!dynamicEntity.Responsive)
-						dynamicEntity.Position += dynamicEntity.Velocity;
-
-					else
+					// if entity is oblivious to environment solve its collisions
+					if (dynamicEntity.Responsive)
 					{
-						// TODO solve against all entities, not just static level aabb's
-						Solve(dynamicEntity, out Vector2f position, out Vector2f velocity);
+						Solve(dynamicEntity, obstacles, out Vector2f position, out Vector2f velocity);
 						dynamicEntity.Position = position;
 						dynamicEntity.Velocity = velocity;
 					}
+					else
+						dynamicEntity.Position += dynamicEntity.Velocity;
 				}
 			}
 
-			// update entities ate collision were solved
 			foreach (var entity in Entities)
-			{
-				if (entity is DynamicEntity dynamicEntity)
-				{
-					dynamicEntity.AfterUpdate(CurrentLevel);
-					DebugData.TrackEntity(entity as ITrack);
-				}
-			}
+				DebugData.TrackEntity(entity as ITrack);
+
+			// update player awarness of surrounding objects
+			Player.UpdateSurroundings(obstacles);
 
 			// update camera with respect to world/level borders
 			Camera.Update(Player, new AABB(Vector2f.Zero, CurrentLevel.Size));
@@ -120,19 +116,18 @@ namespace Ujeby.Plosinofka.Game
 			// parallax scrolling
 			var parallax = view.Min / (CurrentLevel.Size - view.Size);
 
+			var lights = Entities.Where(e => e is Light).Select(e => e as Light).ToArray();
+			var obstacles = Entities.Where(e => (e as Obstacle) != null).Select(e => (e as Obstacle).BoundingBox + e.Position).ToArray();
+			// TODO obstacles.Add(Player.BoundingBox + Player.InterpolatedPosition(interpolation)); ?
+
 			// render all layers, back to front
 			foreach (var layer in CurrentLevel.Layers)
 			{
 				// main layer
 				if (layer.Depth == 0)
 				{
-					var obstacles = CurrentLevel.Obstacles.ToList();
-					obstacles.Add(Player.BoundingBox + Player.InterpolatedPosition(interpolation));
-
 					// background layer
-					Renderer.Instance.RenderLayer(view, layer,
-						Entities.Where(e => e is Light).Select(e => e as Light).ToArray(),
-						obstacles.ToArray());
+					Renderer.Instance.RenderLayer(view, layer, lights, obstacles);
 
 					// entities
 					foreach (var entity in Entities)
@@ -146,7 +141,7 @@ namespace Ujeby.Plosinofka.Game
 			}
 
 			// debug
-			DebugData.Render(view, interpolation, Entities.ToArray(), CurrentLevel.Obstacles);
+			DebugData.Render(view, interpolation, Entities.ToArray());
 
 			if (Settings.Instance.GetDebug(DebugSetting.DrawCamera))
 				(Camera as IRender)?.Render(view, interpolation);
@@ -161,7 +156,7 @@ namespace Ujeby.Plosinofka.Game
 			DebugData.TrackEntity(entity as ITrack);
 		}
 
-		public bool Solve(DynamicEntity entity, out Vector2f position, out Vector2f velocity)
+		public bool Solve(DynamicEntity entity, AABB[] obstacles, out Vector2f position, out Vector2f velocity)
 		{
 			position = entity.Position;
 			velocity = entity.Velocity;
@@ -182,7 +177,7 @@ namespace Ujeby.Plosinofka.Game
 				var direction = velocity.Normalize();
 
 				var entityBox = entity.BoundingBox + position;
-				var t = CurrentLevel.Trace(entityBox, velocity, out Vector2f normal);
+				var t = Collisions.Trace(entityBox, velocity, obstacles, out Vector2f normal);
 				if (t.LeEq(distance))
 				{
 					collisionFound = true;

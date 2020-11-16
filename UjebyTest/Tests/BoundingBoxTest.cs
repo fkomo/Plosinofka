@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Ujeby.Plosinofka.Engine.Common;
+using Ujeby.Plosinofka.Engine.Core;
 using Ujeby.Plosinofka.Engine.Graphics;
 using Ujeby.Plosinofka.Game;
 
@@ -15,7 +16,11 @@ namespace UjebyTest
 		private Vector2i TmpMouse;
 		private uint MouseState;
 
-		private Triangle TmpTriangle;
+		private Triangle TmpTriangle = new Triangle(
+			new Vector2f(100, 200),
+			new Vector2f(500, 300),
+			new Vector2f(300, 500)
+		);
 
 		private bool DrawingRay = false;
 		private Ray TmpRay;
@@ -23,8 +28,7 @@ namespace UjebyTest
 		private bool DrawingBox = false;
 		private AABB TmpBox;
 
-		private readonly List<AABB> Boxes = new List<AABB>();
-		private Level TestLevel = null;
+		private readonly List<AABB> Aabbs = new List<AABB>();
 
 		public AABBTest() : base()
 		{
@@ -36,22 +40,6 @@ namespace UjebyTest
 			AABBTest.IntersectTest();
 			//AABBTest.RayMarchingTest();
 			AABBTest.OverlapTest();
-
-			//Boxes.Add(new AABB(new Vector2f(0, 0), new Vector2f(1920, 15)));
-
-			TestLevel = new Level("test", Boxes.ToArray());
-
-			TmpTriangle = new Triangle(
-				new Vector2f(100, 200),
-				new Vector2f(500, 300),
-				new Vector2f(300, 500)
-			);
-			var result = TmpTriangle.Overlap(new AABB(new Vector2f(342, 90), new Vector2f(671, 232)));
-
-			//var t = TestLevel.Trace(
-			//	new AABB(new Vector2f(309 + 8, 15), new Vector2f(309 + 8 + 16, 15 + 31)),
-			//	new Vector2f(4, -2).Normalize(),
-			//	out Vector2f normal);
 		}
 
 		protected override void Update()
@@ -77,8 +65,7 @@ namespace UjebyTest
 			else if (DrawingBox && !leftMouse)
 			{
 				Log.Add($"box: { TmpBox }");
-				Boxes.Add(TmpBox);
-				TestLevel = new Level("test", Boxes.ToArray());
+				Aabbs.Add(TmpBox);
 			}
 
 			DrawingBox = leftMouse;
@@ -90,12 +77,14 @@ namespace UjebyTest
 		{
 			var title = $"mouse_state={ MouseState } |";
 
+			var obstacles = Aabbs.ToArray();
+
 			// clear backbuffer
 			SDL.SDL_SetRenderDrawColor(Program.RendererPtr, 0, 0, 0, 255);
 			SDL.SDL_RenderClear(Program.RendererPtr);
 
 			// draw boxes
-			foreach (var bb in Boxes)
+			foreach (var bb in obstacles)
 			{
 				var rect = new SDL.SDL_Rect
 				{
@@ -124,13 +113,13 @@ namespace UjebyTest
 			{
 				var rayLength = (Mouse - TmpRay.Origin).Length();
 
-				var trace = TestLevel.Trace(TmpRay.Origin, TmpRay.Direction, out Vector2f n);
+				var trace = Collisions.Trace(TmpRay.Origin, TmpRay.Direction, obstacles, out Vector2f n);
 				Log.Add($"Level.Intersect(origin={ TmpRay.Origin }, dir={ TmpRay.Direction }): { trace:0.00}, normal={ n }");
 
 				//var tMarch = TestLevel.RayMarch(Point1, direction, out Vector2f n2);
 				//Log.Add($"Level.RayMarch(origin={ Point1 }, dir={ direction }): { tMarch:0.00}, normal={ n }");
 
-				var intersect = TestLevel.Intersect(TmpRay);
+				var intersect = Collisions.Intersect(TmpRay, obstacles);
 
 				title += $" origin={ TmpRay.Origin } | dir={ TmpRay.Direction } | t={ trace:0.00} | mouse={ Mouse } |";
 				if (intersect)
@@ -177,7 +166,7 @@ namespace UjebyTest
 					h = -(int)TmpBox.Size.Y,
 				};
 
-				if (TestLevel.Overlap(TmpBox) || TmpTriangle.Overlap(TmpBox))
+				if (Collisions.Overlap(TmpBox, obstacles) || TmpTriangle.Overlap(TmpBox))
 				{
 					title += " overlaps |";
 					SDL.SDL_SetRenderDrawColor(Program.RendererPtr, 0xff, 0x00, 0x00, 0xff);

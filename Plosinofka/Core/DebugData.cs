@@ -30,8 +30,10 @@ namespace Ujeby.Plosinofka.Game
 			TrackedEntities[entity.TrackId()].Add(entity.Track());
 		}
 
-		public void Render(AABB view, double interpolation, Entity[] entities, AABB[] obstacles)
+		public void Render(AABB view, double interpolation, Entity[] entities)
 		{
+			var obstacles = entities.Where(e => (e as Obstacle) != null).Select(e => (e as Obstacle).BoundingBox).ToArray();
+
 			if (Settings.Instance.GetDebug(DebugSetting.DrawAABB))
 			{
 				var color = new Color4b(0xff, 0x00, 0x00, 0xaf);

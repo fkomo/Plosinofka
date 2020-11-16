@@ -1,14 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Ujeby.Plosinofka.Engine.Common;
-using Ujeby.Plosinofka.Engine.Core;
 using Ujeby.Plosinofka.Engine.Graphics;
 using Ujeby.Plosinofka.Game;
 using Ujeby.Plosinofka.Game.Graphics;
 
 namespace Ujeby.Plosinofka.Engine.Entities
 {
-	public class Platform : DynamicEntity, IRender, IObstacle, ITrack
+	public class Platform : Obstacle, IRender, ITrack
 	{
 		private string SpriteId;
 		protected List<Vector2f> Path { get; private set; } = new List<Vector2f>();
@@ -24,7 +23,7 @@ namespace Ujeby.Plosinofka.Engine.Entities
 
 		public override bool Responsive => false;
 
-		public Platform(string name, IEnumerable<Vector2f> path = null)
+		public Platform(string name, IEnumerable<Vector2f> path = null) : base(default)
 		{
 			var sprite = SpriteCache.LoadSprite(Program.ContentDirectory + $"World\\{ name }.png");
 			SpriteId = sprite?.Id;
@@ -51,9 +50,9 @@ namespace Ujeby.Plosinofka.Engine.Entities
 			Renderer.Instance.RenderSprite(view, SpriteCache.Get(SpriteId), position);
 		}
 
-		public override void Update(IEnvironment environment)
+		public override void Update()
 		{
-			base.Update(environment);
+			base.Update();
 
 			Velocity = Vector2f.Zero;
 			if (Path.Count > 0 && Core.Game.GetElapsed() > (WaitStart + PathPointWaitDuration))
