@@ -23,6 +23,8 @@ namespace Ujeby.Plosinofka.Engine.Entities
 
 		public override bool Responsive => false;
 
+		public override string ToString() => $"{ base.ToString() }; curr_path:{ CurrentPathPoint }";
+
 		public Platform(string name, IEnumerable<Vector2f> path = null) : base(default)
 		{
 			var sprite = SpriteCache.LoadSprite(Program.ContentDirectory + $"World\\{ name }.png");
@@ -60,7 +62,7 @@ namespace Ujeby.Plosinofka.Engine.Entities
 				var nextPathPoint = (CurrentPathPoint + 1) % Path.Count;
 				if ((Path[nextPathPoint] - Position).Length() <= PathStep)
 				{
-					Position = Path[nextPathPoint];
+					Velocity = Path[nextPathPoint] - Position;
 					WaitStart = Core.Game.GetElapsed();
 					CurrentPathPoint = nextPathPoint;
 				}

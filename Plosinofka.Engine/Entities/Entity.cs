@@ -1,6 +1,5 @@
 ﻿using System;
 using Ujeby.Plosinofka.Engine.Common;
-using Ujeby.Plosinofka.Engine.Graphics;
 
 namespace Ujeby.Plosinofka.Engine.Entities
 {

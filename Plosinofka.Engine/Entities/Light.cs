@@ -8,6 +8,8 @@ namespace Ujeby.Plosinofka.Engine.Entities
 		public Color4f Color { get; private set; }
 		public double Intensity { get; private set; }
 
+		public override bool Responsive => false;
+
 		public Light(Color4f color, double intensity)
 		{
 			Color = color;

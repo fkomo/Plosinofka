@@ -12,6 +12,8 @@ namespace Ujeby.Plosinofka.Engine.Entities
 		/// <summary>if true, entity is oblivious to surrounding entities</summary>
 		public virtual bool Responsive { get; } = true;
 
+		public override string ToString() => $"{ base.ToString() }; pos:{ Position }; vel:{ Velocity }";
+
 		public override void Update()
 		{
 			// save state before update

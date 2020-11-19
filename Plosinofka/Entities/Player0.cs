@@ -53,7 +53,7 @@ namespace Ujeby.Plosinofka.Game.Entities
 			ChangeMovement(new Idle());
 		}
 
-		public override string ToString() => $"{ Name }: { Position }, { Movement.Current }";
+		public override string ToString() => $"{ base.ToString() }; mov:{ Movement.Current }; act:{ Action.Current }";
 
 		public override void Render(AABB view, double interpolation)
 		{

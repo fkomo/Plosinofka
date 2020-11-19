@@ -1,7 +1,7 @@
 ﻿
+using Ujeby.Plosinofka.Engine.Common;
 using Ujeby.Plosinofka.Engine.Core;
 using Ujeby.Plosinofka.Engine.Entities;
-using Ujeby.Plosinofka.Engine.Graphics;
 using Ujeby.Plosinofka.Game.Entities;
 
 namespace Ujeby.Plosinofka.Game.PlayerStates
@@ -32,7 +32,7 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 			base.Update(player);
 
 			// nothing to do
-			player.Velocity.X = 0;
+			player.Velocity = Vector2f.Zero;
 
 			if (!player.ObstacleAt(Side.Down))
 				player.ChangeMovement(new Falling());

@@ -17,7 +17,7 @@ namespace Ujeby.Plosinofka.Game
 		/// <summary>
 		/// number of past records of entity properties (position, ...)
 		/// </summary>
-		private const int EntityTraceLength = 256;
+		private const int EntityTraceLength = 512;
 
 		public void TrackEntity(ITrack entity)
 		{
@@ -69,26 +69,18 @@ namespace Ujeby.Plosinofka.Game
 						continue;
 
 					var entityColor = new Color4b((uint)trackedEntity.Key.GetHashCode()) { A = 0xff };
-
-					// past positions
 					var values = trackedEntity.Value.Queue.ToArray();
 
-					//var entity = entities.SingleOrDefault(e => (e as ITrackable)?.TrackId() == trackedEntity.Key);
-					//if (entity != null)
-					//{
-					//	var entityAabb = new AABB(Vector2f.Zero, entity.BoundingBox.Size);
-					//	for (var i = 0; i < values.Length; i++)
-					//	{
-					//		entityColor.A = (byte)((double)i / values.Length * 255);
-					//		Renderer.Instance.RenderRectangle(view,
-					//			entityAabb + (values[i].Position - entity.BoundingBox.HalfSize), 
-					//			entityColor);
-					//	}
-					//}
-
-					entityColor.A = 0xff;
+					var positionColor = Color4b.Blue;
 					for (var i = 1; i < values.Length; i++)
-						Renderer.Instance.RenderLine(view, values[i - 1].Position, values[i].Position, entityColor);
+						Renderer.Instance.RenderLine(view, values[i - 1].Position, values[i].Position, positionColor);
+
+					var velocityColor = Color4b.Green;
+					for (var i = 0; i < values.Length; i++)
+					{
+						if (values[i].Velocity != Vector2f.Zero)
+							Renderer.Instance.RenderLine(view, values[i].Position, values[i].Position + values[i].Velocity, velocityColor);
+					}
 				}
 			}
 		}

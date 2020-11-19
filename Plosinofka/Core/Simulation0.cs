@@ -77,7 +77,16 @@ namespace Ujeby.Plosinofka.Game
 			for (var i = Entities.Count - 1; i >= 0; i--)
 				Entities[i].Update();
 
-			var obstacles = Entities.Where(e => (e as Obstacle) != null).Select(e => (e as Obstacle).BoundingBox + e.Position).ToArray();
+			// player standing on obstacle (moving platform)
+			if (Player.ObstacleAt(Side.Down))
+			{
+				var bb = Player.BoundingBox + Player.Position;
+				var underPlayer = new AABB(new Vector2f(bb.Left + 1, bb.Bottom - 1), new Vector2f(bb.Right - 1, bb.Bottom));
+				if (Entities.SingleOrDefault(e => e is Platform p && underPlayer.Overlap(p.BoundingBox + p.Position)) is Platform platformDown)
+					Player.Velocity += platformDown.Velocity;
+			}
+
+			var obstacles = Entities.Where(e => (e as Obstacle) != null).Select(o => o as Obstacle).ToArray();
 
 			// solve collisions of dynamic entities
 			foreach (var entity in Entities)
@@ -93,6 +102,9 @@ namespace Ujeby.Plosinofka.Game
 					}
 					else
 						dynamicEntity.Position += dynamicEntity.Velocity;
+
+					if (entity as Player != null || entity as Platform != null)
+						Log.Add(entity.ToString());
 				}
 			}
 
@@ -156,7 +168,7 @@ namespace Ujeby.Plosinofka.Game
 			DebugData.TrackEntity(entity as ITrack);
 		}
 
-		public bool Solve(DynamicEntity entity, AABB[] obstacles, out Vector2f position, out Vector2f velocity)
+		public bool Solve(DynamicEntity entity, Obstacle[] obstacles, out Vector2f position, out Vector2f velocity)
 		{
 			position = entity.Position;
 			velocity = entity.Velocity;
@@ -177,7 +189,7 @@ namespace Ujeby.Plosinofka.Game
 				var direction = velocity.Normalize();
 
 				var entityBox = entity.BoundingBox + position;
-				var t = Collisions.Trace(entityBox, velocity, obstacles, out Vector2f normal);
+				var t = Collisions.Trace(entityBox, velocity, obstacles.Select(o => o.BoundingBox + o.Position).ToArray(), out Vector2f normal);
 				if (t.LeEq(distance))
 				{
 					collisionFound = true;
@@ -195,8 +207,6 @@ namespace Ujeby.Plosinofka.Game
 					else 
 						remainingVelocity.X = 0;
 
-					//Log.Add($"Simulation.CollisionSolved({ entity }, bb={ entityBox }): t={ t }; position={ position }; velocity={ velocity }; remainingVelocity={ remainingVelocity }");
-
 					if (velocity == Vector2f.Zero) // or better just close to zero ?
 						break; // solved - nowhere to move
 				}
@@ -206,8 +216,6 @@ namespace Ujeby.Plosinofka.Game
 
 			position += velocity;
 			velocity = remainingVelocity;
-
-			//Log.Add($"World.Solved({ entity }; position={ entity.Position }; velocity={ entity.Velocity }): position={ position }; velocity={ velocity }");
 
 			return collisionFound;
 		}
