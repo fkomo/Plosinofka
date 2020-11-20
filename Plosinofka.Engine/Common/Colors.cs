@@ -9,6 +9,7 @@ namespace Ujeby.Plosinofka.Engine.Common
 		public byte B;
 		public byte A;
 
+		public static Color4b Transparent = new Color4b(0x0, 0x0, 0x0, 0x0);
 		public static Color4b Black = new Color4b(0x0, 0x0, 0x0, 0xff);
 		public static Color4b White = new Color4b(0xff, 0xff, 0xff, 0xff);
 		public static Color4b Gray = new Color4b(0x7f, 0x7f, 0x7f, 0xff);
@@ -62,6 +63,12 @@ namespace Ujeby.Plosinofka.Engine.Common
 				A = (byte)(c1.A * c2.A),
 			};
 		}
+
+		public override bool Equals(object obj) => obj is Color4b c && this == c;
+		public override int GetHashCode() => R.GetHashCode() ^ G.GetHashCode() ^ B.GetHashCode() ^ A.GetHashCode();
+
+		public static bool operator ==(Color4b c1, Color4b c2) => c1.AsUint == c2.AsUint;
+		public static bool operator !=(Color4b c1, Color4b c2) => !(c1 == c2);
 	}
 
 	public struct Color4f

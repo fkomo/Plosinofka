@@ -86,7 +86,21 @@ namespace Ujeby.Plosinofka.Game
 					Player.Velocity += platformDown.Velocity;
 			}
 
+			// platform pushing player
 			var obstacles = Entities.Where(e => (e as Obstacle) != null).Select(o => o as Obstacle).ToArray();
+			foreach (var obstacle in obstacles)
+			{
+				var playerAABB = Player.BoundingBox + Player.Position;
+				if (obstacle is Platform platform)
+				{
+					var platformAABB = platform.BoundingBox + platform.Position;
+					if (playerAABB.Overlap(platformAABB))
+					{
+						var overlap = AABB.Overlap(playerAABB, platformAABB);
+						Player.Velocity += overlap.Size * platform.Velocity.Normalize();
+					}
+				}
+			}
 
 			// solve collisions of dynamic entities
 			foreach (var entity in Entities)
@@ -103,8 +117,8 @@ namespace Ujeby.Plosinofka.Game
 					else
 						dynamicEntity.Position += dynamicEntity.Velocity;
 
-					if (entity as Player != null || entity as Platform != null)
-						Log.Add(entity.ToString());
+					//if (entity as Player != null || entity as Platform != null)
+					//	Log.Add(entity.ToString());
 				}
 			}
 
@@ -129,8 +143,10 @@ namespace Ujeby.Plosinofka.Game
 			var parallax = view.Min / (CurrentLevel.Size - view.Size);
 
 			var lights = Entities.Where(e => e is Light).Select(e => e as Light).ToArray();
-			var obstacles = Entities.Where(e => (e as Obstacle) != null).Select(e => (e as Obstacle).BoundingBox + e.Position).ToArray();
-			// TODO obstacles.Add(Player.BoundingBox + Player.InterpolatedPosition(interpolation)); ?
+			var obstacles = 
+				Entities.Where(e => (e as Obstacle) != null).Select(e => (e as Obstacle).BoundingBox + e.Position)
+				.Concat(new [] { Player.BoundingBox + Player.InterpolatedPosition(interpolation) })
+				.ToArray();
 
 			// render all layers, back to front
 			foreach (var layer in CurrentLevel.Layers)

@@ -156,13 +156,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			SDL.SDL_SetWindowTitle(WindowPtr, title);
 		}
 
-		/// <summary>
-		/// render color filled aabb
-		/// </summary>
-		/// <param name="camera"></param>
-		/// <param name="rectangle"></param>
-		/// <param name="color"></param>
-		public override void RenderRectangle(AABB view, AABB rectangle, Color4b color)
+		public override void RenderRectangle(AABB view, AABB rectangle, Color4b borderColor, Color4b fillColor)
 		{
 			var scale = CurrentWindowSize / view.Size;
 			var screenSpace = (rectangle.Min - view.Min) * scale;
@@ -174,8 +168,23 @@ namespace Ujeby.Plosinofka.Game.Graphics
 				w = (int)(rectangle.Size.X * scale.X),
 				h = (int)(rectangle.Size.Y * scale.Y),
 			};
-			SDL.SDL_SetRenderDrawColor(RendererPtr, color.R, color.G, color.B, color.A);
-			SDL.SDL_RenderFillRect(RendererPtr, ref rect);
+
+			if (fillColor.A > 0)
+			{
+				// fill rectangle
+				SDL.SDL_SetRenderDrawColor(RendererPtr, fillColor.R, fillColor.G, fillColor.B, fillColor.A);
+				SDL.SDL_RenderFillRect(RendererPtr, ref rect);
+			}
+
+			if (borderColor != fillColor)
+			{
+				if (borderColor.A > 0)
+				{
+					// border rectangle
+					SDL.SDL_SetRenderDrawColor(RendererPtr, borderColor.R, borderColor.G, borderColor.B, borderColor.A);
+					SDL.SDL_RenderDrawRect(RendererPtr, ref rect);
+				}
+			}
 		}
 
 		/// <summary>
@@ -392,9 +401,9 @@ namespace Ujeby.Plosinofka.Game.Graphics
 
 			if (Settings.Instance.GetVisual(VisualSetting.PerPixelShading) && layer.DataMapId != null)
 			{
-				//var buffer = DirectLighting(view, layer, lights, obstacles);
+				var buffer = DirectLighting(view, layer, lights, obstacles);
 				//var buffer = AmbientOcclusion(view, layer, lights, obstacles, 2);
-				var buffer = PerPixelShading(view, layer, lights, obstacles);
+				//var buffer = PerPixelShading(view, layer, lights, obstacles);
 
 				// copy to data to unmanaged array
 				Marshal.Copy(buffer.Data, 0, buffer.UnmanagedPtr, buffer.Data.Length);
@@ -444,7 +453,8 @@ namespace Ujeby.Plosinofka.Game.Graphics
 				else
 					// just alpha channel
 					buffer.Data[bufferIndex] = 0;
-			});
+			}
+			);
 
 			return buffer;
 		}
@@ -481,7 +491,8 @@ namespace Ujeby.Plosinofka.Game.Graphics
 				else
 					// just alpha channel
 					result.Data[sIndex] = 0;
-			});
+			}
+			);
 
 			return result;
 		}

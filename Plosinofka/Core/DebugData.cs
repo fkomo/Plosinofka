@@ -32,32 +32,24 @@ namespace Ujeby.Plosinofka.Game
 
 		public void Render(AABB view, double interpolation, Entity[] entities)
 		{
-			var obstacles = entities.Where(e => (e as Obstacle) != null).Select(e => (e as Obstacle).BoundingBox).ToArray();
-
 			if (Settings.Instance.GetDebug(DebugSetting.DrawAABB))
 			{
-				var color = new Color4b(0xff, 0x00, 0x00, 0xaf);
-				foreach (var aabb in obstacles)
-					Renderer.Instance.RenderRectangle(view, aabb, color);
-
 				foreach (var entity in entities)
 				{
 					var position = entity.Position;
 					if (entity is DynamicEntity dynamicEntity)
 						position = dynamicEntity.InterpolatedPosition(interpolation);
 
-					var entityColor = new Color4b((uint)entity.Name.GetHashCode()) { A = 0xff };
-					Renderer.Instance.RenderRectangle(view, entity.BoundingBox + position, entityColor);
+					var entityColor = new Color4b((uint)entity.Name.GetHashCode()) { A = 0x4f };
+					Renderer.Instance.RenderRectangle(view, entity.BoundingBox + position, Color4b.Transparent, entityColor);
 				}
 
+				var velocityColor = new Color4b(Color4b.Green) { A = 0xff };
 				foreach (var entity in entities)
 				{
-					if (entity is DynamicEntity dynamicEntity)
-					{
-						var entityColor = new Color4b(Color4b.Green) { A = 0x7f };
+					if (entity is DynamicEntity dynamicEntity && dynamicEntity.Velocity != Vector2f.Zero)
 						Renderer.Instance.RenderRectangle(view,
-							dynamicEntity.BoundingBox + dynamicEntity.Position + dynamicEntity.Velocity, entityColor);
-					}
+							dynamicEntity.BoundingBox + dynamicEntity.Position + dynamicEntity.Velocity, velocityColor, Color4b.Transparent);
 				}
 			}
 
@@ -68,7 +60,7 @@ namespace Ujeby.Plosinofka.Game
 					if (trackedEntity.Value.Queue.Count < 2)
 						continue;
 
-					var entityColor = new Color4b((uint)trackedEntity.Key.GetHashCode()) { A = 0xff };
+					//var entityColor = new Color4b((uint)trackedEntity.Key.GetHashCode()) { A = 0xff };
 					var values = trackedEntity.Value.Queue.ToArray();
 
 					var positionColor = Color4b.Blue;

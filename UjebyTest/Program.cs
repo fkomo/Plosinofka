@@ -60,6 +60,8 @@ namespace UjebyTest
 			RendererPtr = SDL.SDL_CreateRenderer(WindowPtr, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED);
 			if (RendererPtr == null)
 				throw new Exception($"Failed to create renderer. SDL2Error({ SDL.SDL_GetError() })");
+
+			SDL.SDL_SetRenderDrawBlendMode(RendererPtr, SDL.SDL_BlendMode.SDL_BLENDMODE_ADD);
 		}
 
 		private static void Destroy()

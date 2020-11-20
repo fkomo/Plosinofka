@@ -32,7 +32,7 @@ namespace Ujeby.Plosinofka.Engine.Entities
 
 			var dataSprite = SpriteCache.LoadSprite(Program.ContentDirectory + $"World\\{ name }-data.png");
 			if (dataSprite != null)
-				BoundingBox = AABB.Union(AABB.FromMap(dataSprite, Level.ObstacleMask));
+				BoundingBox = AABB.Merge(AABB.FromMap(dataSprite, Level.ObstacleMask));
 
 			else if (sprite != null)
 				BoundingBox = new AABB(Vector2f.Zero, sprite.Size);

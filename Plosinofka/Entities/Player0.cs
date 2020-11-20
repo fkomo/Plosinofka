@@ -45,7 +45,7 @@ namespace Ujeby.Plosinofka.Game.Entities
 
 			var dataSprite = SpriteCache.LoadSprite(Program.ContentDirectory + $"Player\\player-data.png");
 			if (dataSprite != null)
-				BoundingBox = AABB.Union(AABB.FromMap(dataSprite, Level.ObstacleMask));
+				BoundingBox = AABB.Merge(AABB.FromMap(dataSprite, Level.ObstacleMask));
 
 			else if (sprite != null)
 				BoundingBox = new AABB(Vector2f.Zero, sprite.Size);

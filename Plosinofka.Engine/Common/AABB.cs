@@ -366,11 +366,47 @@ namespace Ujeby.Plosinofka.Engine.Common
 			return false;
 		}
 
-		public static AABB Union(AABB[] aABBs)
+		/// <summary>
+		/// returns new aabb that contains all the aabbs from input
+		/// </summary>
+		/// <param name="aABBs"></param>
+		/// <returns></returns>
+		public static AABB Merge(AABB[] aABBs)
 		{
 			return new AABB(
 				new Vector2f(aABBs.Min(bb => bb.Min.X), aABBs.Min(bb => bb.Min.Y)),
 				new Vector2f(aABBs.Max(bb => bb.Max.X), aABBs.Max(bb => bb.Max.Y)));
+		}
+
+		public static AABB Overlap(AABB aabb1, AABB aabb2)
+		{
+			var min = Vector2f.Zero;
+			var max = Vector2f.Zero;
+
+			if (aabb1.Overlap(aabb2))
+			{
+				if (aabb2.Left < aabb1.Left)
+				{
+					var tmp = aabb1;
+					aabb1 = aabb2;
+					aabb2 = tmp;
+				}
+
+				min.X = aabb2.Left;
+				max.X = Math.Min(aabb1.Right, aabb2.Right);
+
+				if (aabb2.Bottom < aabb1.Bottom)
+				{
+					var tmp = aabb1;
+					aabb1 = aabb2;
+					aabb2 = tmp;
+				}
+
+				min.Y = aabb2.Bottom;
+				max.Y = Math.Min(aabb1.Top, aabb2.Top);
+			}
+
+			return new AABB(min, max);
 		}
 
 		/// <summary>

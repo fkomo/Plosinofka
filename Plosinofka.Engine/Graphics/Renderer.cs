@@ -40,12 +40,12 @@ namespace Ujeby.Plosinofka.Engine.Graphics
 		public abstract void Render(Simulation simulation, double interpolation);
 
 		/// <summary>
-		/// render color filled aabb
+		/// render filled rectangle
 		/// </summary>
 		/// <param name="camera"></param>
 		/// <param name="rectangle"></param>
 		/// <param name="color"></param>
-		public abstract void RenderRectangle(AABB view, AABB rectangle, Color4b color);
+		public abstract void RenderRectangle(AABB view, AABB rectangle, Color4b borderColor, Color4b fillColor);
 
 		/// <summary>
 		/// render colored line between point a and b in world space

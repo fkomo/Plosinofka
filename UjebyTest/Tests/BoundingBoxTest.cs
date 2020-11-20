@@ -169,6 +169,23 @@ namespace UjebyTest
 				if (Collisions.Overlap(TmpBox, obstacles) || TmpTriangle.Overlap(TmpBox))
 				{
 					title += " overlaps |";
+					foreach (var aabb in obstacles)
+					{
+						var overlapAABB = AABB.Overlap(TmpBox, aabb);
+						if (overlapAABB.Size != Vector2f.Zero)
+						{
+							var overlapRect = new SDL.SDL_Rect
+							{
+								x = (int)overlapAABB.Min.X,
+								y = Program.WindowSize.Y - (int)overlapAABB.Min.Y,
+								w = (int)overlapAABB.Size.X,
+								h = -(int)overlapAABB.Size.Y,
+							};
+							SDL.SDL_SetRenderDrawColor(Program.RendererPtr, 0x00, 0xff, 0x00, 0x2f);
+							SDL.SDL_RenderFillRect(Program.RendererPtr, ref overlapRect);
+						}
+					}
+
 					SDL.SDL_SetRenderDrawColor(Program.RendererPtr, 0xff, 0x00, 0x00, 0xff);
 				}
 				else
