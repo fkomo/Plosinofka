@@ -48,6 +48,14 @@ namespace Ujeby.Plosinofka.Engine.Graphics
 		public abstract void RenderRectangle(AABB view, AABB rectangle, Color4b borderColor, Color4b fillColor);
 
 		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="view"></param>
+		/// <param name="rectangle"></param>
+		/// <param name="fillColor"></param>
+		public abstract void RenderRectangleOverlay(AABB view, AABB rectangle, Color4b fillColor);
+
+		/// <summary>
 		/// render colored line between point a and b in world space
 		/// </summary>
 		/// <param name="view"></param>

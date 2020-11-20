@@ -59,15 +59,23 @@ namespace Ujeby.Plosinofka.Game.Entities
 		{
 			var position = InterpolatedPosition(interpolation);
 
-			var animation = SpriteCache.Get(Movement.Current.Animation.ToString());
-			if (animation != null)
+			if (Alive)
 			{
-				Renderer.Instance.RenderSpriteFrame(view, animation, position,
-					Movement.Current.AnimationFrame % (animation.Size.X / animation.Size.Y));
+				var animation = SpriteCache.Get(Movement.Current.Animation.ToString());
+				if (animation != null)
+				{
+					Renderer.Instance.RenderSpriteFrame(view, animation, position,
+						Movement.Current.AnimationFrame % (animation.Size.X / animation.Size.Y));
+				}
+				else
+					// animation not found, use default sprite
+					Renderer.Instance.RenderSprite(view, SpriteCache.Get(DefaultSpriteId), position);
 			}
 			else
-				// animation not found, use default sprite
+			{
+				// TODO render dying animation
 				Renderer.Instance.RenderSprite(view, SpriteCache.Get(DefaultSpriteId), position);
+			}
 		}
 
 		public override void HandleButton(InputButton button, InputButtonState state)
@@ -92,8 +100,23 @@ namespace Ujeby.Plosinofka.Game.Entities
 			base.Update();
 
 			// update player according to his state and set new moving vector
-			Movement.Current?.Update(this);
-			Action.Current?.Update(this);
+			if (Alive)
+			{
+				Movement.Current?.Update(this);
+				Action.Current?.Update(this);
+			}
+			else
+			{
+				// TODO player death update
+			}
+		}
+
+		public override void Die()
+		{
+			base.Die();
+			Velocity = Vector2f.Zero;
+
+			// TODO start player death
 		}
 
 		/// <summary>

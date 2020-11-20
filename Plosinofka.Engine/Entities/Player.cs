@@ -17,6 +17,8 @@ namespace Ujeby.Plosinofka.Engine.Entities
 
 	public abstract class Player : DynamicEntity, IRender, IHandleInput
 	{
+		public bool Alive { get; private set; } = true;
+
 		public abstract void Render(AABB view, double interpolation);
 
 		public abstract void HandleButton(InputButton button, InputButtonState state);
@@ -41,6 +43,15 @@ namespace Ujeby.Plosinofka.Engine.Entities
 
 			Obstacle[(int)Side.Right] = Collisions.Overlap(
 				new AABB(new Vector2f(bb.Right, bb.Bottom + 1), new Vector2f(bb.Right + 1, bb.Top - 1)), obstacleAABBs);
+		}
+
+		public virtual void Die()
+		{
+			Alive = false;
+
+			PreviousPosition = Position;
+			PreviousVelocity = Velocity;
+			Log.Add($"{ this.ToString() } died!");
 		}
 	}
 }

@@ -24,15 +24,19 @@ namespace Ujeby.Plosinofka.Game
 
 		private readonly DebugData DebugData = new DebugData();
 
+		private const int FadeMax = 255;
+		private const int FadeMin = 0;
+		private const int FadeStep = 5;
+
+		private int FadeFrame = FadeMin;
+		private bool FadeAnimation = false;
+
 		public Simulation0()
 		{
 		}
 
 		public override void Initialize()
 		{
-			// create player
-			Player = new Player0("ujeb");
-
 			LoadLevel("Level0");
 		}
 
@@ -43,6 +47,9 @@ namespace Ujeby.Plosinofka.Game
 
 		private void LoadLevel(string levelName)
 		{
+			// create player
+			Player = new Player0("ujeb");
+
 			// clear old entities
 			Entities.Clear();
 			DebugData.Clear();
@@ -62,74 +69,109 @@ namespace Ujeby.Plosinofka.Game
 			//{
 			//	PlatformSnapping = true
 			//};
+
+			FadeAnimation = true;
+			FadeFrame = FadeMax;
 		}
 
 		public override void Update()
 		{
 			var start = Engine.Core.Game.GetElapsed();
 
-			// remove obsolete entities
-			for (var i = Entities.Count - 1; i >= 0; i--)
-				if ((Entities[i] as IDestroyable)?.Obsolete() == true)
-					Entities.RemoveAt(i);
-
-			// update all entities
-			for (var i = Entities.Count - 1; i >= 0; i--)
-				Entities[i].Update();
-
-			// player standing on obstacle (moving platform)
-			if (Player.ObstacleAt(Side.Down))
+			// TODO simulation state machine (paused game / menu | game | level loading | fade in/out? animation)
+			
+			if (FadeAnimation)
 			{
-				var bb = Player.BoundingBox + Player.Position;
-				var underPlayer = new AABB(new Vector2f(bb.Left + 1, bb.Bottom - 1), new Vector2f(bb.Right - 1, bb.Bottom));
-				if (Entities.SingleOrDefault(e => e is Platform p && underPlayer.Overlap(p.BoundingBox + p.Position)) is Platform platformDown)
-					Player.Velocity += platformDown.Velocity;
-			}
+				FadeFrame += Player.Alive ? -FadeStep : FadeStep;
 
-			// platform pushing player
-			var obstacles = Entities.Where(e => (e as Obstacle) != null).Select(o => o as Obstacle).ToArray();
-			foreach (var obstacle in obstacles)
-			{
-				var playerAABB = Player.BoundingBox + Player.Position;
-				if (obstacle is Platform platform)
+				if (FadeFrame < FadeMin || FadeMax < FadeFrame)
 				{
-					var platformAABB = platform.BoundingBox + platform.Position;
-					if (playerAABB.Overlap(platformAABB))
+					FadeFrame = Math.Min(FadeMax, Math.Max(FadeMin, FadeFrame));
+					FadeAnimation = false;
+
+					if (!Player.Alive)
 					{
-						var overlap = AABB.Overlap(playerAABB, platformAABB);
-						Player.Velocity += overlap.Size * platform.Velocity.Normalize();
+						// TODO reload current level
+						LoadLevel("Level0");
 					}
 				}
 			}
 
-			// solve collisions of dynamic entities
-			foreach (var entity in Entities)
+			if (Player.Alive)
 			{
-				if (entity is DynamicEntity dynamicEntity)
-				{
-					// if entity is oblivious to environment solve its collisions
-					if (dynamicEntity.Responsive)
-					{
-						Solve(dynamicEntity, obstacles, out Vector2f position, out Vector2f velocity);
-						dynamicEntity.Position = position;
-						dynamicEntity.Velocity = velocity;
-					}
-					else
-						dynamicEntity.Position += dynamicEntity.Velocity;
+				// remove obsolete entities
+				for (var i = Entities.Count - 1; i >= 0; i--)
+					if ((Entities[i] as IDestroyable)?.Obsolete() == true)
+						Entities.RemoveAt(i);
 
-					//if (entity as Player != null || entity as Platform != null)
-					//	Log.Add(entity.ToString());
+				// update all entities
+				for (var i = Entities.Count - 1; i >= 0; i--)
+					Entities[i].Update();
+
+				// player standing on obstacle (moving platform)
+				if (Player.ObstacleAt(Side.Down))
+				{
+					var bb = Player.BoundingBox + Player.Position;
+					var underPlayer = new AABB(new Vector2f(bb.Left + 1, bb.Bottom - 1), new Vector2f(bb.Right - 1, bb.Bottom));
+					if (Entities.SingleOrDefault(e => e is Platform p && underPlayer.Overlap(p.BoundingBox + p.Position)) is Platform platformDown)
+						Player.Velocity += platformDown.Velocity;
+				}
+
+				// platform pushing player
+				var obstacles = Entities.Where(e => (e as Obstacle) != null).Select(o => o as Obstacle).ToArray();
+				foreach (var obstacle in obstacles)
+				{
+					var playerAABB = Player.BoundingBox + Player.Position;
+					if (obstacle is Platform platform)
+					{
+						var platformAABB = platform.BoundingBox + platform.Position;
+						if (playerAABB.Overlap(platformAABB))
+						{
+							var overlap = AABB.Overlap(playerAABB, platformAABB);
+							Player.Velocity += overlap.Size * platform.Velocity.Normalize();
+						}
+					}
+				}
+
+				// solve collisions of dynamic entities
+				foreach (var entity in Entities)
+				{
+					if (entity is DynamicEntity dynamicEntity)
+					{
+						// if entity is oblivious to environment solve its collisions
+						if (dynamicEntity.Responsive)
+						{
+							Solve(dynamicEntity, out Vector2f position, out Vector2f velocity);
+							dynamicEntity.Position = position;
+							dynamicEntity.Velocity = velocity;
+						}
+						else
+							dynamicEntity.Position += dynamicEntity.Velocity;
+
+						//if (entity as Player != null || entity as Platform != null)
+						//	Log.Add(entity.ToString());
+					}
+				}
+
+				foreach (var entity in Entities)
+					DebugData.TrackEntity(entity as ITrack);
+
+				// update camera with respect to world/level borders
+				Camera.Update(Player, new AABB(Vector2f.Zero, CurrentLevel.Size));
+
+				// if player is still alive
+				if (!CheckPlayerDeath())
+				{
+					// update player awarness of surrounding objects
+					Player.UpdateSurroundings(Entities.Where(e => (e as Obstacle) != null).Select(o => o as Obstacle).ToArray());
+
+					if (CurrentLevel.Finish.Overlap(Player.BoundingBox + Player.Position))
+					{
+						// TODO move to next level
+						LoadLevel("Level0");
+					}
 				}
 			}
-
-			foreach (var entity in Entities)
-				DebugData.TrackEntity(entity as ITrack);
-
-			// update player awarness of surrounding objects
-			Player.UpdateSurroundings(obstacles);
-
-			// update camera with respect to world/level borders
-			Camera.Update(Player, new AABB(Vector2f.Zero, CurrentLevel.Size));
 
 			LastUpdateDuration = Engine.Core.Game.GetElapsed() - start;
 		}
@@ -139,43 +181,67 @@ namespace Ujeby.Plosinofka.Game
 			// viewport
 			var view = Camera.InterpolatedView(interpolation);
 
-			// parallax scrolling
-			var parallax = view.Min / (CurrentLevel.Size - view.Size);
-
-			var lights = Entities.Where(e => e is Light).Select(e => e as Light).ToArray();
-			var obstacles = 
-				Entities.Where(e => (e as Obstacle) != null).Select(e => (e as Obstacle).BoundingBox + e.Position)
-				.Concat(new [] { Player.BoundingBox + Player.InterpolatedPosition(interpolation) })
-				.ToArray();
-
-			// render all layers, back to front
-			foreach (var layer in CurrentLevel.Layers)
+			if (Player.Alive || FadeAnimation)
 			{
-				// main layer
-				if (layer.Depth == 0)
+				// parallax scrolling
+				var parallax = view.Min / (CurrentLevel.Size - view.Size);
+
+				var lights = Entities.Where(e => e is Light).Select(e => e as Light).ToArray();
+				var obstacles =
+					Entities.Where(e => (e as Obstacle) != null).Select(e => (e as Obstacle).BoundingBox + e.Position)
+					.Concat(new[] { Player.BoundingBox + Player.InterpolatedPosition(interpolation) })
+					.ToArray();
+
+				// render all layers, back to front
+				foreach (var layer in CurrentLevel.Layers)
 				{
-					// background layer
-					Renderer.Instance.RenderLayer(view, layer, lights, obstacles);
+					// main layer
+					if (layer.Depth == 0)
+					{
+						// background layer
+						Renderer.Instance.RenderLayer(view, layer, lights, obstacles);
 
-					// entities
-					foreach (var entity in Entities)
-						(entity as IRender)?.Render(view, interpolation);
+						// entities
+						foreach (var entity in Entities)
+							(entity as IRender)?.Render(view, interpolation);
+					}
+					else
+						// background / foreground layers (with possible parallax scrolling)
+						Renderer.Instance.RenderLayer(!layer.Parallax ?
+							view : (new AABB(Vector2f.Zero, view.Size) + (layer.Size - view.Size) * parallax),
+							layer);
 				}
-				else
-					// background / foreground layers (with possible parallax scrolling)
-					Renderer.Instance.RenderLayer(!layer.Parallax ? 
-						view : (new AABB(Vector2f.Zero, view.Size) + (layer.Size - view.Size) * parallax), 
-						layer);
+
+				// debug
+				DebugData.Render(view, interpolation, Entities.ToArray());
+
+				if (Settings.Instance.GetDebug(DebugSetting.DrawCamera))
+					(Camera as IRender)?.Render(view, interpolation);
+
+				if (FadeAnimation)
+					Renderer.Instance.RenderRectangleOverlay(view, new AABB(Vector2f.Zero, view.Size), new Color4b(0, 0, 0, (byte)FadeFrame));
 			}
-
-			// debug
-			DebugData.Render(view, interpolation, Entities.ToArray());
-
-			if (Settings.Instance.GetDebug(DebugSetting.DrawCamera))
-				(Camera as IRender)?.Render(view, interpolation);
 
 			// gui is always on top
 			Gui.Instance.Render(view, interpolation);
+		}
+
+		private bool CheckPlayerDeath()
+		{
+			if (Entities.Any(e => e is DeathZone deathZone && deathZone.VsEntity(Player)) || (Player.Position.Y + Player.BoundingBox.Min.Y) < 0)
+			{
+				// player death
+				Player.Die();
+
+				Camera.Update(Player, new AABB(Vector2f.Zero, CurrentLevel.Size));
+
+				FadeAnimation = true;
+				FadeFrame = FadeMin;
+
+				return true;
+			}
+
+			return false;
 		}
 
 		public override void AddEntity(Entity entity)
@@ -184,7 +250,7 @@ namespace Ujeby.Plosinofka.Game
 			DebugData.TrackEntity(entity as ITrack);
 		}
 
-		public bool Solve(DynamicEntity entity, Obstacle[] obstacles, out Vector2f position, out Vector2f velocity)
+		public bool Solve(DynamicEntity entity, out Vector2f position, out Vector2f velocity)
 		{
 			position = entity.Position;
 			velocity = entity.Velocity;
@@ -196,8 +262,9 @@ namespace Ujeby.Plosinofka.Game
 			if (velocity == Vector2f.Zero)
 				return false;
 
-			var remainingVelocity = velocity;
+			var obstacles = Entities.Where(e => (e as Obstacle) != null).Select(o => o as Obstacle).ToArray();
 
+			var remainingVelocity = velocity;
 			var collisionFound = false;
 			while (true)
 			{

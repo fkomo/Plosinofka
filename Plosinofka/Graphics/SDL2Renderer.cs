@@ -107,7 +107,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			if (RendererPtr == null)
 				throw new Exception($"Failed to create renderer. SDL2Error({ SDL.SDL_GetError() })");
 
-			SDL.SDL_SetRenderDrawBlendMode(RendererPtr, SDL.SDL_BlendMode.SDL_BLENDMODE_ADD);
+			SDL.SDL_SetRenderDrawBlendMode(RendererPtr, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
 		}
 
 		public override void Initialize()
@@ -185,6 +185,21 @@ namespace Ujeby.Plosinofka.Game.Graphics
 					SDL.SDL_RenderDrawRect(RendererPtr, ref rect);
 				}
 			}
+		}
+
+		public override void RenderRectangleOverlay(AABB view, AABB rectangle, Color4b fillColor)
+		{
+			var scale = CurrentWindowSize / view.Size;
+			var rect = new SDL.SDL_Rect
+			{
+				x = 0,
+				y = 0,
+				w = CurrentWindowSize.X,
+				h = CurrentWindowSize.Y,
+			};
+
+			SDL.SDL_SetRenderDrawColor(RendererPtr, fillColor.R, fillColor.G, fillColor.B, fillColor.A);
+			SDL.SDL_RenderFillRect(RendererPtr, ref rect);
 		}
 
 		/// <summary>

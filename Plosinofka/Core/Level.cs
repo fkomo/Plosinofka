@@ -14,6 +14,7 @@ namespace Ujeby.Plosinofka.Game
 	/// </summary>
 	public class Level
 	{
+		public const uint DeathZoneMask = 0xffff0000;
 		public const uint ObstacleMask = 0xff0000ff;
 		public const uint ShadeMask = 0xff00ff00;
 		
@@ -53,7 +54,7 @@ namespace Ujeby.Plosinofka.Game
 
 			var level = new Level(name)
 			{
-				Start = new Vector2f(64, 32),
+				Start = new Vector2f(64, 20),
 				Finish = new AABB(new Vector2f(1000, 0), new Vector2f(1100, 100)),
 
 				// load layers
@@ -89,9 +90,13 @@ namespace Ujeby.Plosinofka.Game
 			var dataSpriteId = mainLayer.DataMapId;
 			if (dataSpriteId != null)
 			{
-				var aabbs = AABB.FromMap(SpriteCache.Get(dataSpriteId), ObstacleMask);
-				foreach (var aabb in aabbs)
+				var dataSprite = SpriteCache.Get(dataSpriteId);
+
+				foreach (var aabb in AABB.FromMap(dataSprite, ObstacleMask))
 					Simulation.Instance.AddEntity(new Obstacle(aabb));
+
+				foreach (var aabb in AABB.FromMap(dataSprite, DeathZoneMask))
+					Simulation.Instance.AddEntity(new DeathZone(aabb));
 			}
 
 			level.Size = mainLayer.Size;
