@@ -51,7 +51,7 @@ namespace Ujeby.Plosinofka.Engine.Entities
 
 			PreviousPosition = Position;
 			PreviousVelocity = Velocity;
-			Log.Add($"{ this.ToString() } died!");
+			Log.Add($"{ ToString() }; died!");
 		}
 	}
 }

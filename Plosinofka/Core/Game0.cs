@@ -23,6 +23,11 @@ namespace Ujeby.Plosinofka.Game
 
 		public override void Initialize()
 		{
+			// make camera view smaller then window size for more pixelated look!
+			var view = Vector2i.FullHD / 4;
+			var cameraWindowSize = view / 3;
+			Camera = new WindowCamera(view, new AABB(Vector2f.Zero, cameraWindowSize) + cameraWindowSize);
+
 			ChangeState(new LoadingLevel("Level0"));
 		}
 
@@ -48,11 +53,12 @@ namespace Ujeby.Plosinofka.Game
 			DebugData.Clear();
 		}
 
-		public void SetCurrentLevel(Level level, Camera camera, Player player)
+		public void SetCurrentLevel(Level level, Player player, Camera camera = null)
 		{
-			CurrentLevel = level;
-			Camera = camera;
 			Player = player;
+			CurrentLevel = level;
+
+			Camera = camera ?? Camera;
 
 			AddEntity(player);
 		}
@@ -73,7 +79,7 @@ namespace Ujeby.Plosinofka.Game
 
 		internal void ChangeState(GameState newState)
 		{
-			State.Change(State.Current, newState, false);
+			State.Change(State.Current, newState);
 		}
 	}
 }

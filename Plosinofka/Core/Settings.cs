@@ -12,7 +12,9 @@ namespace Ujeby.Plosinofka.Game
 
 	internal enum DebugSetting : int
 	{
-		DrawHistory = 0,
+		DrawOSD = 0,
+		DrawFrameTimers,
+		DrawHistory,
 		DrawAABB,
 		DrawCamera,
 
@@ -57,6 +59,8 @@ namespace Ujeby.Plosinofka.Game
 				KeyboardButton.F5,
 				KeyboardButton.F6,
 				KeyboardButton.F7,
+				KeyboardButton.F8,
+				KeyboardButton.F9,
 			};
 		}
 

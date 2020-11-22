@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Ujeby.Plosinofka.Engine.Common;
 using Ujeby.Plosinofka.Engine.Entities;
 using Ujeby.Plosinofka.Engine.Graphics;
-using Ujeby.Plosinofka.Engine.Core;
 
 namespace Ujeby.Plosinofka.Game.Graphics
 {

@@ -35,83 +35,25 @@ namespace Ujeby.Plosinofka.Game.Graphics
 		{
 			var start = Engine.Core.GameLoop.GetElapsed();
 
-			var sprite = new Sprite
+			var sprite = Library.Values.SingleOrDefault(s => s.Filename == filename);
+			if (sprite == null)
 			{
-				Filename = filename,
-				Id = id ?? Guid.NewGuid().ToString("N"),
-			};
-			if (!LoadImage(filename, out sprite.ImagePtr, out sprite.Size, out sprite.Data))
-				return null;
+				sprite = new Sprite
+				{
+					Filename = filename,
+					Id = id ?? Guid.NewGuid().ToString("N"),
+				};
+				if (!LoadImage(filename, out sprite.ImagePtr, out sprite.Size, out sprite.Data))
+					return null;
 
-			Library.Add(sprite.Id, sprite);
+				Library.Add(sprite.Id, sprite);
+			}
 
 			Log.Add($"LoadSprite('{ filename }'): { sprite.Id }; { (int)(Engine.Core.GameLoop.GetElapsed() - start) }ms");
 			return sprite;
 		}
 
-		private static bool LoadImage(string filename, out IntPtr imagePtr, out Vector2i size, out uint[] data)
-		{
-			imagePtr = IntPtr.Zero;
-			size = Vector2i.Zero;
-			data = null;
-
-			if (!File.Exists(filename))
-			{
-				Log.Add($"LoadImage('{ filename }'): file not found!");
-				return false;
-			}
-
-			imagePtr = SDL_image.IMG_Load(filename);
-			var surface = Marshal.PtrToStructure<SDL.SDL_Surface>(imagePtr);
-
-			size = new Vector2i(surface.w, surface.h);
-
-			//var bitmap = new Bitmap(fileName);
-			//var data = bitmap.LockBits(
-			//	new Rectangle(Point.Empty, bitmap.Size), 
-			//	System.Drawing.Imaging.ImageLockMode.ReadWrite,
-			//	bitmap.PixelFormat);
-
-			//sprite.Data = new byte[data.Height * data.Stride];
-			//Marshal.Copy(data.Scan0, sprite.Data, 0, sprite.Data.Length);
-
-			var tmpData = new byte[surface.w * surface.h * 4];
-			Marshal.Copy(surface.pixels, tmpData, 0, tmpData.Length);
-
-			var i2 = 0;
-			data = new uint[surface.w * surface.h];
-			for (var y = surface.h - 1; y >= 0; y--)
-				for (var x = 0; x < surface.w; x++, i2++)
-				{
-					var i = y * surface.w + x;
-					data[i2] =
-						((uint)tmpData[i * 4 + 0]) +
-						((uint)tmpData[i * 4 + 1] << 8) +
-						((uint)tmpData[i * 4 + 2] << 16) +
-						((uint)tmpData[i * 4 + 3] << 24);
-				}
-
-			return true;
-		}
-
-		public static void Destroy()
-		{
-			// free sdl images/textures
-			foreach (var sprite in Library.Values)
-			{
-				if (sprite.ImagePtr != IntPtr.Zero)
-					SDL.SDL_FreeSurface(sprite.ImagePtr);
-	
-				if (sprite.TexturePtr != IntPtr.Zero)
-					SDL.SDL_DestroyTexture(sprite.TexturePtr);
-			}
-
-			Library.Clear();
-
-			Log.Add($"SpriteCache.Destroy()");
-		}
-
-		internal static Sprite Get(string id)
+		public static Sprite Get(string id)
 		{
 			if (string.IsNullOrEmpty(id))
 				return null;
@@ -120,7 +62,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			{
 				if (!LibraryFileMap.TryGetValue(id, out string filename))
 					return null;
-					
+
 				sprite = LoadSprite(filename, id);
 				if (CreateTexture(sprite.Id, out Sprite spriteWithTexture))
 					sprite = spriteWithTexture;
@@ -178,7 +120,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 							}
 						}
 					}
-					
+
 					font.CharBoxes[ci / font.CharSize.X] = new AABB(min, max);
 				}
 			}
@@ -203,8 +145,8 @@ namespace Ujeby.Plosinofka.Game.Graphics
 		public static bool CreateTexture(string spriteId, out Sprite sprite)
 		{
 			sprite = Library[spriteId];
-			if (sprite.ImagePtr != IntPtr.Zero)
-			{ 
+			if (sprite.ImagePtr != IntPtr.Zero && sprite.TexturePtr == IntPtr.Zero)
+			{
 				sprite.TexturePtr = SDL.SDL_CreateTextureFromSurface((Renderer.Instance as SDL2Renderer).RendererPtr, sprite.ImagePtr);
 				Library[spriteId] = sprite;
 
@@ -212,6 +154,68 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			}
 
 			return false;
+		}
+
+		public static void Destroy()
+		{
+			// free sdl images/textures
+			foreach (var sprite in Library.Values)
+			{
+				if (sprite.ImagePtr != IntPtr.Zero)
+					SDL.SDL_FreeSurface(sprite.ImagePtr);
+	
+				if (sprite.TexturePtr != IntPtr.Zero)
+					SDL.SDL_DestroyTexture(sprite.TexturePtr);
+			}
+
+			Library.Clear();
+
+			Log.Add($"SpriteCache.Destroy()");
+		}
+
+		private static bool LoadImage(string filename, out IntPtr imagePtr, out Vector2i size, out uint[] data)
+		{
+			imagePtr = IntPtr.Zero;
+			size = Vector2i.Zero;
+			data = null;
+
+			if (!File.Exists(filename))
+			{
+				Log.Add($"LoadImage('{ filename }'): file not found!");
+				return false;
+			}
+
+			imagePtr = SDL_image.IMG_Load(filename);
+			var surface = Marshal.PtrToStructure<SDL.SDL_Surface>(imagePtr);
+
+			size = new Vector2i(surface.w, surface.h);
+
+			//var bitmap = new Bitmap(fileName);
+			//var data = bitmap.LockBits(
+			//	new Rectangle(Point.Empty, bitmap.Size), 
+			//	System.Drawing.Imaging.ImageLockMode.ReadWrite,
+			//	bitmap.PixelFormat);
+
+			//sprite.Data = new byte[data.Height * data.Stride];
+			//Marshal.Copy(data.Scan0, sprite.Data, 0, sprite.Data.Length);
+
+			var tmpData = new byte[surface.w * surface.h * 4];
+			Marshal.Copy(surface.pixels, tmpData, 0, tmpData.Length);
+
+			var i2 = 0;
+			data = new uint[surface.w * surface.h];
+			for (var y = surface.h - 1; y >= 0; y--)
+				for (var x = 0; x < surface.w; x++, i2++)
+				{
+					var i = y * surface.w + x;
+					data[i2] =
+						((uint)tmpData[i * 4 + 0]) +
+						((uint)tmpData[i * 4 + 1] << 8) +
+						((uint)tmpData[i * 4 + 2] << 16) +
+						((uint)tmpData[i * 4 + 3] << 24);
+				}
+
+			return true;
 		}
 	}
 }

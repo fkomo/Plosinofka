@@ -1,6 +1,6 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using Ujeby.Plosinofka.Engine.Common;
-using Ujeby.Plosinofka.Engine.Core;
 using Ujeby.Plosinofka.Engine.Graphics;
 using Ujeby.Plosinofka.Game.Entities;
 using Ujeby.Plosinofka.Game.Graphics;
@@ -37,6 +37,9 @@ namespace Ujeby.Plosinofka.Game.Core
 
 			else
 			{
+				LoadingThread.Join();
+				LoadingThread = null;
+
 				// textures needs to be created on main thread
 				SpriteCache.CreateTextures();
 
@@ -49,18 +52,23 @@ namespace Ujeby.Plosinofka.Game.Core
 		{
 			base.Render(game, interpolation);
 
-			var view = new AABB(Vector2f.Zero, Vector2i.FullHD / 4); //game.Camera.InterpolatedView(interpolation);
+			var view = game.Camera.InterpolatedView(interpolation);
+
+			var progressBarHeight = 4;
 
 			// progress bar
 			Renderer.Instance.RenderRectangleOverlay(view,
-				new AABB(new Vector2f(0, view.Size.Y - 4), new Vector2f(view.Size.X * (Progress / 100.0), view.Size.Y)), Color4b.White);
+				new AABB(new Vector2f(0, view.Size.Y - progressBarHeight), new Vector2f(view.Size.X * (Progress / 100.0), view.Size.Y)), Color4b.White);
 
-			//var buffer = new List<TextLine>()
-			//{
-			//	new Text { Value = $"Loading level '{ LevelName }' { string.Concat(Enumerable.Repeat(".", Progress)) }" },
-			//};
-			//var lines = buffer.ToArray();
-			//Renderer.Instance.RenderTextLinesOverlay(view, new Vector2i(5, 5), lines, Color4b.White, 0.5);
+			var buffer = new List<TextLine>()
+			{
+				new Text { Value = $"{ LevelName }" },
+			};
+			var lines = buffer.ToArray();
+
+			var font = Renderer.Instance.GetCurrentFont();
+			Renderer.Instance.RenderTextLinesOverlay(view, 
+				new Vector2i(5, (int)view.Size.Y - 5 - progressBarHeight - font.CharSize.Y), lines, Color4b.White, 1);
 		}
 
 		private static void LoadLevel(string levelName, Game0 game)
@@ -70,15 +78,12 @@ namespace Ujeby.Plosinofka.Game.Core
 			// load level
 			var level = Level.Load(levelName);
 
-			// make camera view smaller then window size for more pixelated look!
-			var view = Vector2i.FullHD / 4;
-			var cameraWindowSize = view / 3;
-			var camera = new WindowCamera(view, new AABB(Vector2f.Zero, cameraWindowSize) + cameraWindowSize);
-
-			game.SetCurrentLevel(level, camera, new Player0("ujeb")
-			{
-				Position = level.Start,
-			});
+			game.SetCurrentLevel(
+				level, 
+				new Player0("ujeb")
+				{
+					Position = level.Start,
+				});
 		}
 	}
 }
