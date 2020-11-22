@@ -24,6 +24,7 @@ namespace Ujeby.Plosinofka.Game.Entities
 		private readonly PlayerMovement Movement = new PlayerMovement();
 
 		public PlayerMovementStateEnum AllowedMovement =
+			PlayerMovementStateEnum.Death |
 			PlayerMovementStateEnum.Crouching |
 			PlayerMovementStateEnum.Sneaking |
 			PlayerMovementStateEnum.Walking |
@@ -73,7 +74,7 @@ namespace Ujeby.Plosinofka.Game.Entities
 			}
 			else
 			{
-				// TODO render dying animation
+				// TODO render death animation
 				Renderer.Instance.RenderSprite(view, SpriteCache.Get(DefaultSpriteId), position);
 			}
 		}
@@ -99,16 +100,10 @@ namespace Ujeby.Plosinofka.Game.Entities
 
 			base.Update();
 
-			// update player according to his state and set new moving vector
 			if (Alive)
-			{
-				Movement.Current?.Update(this);
 				Action.Current?.Update(this);
-			}
-			else
-			{
-				// TODO player death update
-			}
+
+			Movement.Current?.Update(this);
 		}
 
 		public override void Die()
@@ -116,7 +111,7 @@ namespace Ujeby.Plosinofka.Game.Entities
 			base.Die();
 			Velocity = Vector2f.Zero;
 
-			// TODO start player death
+			ChangeMovement(new Death());
 		}
 
 		/// <summary>

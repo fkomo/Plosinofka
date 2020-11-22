@@ -20,6 +20,7 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 		DashingRight,
 		DashingLeft,
 		Diving,
+		Death,
 
 		Count
 	}

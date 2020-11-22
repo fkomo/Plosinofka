@@ -1,7 +1,6 @@
 ﻿
 using Ujeby.Plosinofka.Engine.Common;
 using Ujeby.Plosinofka.Engine.Core;
-using Ujeby.Plosinofka.Engine.Graphics;
 using Ujeby.Plosinofka.Game.Entities;
 
 namespace Ujeby.Plosinofka.Game.PlayerStates
@@ -17,6 +16,7 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 		Falling = 64,
 		Dashing = 128,
 		Diving = 256,
+		Death = 512,
 	}
 
 	public abstract class PlayerMovementState : State<PlayerMovementStateEnum>

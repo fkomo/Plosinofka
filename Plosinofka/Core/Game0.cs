@@ -44,8 +44,6 @@ namespace Ujeby.Plosinofka.Game
 
 		public void ClearCurrentLevel()
 		{
-			// TODO clear current level resources?
-
 			Player = null;
 			CurrentLevel = null;
 
