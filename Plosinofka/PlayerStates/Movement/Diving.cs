@@ -57,10 +57,8 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 			{
 				// air control
 				player.Velocity.X = Freeze ? 0 : Direction.X * DiveStep;
-				player.Velocity.Y += Simulation0.Gravity.Y;
+				player.Velocity.Y += Gravity;
 			}
-
-			// TODO move camera slightly down
 		}
 	}
 }

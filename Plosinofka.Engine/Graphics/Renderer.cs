@@ -37,7 +37,7 @@ namespace Ujeby.Plosinofka.Engine.Graphics
 		/// </summary>
 		/// <param name="simulation"></param>
 		/// <param name="interpolation"></param>
-		public abstract void Render(Simulation simulation, double interpolation);
+		public abstract void Render(Game simulation, double interpolation);
 
 		/// <summary>
 		/// render filled rectangle

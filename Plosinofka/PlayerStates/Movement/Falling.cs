@@ -98,7 +98,7 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 			{
 				// air control
 				player.Velocity.X = Freeze ? 0 : Direction.X * FallStep;
-				player.Velocity.Y += Simulation0.Gravity.Y;
+				player.Velocity.Y += Gravity;
 			}
 		}
 	}

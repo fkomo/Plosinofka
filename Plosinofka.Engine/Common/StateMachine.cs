@@ -34,7 +34,7 @@ namespace Ujeby.Plosinofka.Engine.Common
 			if (previous != null && pushPreviousState)
 				Push(previous);
 
-			//Log.Add($"State.Change({ next })");
+			Log.Add($"{ this.GetType().Name }.Change({ next })");
 
 			Current = next;
 			return Current;

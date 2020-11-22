@@ -1,85 +1,23 @@
-﻿using System;
-using System.Diagnostics;
-using Ujeby.Plosinofka.Engine.Common;
-using Ujeby.Plosinofka.Engine.Graphics;
+﻿using Ujeby.Plosinofka.Engine.Entities;
 
 namespace Ujeby.Plosinofka.Engine.Core
 {
-	public class Game
+	public abstract class Game
 	{
-		private static readonly Stopwatch Stopwatch = new Stopwatch();
+		public static Game Instance { get; internal set; }
 
-		private readonly string Title;
+		/// <summary>desired number of updates per second</summary>
+		public abstract int GameSpeed { get; protected set; }
+		public abstract double LastUpdateDuration { get; protected set; }
 
-		public Game(string title, Renderer renderer, Simulation simulation, Input input)
-		{
-			Stopwatch.Restart();
+		public Player Player { get; protected set; }
+		public Camera Camera { get; protected set; }
 
-			Title = title;
-			Renderer.Instance = renderer;
-			Simulation.Instance = simulation;
-			Input.Instance = input;
-		}
+		public abstract void Destroy();
+		public abstract void Initialize();
+		public abstract void Update();
+		public abstract void Render(double interpolation);
 
-		public static int Fps = 0;
-
-		public void Run()
-		{
-			Renderer.Instance.Initialize();
-			Renderer.Instance.SetWindowTitle(Title);
-			
-			Simulation.Instance.Initialize();
-
-			var skipTicks = 1000 / Simulation.Instance.GameSpeed;
-
-			var lastFrameTime = GetElapsed();
-			var nextGameTick = lastFrameTime;
-
-			var maxFps = double.NegativeInfinity;
-			var minFps = double.PositiveInfinity;
-
-			var loopStart = GetElapsed();
-			while (Input.Instance.Handle(Simulation.Instance))
-			{
-				//simulation.Update();
-				//Renderer.Instance.Render(simulation, 1.0);
-
-				// update specified [Simulation.Instance.GameSpeed] number of times per second
-				var loops = 0;
-				while (GetElapsed() > nextGameTick && loops < Renderer.Instance.MaxFrameSkip)
-				{
-					Simulation.Instance.Update();
-					nextGameTick += skipTicks;
-					loops++;
-				}
-				var interpolation = (GetElapsed() + skipTicks - nextGameTick) / skipTicks;
-				interpolation = Math.Clamp(interpolation, 0, 1);
-
-				// render is called as much as possible with interpolation 0..1 (time between updates)
-				Renderer.Instance.Render(Simulation.Instance, interpolation);
-
-				// update fps for statistics
-				Fps = (int)(1000.0 / (GetElapsed() - lastFrameTime));
-				if (Fps > maxFps)
-					maxFps = Fps;
-				if (Fps < minFps)
-					minFps = Fps;
-
-				lastFrameTime = GetElapsed();
-			}
-
-			var loopDuration = (GetElapsed() - loopStart);
-			var avgFps = (int)(1000.0 / (loopDuration / Renderer.Instance.FramesRendered));
-			Log.Add($"Game.Run(): gameLoop={ (int)(loopDuration / 1000)}s frames={ Renderer.Instance.FramesRendered }; avgFps={ avgFps }; minFps={ (int)minFps }; maxFps={ (int)maxFps };");
-		}
-
-		/// <summary>
-		/// return miliseconds since game loop start
-		/// </summary>
-		/// <returns></returns>
-		public static double GetElapsed()
-		{
-			return Stopwatch.ElapsedTicks / (Stopwatch.Frequency / (1000L * 1000L)) / 1000.0;
-		}
+		public abstract void AddEntity(Entity entity);
 	}
 }

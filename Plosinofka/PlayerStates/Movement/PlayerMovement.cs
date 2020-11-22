@@ -21,6 +21,8 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 
 	public abstract class PlayerMovementState : State<PlayerMovementStateEnum>
 	{
+		protected const double Gravity = -1;
+
 		protected const double BaseStep = 4;
 
 		/// <summary>current animation frame</summary>
@@ -63,7 +65,7 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 		public virtual void Update(Player0 player)
 		{
 			// update animation frame
-			var current = Engine.Core.Game.GetElapsed();
+			var current = GameLoop.GetElapsed();
 			if (current - LastFrameChange > AnimationFrameDelay)
 			{
 				AnimationFrame++;

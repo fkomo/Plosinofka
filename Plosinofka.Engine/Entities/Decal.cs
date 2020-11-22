@@ -36,7 +36,7 @@ namespace Ujeby.Plosinofka.Engine.Entities
 
 		public override void Update()
 		{
-			var current = Core.Game.GetElapsed();
+			var current = Core.GameLoop.GetElapsed();
 			if (current - LastFrameChange > AnimationFrameDelay)
 			{
 				AnimationFrame++;

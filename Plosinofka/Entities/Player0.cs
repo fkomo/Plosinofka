@@ -89,11 +89,11 @@ namespace Ujeby.Plosinofka.Game.Entities
 			if (ObstacleAt(Side.Down))
 			{ 
 				if (PreviousVelocity.X > 0 && !(Velocity.X > 0))
-					Simulation.Instance.AddEntity(new Decal(SpriteCache.Get(PlayerDecals.DustParticlesRight.ToString()), 
+					Engine.Core.Game.Instance.AddEntity(new Decal(SpriteCache.Get(PlayerDecals.DustParticlesRight.ToString()), 
 						new Vector2f(Position.X + BoundingBox.Right, Position.Y)));
 
 				else if (PreviousVelocity.X < 0 && !(Velocity.X < 0))
-					Simulation.Instance.AddEntity(new Decal(SpriteCache.Get(PlayerDecals.DustParticlesLeft.ToString()),
+					Engine.Core.Game.Instance.AddEntity(new Decal(SpriteCache.Get(PlayerDecals.DustParticlesLeft.ToString()),
 						new Vector2f(Position.X + BoundingBox.Left, Position.Y)));
 			}
 

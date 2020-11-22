@@ -295,7 +295,7 @@ namespace Ujeby.Plosinofka.Engine.Common
 		/// <param name="map"></param>
 		public static AABB[] FromMap(Sprite map, uint mask)
 		{
-			var start = Core.Game.GetElapsed();
+			var start = Core.GameLoop.GetElapsed();
 
 			var colliders = new List<AABB>();
 			for (var y = 0; y < map.Size.Y; y++)
@@ -346,7 +346,7 @@ namespace Ujeby.Plosinofka.Engine.Common
 				}
 			}
 
-			var elapsed = (int)(Core.Game.GetElapsed() - start);
+			var elapsed = (int)(Core.GameLoop.GetElapsed() - start);
 			Log.Add($"AABB.FromMap('{ map.Filename }', mask:0x{ mask:x}): { colliders.Count } in { elapsed }ms");
 
 			return colliders.ToArray();

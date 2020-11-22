@@ -14,11 +14,11 @@ namespace Ujeby.Plosinofka.Game
 			try
 			{
 				var renderer = new SDL2Renderer(Vector2i.FullHD);
-				var simulation = new Simulation0();
+				var simulation = new Game0();
 				var input = new SDL2Input();
 
 				// game loop
-				new Engine.Core.Game("Plosinofka", renderer, simulation, input).Run();
+				new Engine.Core.GameLoop("Plosinofka", renderer, simulation, input).Run();
 
 				simulation.Destroy();
 				renderer.Destroy();

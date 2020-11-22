@@ -33,25 +33,25 @@ namespace Ujeby.Plosinofka.Game.Graphics
 
 		public static Sprite LoadSprite(string filename, string id = null)
 		{
-			var start = Engine.Core.Game.GetElapsed();
+			var start = Engine.Core.GameLoop.GetElapsed();
 
 			var sprite = new Sprite
 			{
 				Filename = filename,
 				Id = id ?? Guid.NewGuid().ToString("N"),
 			};
-			if (!LoadImage(filename, out sprite.TexturePtr, out sprite.Size, out sprite.Data))
+			if (!LoadImage(filename, out sprite.ImagePtr, out sprite.Size, out sprite.Data))
 				return null;
 
 			Library.Add(sprite.Id, sprite);
 
-			Log.Add($"LoadSprite('{ filename }'): { sprite.Id }; { (int)(Engine.Core.Game.GetElapsed() - start) }ms");
+			Log.Add($"LoadSprite('{ filename }'): { sprite.Id }; { (int)(Engine.Core.GameLoop.GetElapsed() - start) }ms");
 			return sprite;
 		}
 
-		private static bool LoadImage(string filename, out IntPtr texturePtr, out Vector2i size, out uint[] data)
+		private static bool LoadImage(string filename, out IntPtr imagePtr, out Vector2i size, out uint[] data)
 		{
-			texturePtr = IntPtr.Zero;
+			imagePtr = IntPtr.Zero;
 			size = Vector2i.Zero;
 			data = null;
 
@@ -61,9 +61,8 @@ namespace Ujeby.Plosinofka.Game.Graphics
 				return false;
 			}
 
-			var imagePtr = SDL_image.IMG_Load(filename);
+			imagePtr = SDL_image.IMG_Load(filename);
 			var surface = Marshal.PtrToStructure<SDL.SDL_Surface>(imagePtr);
-			texturePtr = SDL.SDL_CreateTextureFromSurface((Renderer.Instance as SDL2Renderer).RendererPtr, imagePtr);
 
 			size = new Vector2i(surface.w, surface.h);
 
@@ -92,16 +91,20 @@ namespace Ujeby.Plosinofka.Game.Graphics
 						((uint)tmpData[i * 4 + 3] << 24);
 				}
 
-			SDL.SDL_FreeSurface(imagePtr);
-
 			return true;
 		}
 
 		public static void Destroy()
 		{
-			// free sdl textures
-			foreach (var sprite in Library.Values.Where(s => s.TexturePtr != IntPtr.Zero))
-				SDL.SDL_DestroyTexture(sprite.TexturePtr);
+			// free sdl images/textures
+			foreach (var sprite in Library.Values)
+			{
+				if (sprite.ImagePtr != IntPtr.Zero)
+					SDL.SDL_FreeSurface(sprite.ImagePtr);
+	
+				if (sprite.TexturePtr != IntPtr.Zero)
+					SDL.SDL_DestroyTexture(sprite.TexturePtr);
+			}
 
 			Library.Clear();
 
@@ -118,7 +121,9 @@ namespace Ujeby.Plosinofka.Game.Graphics
 				if (!LibraryFileMap.TryGetValue(id, out string filename))
 					return null;
 					
-				return LoadSprite(filename, id);
+				sprite = LoadSprite(filename, id);
+				if (CreateTexture(sprite.Id, out Sprite spriteWithTexture))
+					sprite = spriteWithTexture;
 			}
 
 			return sprite;
@@ -179,6 +184,34 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			}
 
 			return font;
+		}
+
+		public static void CreateTextures()
+		{
+			var start = Engine.Core.GameLoop.GetElapsed();
+
+			var count = 0;
+			for (var i = 0; i < Library.Keys.Count; i++)
+			{
+				if (CreateTexture(Library.Keys.ElementAt(i), out _))
+					count++;
+			}
+
+			Log.Add($"CreateTextures(): { count } textures in { (int)(Engine.Core.GameLoop.GetElapsed() - start) }ms");
+		}
+
+		public static bool CreateTexture(string spriteId, out Sprite sprite)
+		{
+			sprite = Library[spriteId];
+			if (sprite.ImagePtr != IntPtr.Zero)
+			{ 
+				sprite.TexturePtr = SDL.SDL_CreateTextureFromSurface((Renderer.Instance as SDL2Renderer).RendererPtr, sprite.ImagePtr);
+				Library[spriteId] = sprite;
+
+				return true;
+			}
+
+			return false;
 		}
 	}
 }

@@ -5,6 +5,6 @@ namespace Ujeby.Plosinofka.Engine.Core
 	{
 		public static Input Instance { get; internal set; }
 
-		public abstract bool Handle(Simulation simulation);
+		public abstract bool Handle(Game simulation);
 	}
 }

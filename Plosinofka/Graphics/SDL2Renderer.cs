@@ -113,6 +113,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 		public override void Initialize()
 		{
 			CurrentFont = SpriteCache.LoadFont("font-5x7");
+			SpriteCache.CreateTexture(CurrentFont.SpriteId, out _);
 		}
 
 		public override void Destroy()
@@ -134,9 +135,9 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			Log.Add($"SDL2Renderer.Destroy()");
 		}
 
-		public override void Render(Simulation simulation, double interpolation)
+		public override void Render(Engine.Core.Game simulation, double interpolation)
 		{
-			var start = Engine.Core.Game.GetElapsed();
+			var start = Engine.Core.GameLoop.GetElapsed();
 
 			// clear backbuffer
 			SDL.SDL_SetRenderDrawColor(RendererPtr, 0x0, 0x0, 0x0, 0xff);
@@ -148,7 +149,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			SDL.SDL_RenderPresent(RendererPtr);
 
 			FramesRendered++;
-			LastFrameDuration = Engine.Core.Game.GetElapsed() - start;
+			LastFrameDuration = Engine.Core.GameLoop.GetElapsed() - start;
 		}
 
 		public override void SetWindowTitle(string title)
@@ -192,10 +193,10 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			var scale = CurrentWindowSize / view.Size;
 			var rect = new SDL.SDL_Rect
 			{
-				x = 0,
-				y = 0,
-				w = CurrentWindowSize.X,
-				h = CurrentWindowSize.Y,
+				x = (int)(rectangle.Left * scale.X),
+				y = (int)(rectangle.Bottom * scale.Y),
+				w = (int)(rectangle.Size.X * scale.X),
+				h = (int)(rectangle.Size.Y * scale.Y),
 			};
 
 			SDL.SDL_SetRenderDrawColor(RendererPtr, fillColor.R, fillColor.G, fillColor.B, fillColor.A);
@@ -412,7 +413,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 
 		public override void RenderLayer(AABB view, Layer layer, Light[] lights, AABB[] obstacles)
 		{
-			var shadingStart = Engine.Core.Game.GetElapsed();
+			var shadingStart = Engine.Core.GameLoop.GetElapsed();
 
 			if (Settings.Instance.GetVisual(VisualSetting.PerPixelShading) && layer.DataMapId != null)
 			{
@@ -433,7 +434,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			else
 				RenderLayer(view, layer);
 
-			LastShadingDuration = Engine.Core.Game.GetElapsed() - shadingStart;
+			LastShadingDuration = Engine.Core.GameLoop.GetElapsed() - shadingStart;
 		}
 
 		private ScreenBuffer PerPixelShading(AABB view, Layer layer, Light[] lights, AABB[] obstacles)

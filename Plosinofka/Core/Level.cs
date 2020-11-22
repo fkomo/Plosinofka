@@ -19,6 +19,7 @@ namespace Ujeby.Plosinofka.Game
 		public const uint ShadeMask = 0xff00ff00;
 		
 		public string Name { get; private set; }
+		public string NextLevel { get; private set; }
 		public Vector2i Size { get; private set; }
 
 		/// <summary>
@@ -42,7 +43,7 @@ namespace Ujeby.Plosinofka.Game
 				Size = new Vector2i((int)obstacles.Max(c => c.Right), (int)obstacles.Max(c => c.Top));
 
 			foreach (var aabb in obstacles)
-				Simulation.Instance.AddEntity(new Obstacle(aabb));
+				Engine.Core.Game.Instance.AddEntity(new Obstacle(aabb));
 		}
 
 		/// <summary></summary>
@@ -50,7 +51,7 @@ namespace Ujeby.Plosinofka.Game
 		/// <returns></returns>
 		public static Level Load(string name)
 		{
-			var start = Engine.Core.Game.GetElapsed();
+			var start = GameLoop.GetElapsed();
 
 			var level = new Level(name)
 			{
@@ -93,10 +94,10 @@ namespace Ujeby.Plosinofka.Game
 				var dataSprite = SpriteCache.Get(dataSpriteId);
 
 				foreach (var aabb in AABB.FromMap(dataSprite, ObstacleMask))
-					Simulation.Instance.AddEntity(new Obstacle(aabb));
+					Engine.Core.Game.Instance.AddEntity(new Obstacle(aabb));
 
 				foreach (var aabb in AABB.FromMap(dataSprite, DeathZoneMask))
-					Simulation.Instance.AddEntity(new DeathZone(aabb));
+					Engine.Core.Game.Instance.AddEntity(new DeathZone(aabb));
 			}
 
 			level.Size = mainLayer.Size;
@@ -105,28 +106,30 @@ namespace Ujeby.Plosinofka.Game
 			for (var i = 0; i < level.Layers.Length; i++)
 				level.Layers[i].Parallax = level.Size != level.Layers[i].Size;
 
-			Simulation.Instance.AddEntity(
+			Engine.Core.Game.Instance.AddEntity(
 				new Light(new Color4f(1.0, 0.2, 0.2), 10.0) { Position = new Vector2f(160, 160) });
-			Simulation.Instance.AddEntity(
+			Engine.Core.Game.Instance.AddEntity(
 				new Light(new Color4f(0.2, 1.0, 0.2), 10.0) { Position = new Vector2f(380, 180) });
-			Simulation.Instance.AddEntity(
+			Engine.Core.Game.Instance.AddEntity(
 				new Light(new Color4f(0.2, 0.2, 1.0), 10.0) { Position = new Vector2f(170, 80) });
 
 			var p = new Platform("platform",
-				path:new Vector2f[] 
-				{ 
-					new Vector2f(40, 56), 
+				path: new Vector2f[]
+				{
+					new Vector2f(40, 56),
 					new Vector2f(40, 132),
 					new Vector2f(192, 132),
 					new Vector2f(192, 56),
 				})
-				{
-					PathStep = 2,
-					PathPointWaitDuration = 1000,
-				};
-			Simulation.Instance.AddEntity(p);
+			{
+				PathStep = 2,
+				PathPointWaitDuration = 1000,
+			};
+			Engine.Core.Game.Instance.AddEntity(p);
 
-			var elapsed = Engine.Core.Game.GetElapsed() - start;
+			level.NextLevel = name;
+
+			var elapsed = Engine.Core.GameLoop.GetElapsed() - start;
 			Log.Add($"Level.Load('{ name }'): { (int)elapsed }ms");
 
 			return level;

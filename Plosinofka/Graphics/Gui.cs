@@ -18,7 +18,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 
 		public void Render(AABB view, double interpolation)
 		{
-			var start = Engine.Core.Game.GetElapsed();
+			var start = Engine.Core.GameLoop.GetElapsed();
 
 			//Renderer.Instance.RenderText(view, new Vector2i(0, 0),
 			//	"0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz +-*= ~@#$%^& ()[]{}<> \\/'\".:,;?|_",
@@ -27,18 +27,18 @@ namespace Ujeby.Plosinofka.Game.Graphics
 
 			var buffer = new List<TextLine>()
 			{
-				new Text { Value = $"fps: { Engine.Core.Game.Fps }", Color = Color4b.White },
-				new Text { Value = $"update: { Simulation.Instance.LastUpdateDuration:0.00}ms", Color = Color4b.White },
+				new Text { Value = $"fps: { Engine.Core.GameLoop.Fps }", Color = Color4b.White },
+				new Text { Value = $"update: { Engine.Core.Game.Instance.LastUpdateDuration:0.00}ms", Color = Color4b.White },
 				new Text { Value = $"render: { Renderer.Instance.LastFrameDuration:0.00}ms", Color = Color4b.White },
 				new Text { Value = $"+ shading: { Renderer.Instance.LastShadingDuration:0.00}ms", Color = Color4b.White },
 				new Text { Value = $"+ gui: { LastGuiDuration:0.00}ms", Color = Color4b.White },
 			};
 
 			buffer.Add(new EmptyLine());
-			buffer.Add(new Text { Value = Simulation.Instance.Player.ToString(), Color = Color4b.White });
+			buffer.Add(new Text { Value = Engine.Core.Game.Instance.Player.ToString(), Color = Color4b.White });
 
 			buffer.Add(new EmptyLine());
-			buffer.Add(new Text { Value = Simulation.Instance.Camera.ToString(), Color = Color4b.White });
+			buffer.Add(new Text { Value = Engine.Core.Game.Instance.Camera.ToString(), Color = Color4b.White });
 
 			buffer.Add(new EmptyLine());
 			buffer.Add(new Text { Value = $"{ nameof(VisualSetting) }s", Color = Color4b.White });
@@ -73,7 +73,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 
 			Renderer.Instance.RenderTextLinesOverlay(view, new Vector2i(5, 5), lines, Color4b.White, 0.5);
 
-			LastGuiDuration = Engine.Core.Game.GetElapsed() - start;
+			LastGuiDuration = Engine.Core.GameLoop.GetElapsed() - start;
 		}
 	}
 }

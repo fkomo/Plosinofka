@@ -61,10 +61,10 @@ namespace Ujeby.Plosinofka.Engine.Core
 			{
 				// smooth change to new height
 				var newHeight = (int)player.Center.Y - Size.Y / 2;
-				if (Math.Abs(newHeight - Origin.Y) > 1 && (Game.GetElapsed() - LastUpdate > UpdateDuration))
+				if (Math.Abs(newHeight - Origin.Y) > 1 && (GameLoop.GetElapsed() - LastUpdate > UpdateDuration))
 				{
 					Origin.Y += (newHeight - Origin.Y) / 2;
-					LastUpdate = Game.GetElapsed();
+					LastUpdate = GameLoop.GetElapsed();
 				}
 			}
 

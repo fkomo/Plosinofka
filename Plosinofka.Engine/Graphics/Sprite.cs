@@ -19,7 +19,10 @@ namespace Ujeby.Plosinofka.Engine.Graphics
 		/// </summary>
 		public uint[] Data;
 
-		/// <summary>sdl texture pointer</summary>
+		/// <summary>sdl2 image pointer</summary>
+		public IntPtr ImagePtr = IntPtr.Zero;
+
+		/// <summary>sdl2 texture pointer</summary>
 		public IntPtr TexturePtr = IntPtr.Zero;
 	}
 }

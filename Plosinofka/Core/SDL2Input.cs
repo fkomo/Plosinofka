@@ -10,7 +10,7 @@ namespace Ujeby.Plosinofka.Game
 		private readonly byte[] CurrentKeys = new byte[(int)SDL.SDL_Scancode.SDL_NUM_SCANCODES];
 		private readonly byte[] PreviousKeys = new byte[(int)SDL.SDL_Scancode.SDL_NUM_SCANCODES];
 
-		public override bool Handle(Simulation simulation)
+		public override bool Handle(Engine.Core.Game simulation)
 		{
 			while (SDL.SDL_PollEvent(out SDL.SDL_Event e) != 0)
 			{

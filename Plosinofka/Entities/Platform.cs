@@ -57,13 +57,13 @@ namespace Ujeby.Plosinofka.Engine.Entities
 			base.Update();
 
 			Velocity = Vector2f.Zero;
-			if (Path.Count > 0 && Core.Game.GetElapsed() > (WaitStart + PathPointWaitDuration))
+			if (Path.Count > 0 && Core.GameLoop.GetElapsed() > (WaitStart + PathPointWaitDuration))
 			{
 				var nextPathPoint = (CurrentPathPoint + 1) % Path.Count;
 				if ((Path[nextPathPoint] - Position).Length() <= PathStep)
 				{
 					Velocity = Path[nextPathPoint] - Position;
-					WaitStart = Core.Game.GetElapsed();
+					WaitStart = Core.GameLoop.GetElapsed();
 					CurrentPathPoint = nextPathPoint;
 				}
 				else
