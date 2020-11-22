@@ -96,8 +96,7 @@ namespace Ujeby.Plosinofka.Engine.Graphics
 		/// <param name="lines"></param>
 		/// <param name="color"></param>
 		/// <param name="fontSize"></param>
-		public abstract void RenderTextLinesOverlay(AABB view, Vector2i position, TextLine[] lines, Color4b color,
-			double fontSize = 1);
+		public abstract void RenderTextLinesOverlay(AABB view, Vector2i position, TextLine[] lines, double fontSize = 1);
 
 		/// <summary>
 		/// 

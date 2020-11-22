@@ -13,7 +13,7 @@ namespace Ujeby.Plosinofka.Engine.Graphics
 	public class Text : TextLine
 	{
 		public string Value;
-		public Color4b Color;
+		public Color4b Color = Color4b.White;
 	}
 
 	public class Font

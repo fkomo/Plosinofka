@@ -45,18 +45,18 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			{
 				var buffer = new List<TextLine>()
 				{
-					new Text { Value = $"fps: { Engine.Core.GameLoop.Fps }", Color = Color4b.White },
-					//new Text { Value = $"update: { Engine.Core.Game.Instance.LastUpdateDuration:0.00}ms", Color = Color4b.White },
-					//new Text { Value = $"render: { Renderer.Instance.LastFrameDuration:0.00}ms", Color = Color4b.White },
-					//new Text { Value = $"+ shading: { Renderer.Instance.LastShadingDuration:0.00}ms", Color = Color4b.White },
-					//new Text { Value = $"+ gui: { LastGuiDuration:0.00}ms", Color = Color4b.White },
+					new Text { Value = $"fps: { Engine.Core.GameLoop.Fps }" },
+					new Text { Value = $"render: { Renderer.Instance.LastFrameDuration:0.00}ms", Color = Color4b.Red },
+					new Text { Value = $"update: { Engine.Core.Game.Instance.LastUpdateDuration:0.00}ms", Color = Color4b.Green },
+					//new Text { Value = $"+ shading: { Renderer.Instance.LastShadingDuration:0.00}ms" },
+					//new Text { Value = $"+ gui: { LastGuiDuration:0.00}ms" },
 				};
 
 				buffer.Add(new EmptyLine());
-				buffer.Add(new Text { Value = Engine.Core.Game.Instance.Player.ToString(), Color = Color4b.White });
+				buffer.Add(new Text { Value = Engine.Core.Game.Instance.Player.ToString() });
 
 				buffer.Add(new EmptyLine());
-				buffer.Add(new Text { Value = Engine.Core.Game.Instance.Camera.ToString(), Color = Color4b.White });
+				buffer.Add(new Text { Value = Engine.Core.Game.Instance.Camera.ToString() });
 
 				buffer.Add(new EmptyLine());
 				buffer.Add(new Text { Value = $"{ nameof(VisualSetting) }s", Color = Color4b.White });
@@ -95,7 +95,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 				//Renderer.Instance.RenderRectangleOverlay(view, new AABB(Vector2f.Zero, textSize), 
 				//	Color4b.Red);
 
-				Renderer.Instance.RenderTextLinesOverlay(view, new Vector2i(5, 5), lines, Color4b.White, 0.5);
+				Renderer.Instance.RenderTextLinesOverlay(view, new Vector2i(5, 5), lines, 0.5);
 			}
 
 			LastGuiDuration = Engine.Core.GameLoop.GetElapsed() - start;

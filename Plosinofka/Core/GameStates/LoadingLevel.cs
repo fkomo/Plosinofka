@@ -67,8 +67,7 @@ namespace Ujeby.Plosinofka.Game.Core
 			var lines = buffer.ToArray();
 
 			var font = Renderer.Instance.GetCurrentFont();
-			Renderer.Instance.RenderTextLinesOverlay(view, 
-				new Vector2i(5, (int)view.Size.Y - 5 - progressBarHeight - font.CharSize.Y), lines, Color4b.White, 1);
+			Renderer.Instance.RenderTextLinesOverlay(view, new Vector2i(5, (int)view.Size.Y - 5 - progressBarHeight - font.CharSize.Y), lines, 1);
 		}
 
 		private static void LoadLevel(string levelName, Game0 game)

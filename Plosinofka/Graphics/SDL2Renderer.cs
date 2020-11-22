@@ -309,7 +309,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 		/// <param name="lines"></param>
 		/// <param name="color"></param>
 		/// <param name="fontSize"></param>
-		public override void RenderTextLinesOverlay(AABB view, Vector2i position, TextLine[] lines, Color4b color, 
+		public override void RenderTextLinesOverlay(AABB view, Vector2i position, TextLine[] lines, 
 			double fontSize = 1)
 		{
 			var font = CurrentFont;
@@ -328,7 +328,8 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			{
 				if (line is Text text)
 				{
-					// TODO RenderText color
+					SDL.SDL_SetTextureColorMod(fontSprite.TexturePtr, text.Color.R, text.Color.G, text.Color.B);
+
 					for (var i = 0; i < text.Value.Length; i++)
 					{
 						var charIndex = (int)text.Value[i] - 32;
