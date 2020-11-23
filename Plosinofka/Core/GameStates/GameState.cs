@@ -4,7 +4,7 @@ namespace Ujeby.Plosinofka.Game.Core
 {
 	public enum GameStateEnum
 	{
-		LoadingLevel,
+		Pause,
 		Gameplay,
 	}
 

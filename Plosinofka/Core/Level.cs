@@ -27,11 +27,6 @@ namespace Ujeby.Plosinofka.Game
 		/// </summary>
 		public Vector2f Start { get; private set; }
 		
-		/// <summary>
-		/// destination region to complete level
-		/// </summary>
-		public AABB Finish { get; private set; }
-
 		/// <summary>ordered from farthest to nearest</summary>
 		public Layer[] Layers { get; private set; }
 
@@ -56,7 +51,6 @@ namespace Ujeby.Plosinofka.Game
 			var level = new Level(name)
 			{
 				Start = new Vector2f(64, 20),
-				Finish = new AABB(new Vector2f(1000, 0), new Vector2f(1100, 100)),
 
 				// load layers
 				Layers = Directory.EnumerateFiles(Program.ContentDirectory + $"World\\{ name }\\", $"color*.png")
@@ -112,6 +106,8 @@ namespace Ujeby.Plosinofka.Game
 				new Light(new Color4f(0.2, 1.0, 0.2), 10.0) { Position = new Vector2f(380, 180) });
 			Engine.Core.Game.Instance.AddEntity(
 				new Light(new Color4f(0.2, 0.2, 1.0), 10.0) { Position = new Vector2f(170, 80) });
+
+			Engine.Core.Game.Instance.AddEntity(new LevelEndZone(new AABB(new Vector2f(1000, 0), new Vector2f(1100, 100))));
 
 			var p = new Platform("platform",
 				path: new Vector2f[]

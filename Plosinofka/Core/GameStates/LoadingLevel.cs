@@ -9,7 +9,7 @@ namespace Ujeby.Plosinofka.Game.Core
 {
 	public class LoadingLevel : GameState
 	{
-		public override GameStateEnum AsEnum => GameStateEnum.LoadingLevel;
+		public override GameStateEnum AsEnum => GameStateEnum.Pause;
 
 		private string LevelName;
 		private Thread LoadingThread = null;

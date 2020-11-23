@@ -23,6 +23,8 @@ namespace Ujeby.Plosinofka.Game.Core
 
 		private readonly DebugData DebugData = new DebugData();
 
+		// TODO gameplay timer
+
 		public Gameplay()
 		{
 			Fade = true;
@@ -115,7 +117,7 @@ namespace Ujeby.Plosinofka.Game.Core
 					// update player awarness of surrounding objects
 					game.Player.UpdateSurroundings(game.Entities.Where(e => (e as Obstacle) != null).Select(o => o as Obstacle).ToArray());
 
-					if (game.CurrentLevel.Finish.Overlap(game.Player.BoundingBox + game.Player.Position))
+					if (game.Entities.SingleOrDefault(e => e is LevelEndZone) is LevelEndZone levelEndZone && levelEndZone.VsEntity(game.Player))
 						game.ChangeState(new LoadingLevel(game.CurrentLevel.NextLevel));
 				}
 			}
