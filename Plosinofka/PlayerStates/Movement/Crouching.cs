@@ -1,7 +1,6 @@
 ﻿
 using Ujeby.Plosinofka.Engine.Core;
 using Ujeby.Plosinofka.Engine.Entities;
-using Ujeby.Plosinofka.Engine.Graphics;
 using Ujeby.Plosinofka.Game.Entities;
 
 namespace Ujeby.Plosinofka.Game.PlayerStates
@@ -35,8 +34,6 @@ namespace Ujeby.Plosinofka.Game.PlayerStates
 
 			if (!player.ObstacleAt(Side.Down))
 				player.ChangeMovement(new Falling());
-
-			// TODO move camera slightly down
 		}
 	}
 }

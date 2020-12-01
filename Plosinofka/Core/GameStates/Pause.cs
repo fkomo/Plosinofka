@@ -18,8 +18,6 @@ namespace Ujeby.Plosinofka.Game.Core
 		public override void Update(Game0 game)
 		{
 			base.Update(game);
-
-
 		}
 
 		public override void Render(Game0 game, double interpolation)
@@ -28,7 +26,7 @@ namespace Ujeby.Plosinofka.Game.Core
 
 			var view = game.Camera.InterpolatedView(interpolation);
 
-
+			// TODO show pause menu/settings
 		}
 	}
 }
