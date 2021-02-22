@@ -2,8 +2,10 @@
 using System.Threading;
 using Ujeby.Plosinofka.Engine.Common;
 using Ujeby.Plosinofka.Engine.Graphics;
+using Ujeby.Plosinofka.Engine.Network;
+using Ujeby.Plosinofka.Engine.Network.Messages;
+using Ujeby.Plosinofka.Engine.SDL;
 using Ujeby.Plosinofka.Game.Entities;
-using Ujeby.Plosinofka.Game.Graphics;
 
 namespace Ujeby.Plosinofka.Game.Core
 {
@@ -45,6 +47,8 @@ namespace Ujeby.Plosinofka.Game.Core
 
 				// loading completed
 				game.ChangeState(new Gameplay());
+
+				Client.Instance.Send(new JoinGame { Login = game.Player.Name });
 			}
 		}
 

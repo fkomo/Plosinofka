@@ -6,25 +6,19 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Ujeby.Plosinofka.Engine.Common;
 using Ujeby.Plosinofka.Engine.Graphics;
-using Ujeby.Plosinofka.Game.Entities;
-using Ujeby.Plosinofka.Game.PlayerStates;
 
-namespace Ujeby.Plosinofka.Game.Graphics
+namespace Ujeby.Plosinofka.Engine.SDL
 {
 	public class SpriteCache
 	{
-		/// <summary>
-		/// spriteId vs image path
-		/// </summary>
-		private static readonly Dictionary<string, string> LibraryFileMap = new Dictionary<string, string>()
-		{
-			{ PlayerDecals.DustParticlesLeft.ToString() , Program.ContentDirectory + "Effects\\DustParticlesLeft.png" },
-			{ PlayerDecals.DustParticlesRight.ToString() , Program.ContentDirectory + "Effects\\DustParticlesRight.png" },
+		public static string ContentDirectory { get; private set; }
+		public static Dictionary<string, string> LibraryFileMap { get; private set; }
 
-			{ PlayerAnimations.Idle.ToString() , Program.ContentDirectory + "Player\\player-idle.png" },
-			{ PlayerAnimations.WalkingLeft.ToString() , Program.ContentDirectory + "Player\\player-walkingLeft.png" },
-			{ PlayerAnimations.WalkingRight.ToString() , Program.ContentDirectory + "Player\\player-walkingRight.png" },
-		};
+		public static void Initialize(Dictionary<string, string> library = null, string contentDirectory = null)
+		{
+			LibraryFileMap = library;
+			ContentDirectory = contentDirectory;
+		}
 
 		/// <summary>
 		/// spriteId vs Sprite
@@ -73,7 +67,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 
 		public static Font LoadFont(string name)
 		{
-			var file = Program.ContentDirectory + $"{ name }.png";
+			var file = ContentDirectory + $"{ name }.png";
 			if (!File.Exists(file))
 			{
 				Log.Add($"LoadFont('{ file }'): file not found!");
@@ -94,7 +88,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			};
 
 			// create aabb's for each character
-			var dataFile = Program.ContentDirectory + $"{ name }-data.png";
+			var dataFile = ContentDirectory + $"{ name }-data.png";
 			if (File.Exists(dataFile))
 			{
 				var dataSprite = LoadSprite(dataFile);
@@ -147,7 +141,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			sprite = Library[spriteId];
 			if (sprite.ImagePtr != IntPtr.Zero && sprite.TexturePtr == IntPtr.Zero)
 			{
-				sprite.TexturePtr = SDL.SDL_CreateTextureFromSurface((Renderer.Instance as SDL2Renderer).RendererPtr, sprite.ImagePtr);
+				sprite.TexturePtr = SDL2.SDL.SDL_CreateTextureFromSurface((Renderer.Instance as SDL2Renderer).RendererPtr, sprite.ImagePtr);
 				Library[spriteId] = sprite;
 
 				return true;
@@ -162,10 +156,10 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			foreach (var sprite in Library.Values)
 			{
 				if (sprite.ImagePtr != IntPtr.Zero)
-					SDL.SDL_FreeSurface(sprite.ImagePtr);
+					SDL2.SDL.SDL_FreeSurface(sprite.ImagePtr);
 	
 				if (sprite.TexturePtr != IntPtr.Zero)
-					SDL.SDL_DestroyTexture(sprite.TexturePtr);
+					SDL2.SDL.SDL_DestroyTexture(sprite.TexturePtr);
 			}
 
 			Library.Clear();
@@ -186,7 +180,7 @@ namespace Ujeby.Plosinofka.Game.Graphics
 			}
 
 			imagePtr = SDL_image.IMG_Load(filename);
-			var surface = Marshal.PtrToStructure<SDL.SDL_Surface>(imagePtr);
+			var surface = Marshal.PtrToStructure<SDL2.SDL.SDL_Surface>(imagePtr);
 
 			size = new Vector2i(surface.w, surface.h);
 

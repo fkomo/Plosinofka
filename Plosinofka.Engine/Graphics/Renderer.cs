@@ -12,7 +12,6 @@ namespace Ujeby.Plosinofka.Engine.Graphics
 		/// <summary>max number of skippable frames to render</summary>
 		public abstract int MaxFrameSkip { get; protected set; }
 		public abstract double LastFrameDuration { get; protected set; }
-		public abstract double LastShadingDuration { get; protected set; }
 		public abstract long FramesRendered { get; protected set; }
 
 		public abstract Vector2i CurrentWindowSize { get; }
@@ -112,14 +111,5 @@ namespace Ujeby.Plosinofka.Engine.Graphics
 		/// <param name="layer"></param>
 		/// <param name="view"></param>
 		public abstract void RenderLayer(AABB view, Layer layer);
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="view"></param>
-		/// <param name="layer"></param>
-		/// <param name="lights"></param>
-		/// <param name="obstacles"></param>
-		public abstract void RenderLayer(AABB view, Layer layer, Light[] lights, AABB[] obstacles);
 	}
 }

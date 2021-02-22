@@ -2,6 +2,7 @@
 using Ujeby.Plosinofka.Engine.Core;
 using Ujeby.Plosinofka.Engine.Entities;
 using Ujeby.Plosinofka.Engine.Graphics;
+using Ujeby.Plosinofka.Engine.SDL;
 using Ujeby.Plosinofka.Game.Graphics;
 using Ujeby.Plosinofka.Game.PlayerStates;
 

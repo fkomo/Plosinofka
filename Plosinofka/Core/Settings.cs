@@ -17,6 +17,7 @@ namespace Ujeby.Plosinofka.Game
 		DrawHistory,
 		DrawAABB,
 		DrawCamera,
+		DrawIds,
 
 		Count,
 	}
@@ -61,6 +62,7 @@ namespace Ujeby.Plosinofka.Game
 				KeyboardButton.F7,
 				KeyboardButton.F8,
 				KeyboardButton.F9,
+				KeyboardButton.F10,
 			};
 		}
 

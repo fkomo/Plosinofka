@@ -54,11 +54,11 @@ namespace UjebyTest
 				SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED,
 				WindowSize.X, WindowSize.Y,
 				SDL.SDL_WindowFlags.SDL_WINDOW_VULKAN);
-			if (WindowPtr == null)
+			if (WindowPtr == IntPtr.Zero)
 				throw new Exception($"Failed to create window. SDL2Error({ SDL.SDL_GetError() })");
 
 			RendererPtr = SDL.SDL_CreateRenderer(WindowPtr, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED);
-			if (RendererPtr == null)
+			if (RendererPtr == IntPtr.Zero)
 				throw new Exception($"Failed to create renderer. SDL2Error({ SDL.SDL_GetError() })");
 
 			SDL.SDL_SetRenderDrawBlendMode(RendererPtr, SDL.SDL_BlendMode.SDL_BLENDMODE_ADD);

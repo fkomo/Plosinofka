@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Ujeby.Plosinofka.Engine.Common;
 using Ujeby.Plosinofka.Engine.Core;
 using Ujeby.Plosinofka.Engine.Entities;
@@ -33,7 +34,7 @@ namespace Ujeby.Plosinofka.Game
 
 		public override void Destroy()
 		{
-			Log.Add($"Simulation0.Destroy()");
+			Log.Add($"Game0.Destroy()");
 		}
 
 		public override void AddEntity(Entity entity)
@@ -54,6 +55,7 @@ namespace Ujeby.Plosinofka.Game
 		public void SetCurrentLevel(Level level, Player player, Camera camera = null)
 		{
 			Player = player;
+
 			CurrentLevel = level;
 
 			Camera = camera ?? Camera;
@@ -78,6 +80,17 @@ namespace Ujeby.Plosinofka.Game
 		internal void ChangeState(GameState newState)
 		{
 			State.Change(State.Current, newState);
+		}
+
+		internal void HandleKeyboardButton(KeyboardButton button)
+		{
+			var visualSetting = Array.IndexOf(Settings.Instance.InputMappings.VisualSettings, button, 0);
+			if (visualSetting != -1)
+				Settings.Instance.ToggleVisual((VisualSetting)visualSetting);
+
+			var debugSetting = Array.IndexOf(Settings.Instance.InputMappings.DebugSettings, button, 0);
+			if (debugSetting != -1)
+				Settings.Instance.ToggleDebug((DebugSetting)debugSetting);
 		}
 	}
 }

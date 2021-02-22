@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Ujeby.Plosinofka.Engine.Common;
 using Ujeby.Plosinofka.Engine.Core;
 using Ujeby.Plosinofka.Engine.Entities;
 using Ujeby.Plosinofka.Engine.Graphics;
+using Ujeby.Plosinofka.Engine.SDL;
 using Ujeby.Plosinofka.Game.Graphics;
 
 namespace Ujeby.Plosinofka.Game.Core
@@ -126,7 +128,7 @@ namespace Ujeby.Plosinofka.Game.Core
 		public override void Render(Game0 game, double interpolation)
 		{
 			base.Render(game, interpolation);
-			
+
 			var view = game.Camera.InterpolatedView(interpolation);
 
 			if (game.Player.Alive || Fade)
@@ -147,7 +149,7 @@ namespace Ujeby.Plosinofka.Game.Core
 					if (layer.Depth == 0)
 					{
 						// background layer
-						Renderer.Instance.RenderLayer(view, layer, lights, obstacles);
+						Rendering.Render(view, layer, lights, obstacles);
 
 						// entities
 						foreach (var entity in game.Entities)

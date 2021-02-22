@@ -2,6 +2,8 @@
 using System.Diagnostics;
 using Ujeby.Plosinofka.Engine.Common;
 using Ujeby.Plosinofka.Engine.Graphics;
+using Ujeby.Plosinofka.Engine.Network;
+using Ujeby.Plosinofka.Engine.Network.Messages;
 
 namespace Ujeby.Plosinofka.Engine.Core
 {
@@ -11,13 +13,13 @@ namespace Ujeby.Plosinofka.Engine.Core
 
 		private readonly string Title;
 
-		public GameLoop(string title, Renderer renderer, Game simulation, Input input)
+		public GameLoop(string title, Renderer renderer, Game game, Input input)
 		{
 			Stopwatch.Restart();
 
 			Title = title;
 			Renderer.Instance = renderer;
-			Game.Instance = simulation;
+			Game.Instance = game;
 			Input.Instance = input;
 		}
 
