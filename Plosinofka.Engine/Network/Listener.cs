@@ -66,7 +66,7 @@ namespace Ujeby.Plosinofka.Engine.Network
 					}
 					catch (SocketException ex) when (ex.ErrorCode == 10060)
 					{
-						// ignore timeout
+						// timeout
 					}
 					catch (Exception ex)
 					{

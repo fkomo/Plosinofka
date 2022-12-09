@@ -29,6 +29,8 @@ namespace Ujeby.Plosinofka.Game.Core
 
 			if (LoadingThread == null)
 			{
+				Client.Instance.Send(new LoadLevel(LevelName));
+
 				Progress = 0;
 
 				LoadingThread = new Thread(() => { LoadLevel(LevelName, game); });

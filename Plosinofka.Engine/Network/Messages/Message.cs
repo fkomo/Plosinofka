@@ -12,6 +12,7 @@ namespace Ujeby.Plosinofka.Engine.Network.Messages
 		Invalid = 0,
 		JoinGame = 1,
 		LeaveGame = 2,
+		LoadLevel = 3,
 	}
 
 	public abstract class Message
@@ -20,6 +21,7 @@ namespace Ujeby.Plosinofka.Engine.Network.Messages
 		{
 			{ MessageType.JoinGame, typeof(JoinGame) },
 			{ MessageType.LeaveGame, typeof(LeaveGame) },
+			{ MessageType.LoadLevel, typeof(LoadLevel) },
 		};
 
 		// auto-generated in constructor

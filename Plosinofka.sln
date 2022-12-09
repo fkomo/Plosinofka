@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30523.141
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33122.133
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plosinofka.Game", "Plosinofka\Plosinofka.Game.csproj", "{70DDFAFD-7064-4892-9897-936A4ADDE7B0}"
 EndProject
@@ -9,9 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UjebyTest", "UjebyTest\Ujeb
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plosinofka.Engine", "Plosinofka.Engine\Plosinofka.Engine.csproj", "{8B4D6A87-6192-459E-9FAF-BF52FB469CBC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Plosinofka.Engine.SDL", "Plosinofka.Engine.SDL\Plosinofka.Engine.SDL.csproj", "{70037E49-292C-4392-9C50-D8E2F626BBC0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plosinofka.Engine.SDL", "Plosinofka.Engine.SDL\Plosinofka.Engine.SDL.csproj", "{70037E49-292C-4392-9C50-D8E2F626BBC0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Plosinofka.Server", "Plosinofka.Server\Plosinofka.Server.csproj", "{8C37A9FA-DDC4-4E5E-8987-639C2F91638E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plosinofka.Server", "Plosinofka.Server\Plosinofka.Server.csproj", "{8C37A9FA-DDC4-4E5E-8987-639C2F91638E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
